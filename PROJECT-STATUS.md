@@ -1,131 +1,76 @@
 # RPG Campaign Manager — Project Status
 
-> Last updated: 2026-05-31
+> Last updated: 2026-06-13
 
-The app is scaffolded and structurally complete. All backend logic, database schema, RLS, and server actions are in place. The remaining work is primarily **UI wiring** for features whose data layer is already solid. The project needs a live Supabase project (env vars + migrations) before it will run.
-
----
-
-## Build order status
-
-From the reference doc's suggested build order:
-
-| # | Feature | Backend | UI | Status |
-|---|---------|---------|-----|--------|
-| 1 | Auth + campaigns + memberships | ✅ | ✅ | **Done** |
-| 2 | Invites (invite + accept) | ✅ | ⚠️ | **Backend done; no invite button in campaign UI yet** |
-| 3 | Wiki: categories + pages | ✅ | ⚠️ | **Pages + editor done; category management UI missing** |
-| 4 | Page save hardening (3 layers) | ✅ | ✅ | **Done** |
-| 5 | Characters + inventory | ✅ | ⚠️ | **Schema done; no sheet/inventory editor UI yet** |
-| 6 | Combat log (realtime) | ✅ | ✅ | **Done** |
-| 7 | File uploads | ✅ | ❌ | **Server action done; no upload UI in app routes** |
-| 8 | Personal library | ✅ | ⚠️ | **Schema + transfer actions done; library UI minimal (list only)** |
-| 9 | TV / read-only display | ✅ | ✅ | **Done** (webOS middleware, `/tv` routes, server-rendered notes) |
+The app has been **stripped down to the authentication flow plus placeholder routes**. All feature logic (server actions, combat log, wiki editor, personal library, TV rendering) was intentionally removed and will be rebuilt later on top of the auth foundation. The database schema (`supabase/migrations/`) and the design spec (`rpg-manager-reference.md`) are kept for reference.
 
 ---
 
-## What's fully implemented
+## What's implemented
 
-### Auth & Campaigns
-- Supabase Auth (Google + email)
-- `createCampaign` server action: creates campaign row + auto-assigns creator as DM (atomic)
-- `/campaigns` page: server-rendered list of user's campaigns (RLS-filtered)
-- `/campaigns/[campaignId]` page: campaign detail with page list, character list, combat log
+### Authentication (the only working feature)
+- **Login page** (`app/login/page.tsx`): Google OAuth + email/password (sign in and create account modes)
+- **Auth callback** (`app/auth/callback/route.ts`): exchanges the OAuth `code` for a session and verifies the email-confirmation OTP (`token_hash` + `type`)
+- **Session middleware** (`lib/supabase/middleware.ts` + `middleware.ts`):
+  - Refreshes the Supabase session cookie on every request
+  - Redirects unauthenticated users to `/login` (public paths: `/`, `/login`, `/auth`, `/tv`, `/join`)
+  - Redirects signed-in users away from `/login`
+  - Still routes legacy webOS TV user-agents to `/tv`
+- **Navbar auth state** (`app/layout.tsx`): left-aligned links; right-aligned "Sign in" button when logged out, or profile (avatar/name/email) + "Sign out" when logged in
+- **Sign-out** (`components/SignOutButton.tsx`)
 
-### Wiki
-- `categories` + `pages` schema with full RLS
-- Tiptap rich-text editor (`PageEditor.tsx`) at `/campaigns/[campaignId]/pages/[pageId]`
-- Page content stored as structured JSON (`content_json`); derived `content_text` computed server-side
+### Supabase clients (`lib/supabase/`)
+- `client.ts` — browser client (anon key, RLS)
+- `server.ts` — `createServerClient()` (user-scoped) + `createAdminClient()` (service role)
+- `middleware.ts` — session-refresh helper for Next.js middleware
 
-### Page Save Hardening (`app/actions/pages.ts`)
-- `savePage`: wipe guard (blocks save if content drops >90%; asks confirmation) + rolling snapshots
-- `deletePage`: soft delete via `deleted_at` (row preserved)
-- `restorePreviousContent`: one-step undo from `previous_content_json`
-- `page_recovery_snapshots`: capped to 10 newest per page
-
-### Realtime Combat Log
-- `CombatLog.tsx`: loads existing entries + subscribes to `INSERT` events via Supabase Realtime
-- `addLogEntry` client function for inserting new entries
-- `kind` values: `attack`, `roll`, `note`, `system`
-
-### Invite System (`app/actions/invites.ts`)
-- `inviteMember`: DM-only permission check + token generation (7-day expiry)
-- `acceptInvite`: validates token, creates membership, marks invite used
-- Accept flow page at `/join/[token]` with `AcceptInvite.tsx` component
-
-### Personal Library (`app/actions/library-transfer.ts`)
-- Full envelope + typed-body schema: `library_items`, `library_folders`, `library_character_bodies`, `library_note_bodies`, `library_spell_bodies`, `library_image_bodies`
-- RLS: owner-only access
-- `copyItemToCampaign`: personal library → campaign (characters + notes wired; images/spells stubbed)
-- `importPageToLibrary`: campaign page → personal library note
-
-### TV / Read-Only Surface
-- `middleware.ts`: auto-redirects webOS user-agents to `/tv`
-- `/tv` route group: campaign list, campaign detail, server-rendered note view, realtime combat log
-- Notes rendered via `generateHTML(json, extensions)` — editor never loads on TV
-- `tv.css`: webOS-safe styles (flexbox, hex colors, strong focus styles for remote navigation)
-- `browserslist` in `package.json`: `chrome >= 38` floor
-
-### Database
-- `supabase/migrations/0001_init.sql`: all tables
-- `supabase/migrations/0002_rls.sql`: all RLS policies + `is_member()` helper
+### Kept for later (not wired into the app)
+- `supabase/migrations/0001_init.sql` (schema) and `0002_rls.sql` (RLS + `is_member()` helper)
+- `rpg-manager-reference.md` (full design spec and code patterns)
 
 ---
 
-## What's partially done (UI missing)
+## Placeholder routes (no logic yet)
 
-### Invite button in campaign UI
-- Server actions exist (`inviteMember`, `acceptInvite`)
-- No invite trigger/button in `/campaigns/[campaignId]` yet
-- Invite acceptance page exists at `/join/[token]`
+These render a simple "Coming soon" and exist only to preserve the route structure:
 
-### Category management
-- `categories` table + RLS fully modeled
-- No UI to create, rename, or organize categories in the wiki sidebar
-
-### Character sheet editor
-- `characters` table with flexible `sheet` (jsonb) fully modeled
-- Characters appear in campaign detail as a list
-- No UI to edit the sheet fields or add/remove characters
-
-### Inventory
-- `inventory_items` table fully modeled
-- No UI to add, edit, or remove items
-
-### File upload UI
-- `getPrivateFileUrl` server action exists (signed URL for private files)
-- Client upload pattern documented in `rpg-manager-reference.md`
-- No upload button or file browser in any app route
-
-### Personal library UI
-- `/library` page shows envelope list
-- No UI to create library items, edit them, manage folders/tags, or trigger transfers
+- `app/campaigns/page.tsx` — campaign list
+- `app/campaigns/[campaignId]/page.tsx` — campaign detail
+- `app/campaigns/[campaignId]/pages/[pageId]/page.tsx` — wiki page editor
+- `app/join/[token]/page.tsx` — invite acceptance
+- `app/library/page.tsx` — personal library
+- `app/tv/page.tsx`, `app/tv/[campaignId]/page.tsx`, `app/tv/[campaignId]/combat/page.tsx`, `app/tv/notes/[pageId]/page.tsx` — read-only TV surface (`app/tv/layout.tsx` + `tv.css` retained)
 
 ---
 
-## What's not built (deliberate non-goals)
+## Removed (to be rebuilt)
 
-- **Collaborative same-field editing** (no Y.js/Liveblocks/CRDT) — combat log is append-only; pages are single-editor. Path stays open: Tiptap is built on ProseMirror/Y.js lineage; adding collaboration later means binding a Y.js document to the existing editor without schema changes.
-- **Separate WebSocket server** — Supabase Realtime handles broadcast; no debounce-to-DB bridge needed.
-- **tRPC + Prisma** — Next.js server actions cover all logic-heavy mutations with less ceremony.
+- **Server actions** (`app/actions/`): `campaigns.ts`, `invites.ts`, `pages.ts`, `files.ts`, `library-transfer.ts`
+- **Components**: `CombatLog.tsx`, `TvCombatLog.tsx`
+- **Feature components**: `NewCampaignButton.tsx`, `PageEditor.tsx`, `AcceptInvite.tsx`
+- **Editor extensions**: `lib/editor/extensions.ts`
+
+> Note: Tiptap dependencies remain in `package.json` but are currently unused; they'll be needed again when the wiki editor and TV note rendering are rebuilt.
 
 ---
 
 ## Next recommended steps
 
-1. **Wire invite UI** — add invite button + token copy to `/campaigns/[campaignId]`; the server action is ready
-2. **Category sidebar** — create/rename/reorder categories; page-to-category assignment
-3. **Character sheet editor** — form over the `sheet` jsonb blob; add/remove characters
-4. **Inventory editor** — simple add/remove/quantity UI per character
-5. **File upload UI** — drag-drop or picker that calls the existing client upload pattern
-6. **Library item creation UI** — forms per kind; folder/tag management; transfer buttons on pages/characters
+1. **Campaigns + memberships** — rebuild `createCampaign` server action + the campaign list/detail UI
+2. **Invites** — rebuild `inviteMember` / `acceptInvite` + the `/join/[token]` flow
+3. **Wiki** — rebuild the Tiptap editor (`PageEditor`), `savePage` hardening, and shared `lib/editor/extensions.ts`
+4. **Characters + inventory**
+5. **Combat log (realtime)** — rebuild `CombatLog` / `TvCombatLog`
+6. **File uploads**
+7. **Personal library**
+8. **TV / read-only display** — rebuild server-rendered notes + TV combat log
 
 ---
 
-## Environment checklist (before first run)
+## Environment checklist
 
 - [ ] `.env.local` filled in (Supabase URL, anon key, service role key, `APP_URL`)
-- [ ] `0001_init.sql` run in Supabase SQL editor
-- [ ] `0002_rls.sql` run in Supabase SQL editor
-- [ ] Storage buckets created: `public-assets` (public) and `private-files` (private)
-- [ ] Realtime enabled for `combat_log_entries` table (Database → Replication in dashboard)
+- [ ] `0001_init.sql` and `0002_rls.sql` run in the Supabase SQL editor
+- [ ] **Auth → Providers → Google** enabled (Client ID + secret) with redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`
+- [ ] **Auth → URL Configuration**: add `http://localhost:3000/auth/callback` to the redirect allowlist
+- [ ] **Auth → Providers → Email**: confirm whether email confirmation is required (affects the sign-up flow)

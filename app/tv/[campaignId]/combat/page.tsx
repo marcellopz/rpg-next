@@ -1,14 +1,9 @@
-import { TvCombatLog } from "@/components/TvCombatLog";
-
-export default function TvCombatPage({
-  params,
-}: {
-  params: { campaignId: string };
-}) {
+// Placeholder route. The read-only TV combat log will be rebuilt later.
+export default function TvCombatPage() {
   return (
     <div className="tv-row">
       <h1>Live combat log</h1>
-      <TvCombatLog campaignId={params.campaignId} />
+      <p>Coming soon.</p>
     </div>
   );
 }

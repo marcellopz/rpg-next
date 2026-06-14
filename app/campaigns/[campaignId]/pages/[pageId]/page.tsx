@@ -1,26 +1,15 @@
-import { createServerClient } from "@/lib/supabase/server";
-import type { JSONContent } from "@tiptap/core";
-import { PageEditor } from "./PageEditor";
-
-export default async function WikiPage({
+// Placeholder route. The rich-text wiki page editor will be rebuilt later.
+export default function WikiPage({
   params,
 }: {
   params: { campaignId: string; pageId: string };
 }) {
-  const supabase = createServerClient();
-  const { data: page } = await supabase
-    .from("pages")
-    .select("title, content_json")
-    .eq("id", params.pageId)
-    .single();
-
   return (
-    <div className="max-w-3xl space-y-4">
-      <h1 className="text-xl font-bold">{page?.title ?? "Untitled"}</h1>
-      <PageEditor
-        pageId={params.pageId}
-        initialContent={(page?.content_json as JSONContent) ?? null}
-      />
+    <div className="max-w-3xl space-y-3">
+      <h1 className="text-xl font-bold">Wiki page</h1>
+      <p className="text-sm text-gray-500">
+        Coming soon (page {params.pageId}).
+      </p>
     </div>
   );
 }
