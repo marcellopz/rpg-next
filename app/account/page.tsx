@@ -17,13 +17,13 @@ export default async function AccountPage() {
   const avatarSeed = user?.email ?? user?.id ?? "";
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
+    <div className="mx-auto max-w-lg space-y-6 px-6 py-8">
       <h1 className="text-xl font-bold">Account</h1>
 
       <div className="flex items-center gap-3">
         <PictoAvatar seed={avatarSeed} size={56} />
         <div className="text-sm">
-          <p className="text-gray-300">{user?.email}</p>
+          <p className="text-gray-700">{user?.email}</p>
           <p className="text-gray-500">Signed in</p>
         </div>
       </div>

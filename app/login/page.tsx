@@ -122,12 +122,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm space-y-6 pt-8">
+    <div className="mx-auto max-w-sm space-y-6 px-6 py-12">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">
           {mode === "signup" ? "Create account" : "Sign in"}
         </h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-500">
           {mode === "signup"
             ? "Set up access to your RPG campaigns."
             : "Continue to your RPG campaigns."}
@@ -135,7 +135,7 @@ export default function LoginPage() {
       </div>
 
       {error && (
-        <p className="rounded border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </p>
       )}
@@ -144,15 +144,15 @@ export default function LoginPage() {
           <button
             onClick={signInWithGoogle}
             disabled={busy !== null}
-            className="flex w-full items-center justify-center gap-2 rounded border border-gray-700 px-4 py-2.5 text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
           >
             {busy === "google" ? "Redirecting…" : "Continue with Google"}
           </button>
 
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <div className="h-px flex-1 bg-gray-800" />
+          <div className="flex items-center gap-3 text-xs text-gray-400">
+            <div className="h-px flex-1 bg-gray-200" />
             <span>or</span>
-            <div className="h-px flex-1 bg-gray-800" />
+            <div className="h-px flex-1 bg-gray-200" />
           </div>
 
           <form onSubmit={handleEmailSubmit} className="space-y-3">
@@ -165,7 +165,7 @@ export default function LoginPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Display name"
-                className="w-full rounded border border-gray-700 bg-gray-900 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
               />
             )}
             <input
@@ -175,7 +175,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded border border-gray-700 bg-gray-900 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
             />
             <input
               type="password"
@@ -187,7 +187,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full rounded border border-gray-700 bg-gray-900 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
             />
             {mode === "signup" && (
               <input
@@ -198,13 +198,13 @@ export default function LoginPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repeat password"
-                className="w-full rounded border border-gray-700 bg-gray-900 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
               />
             )}
             <button
               type="submit"
               disabled={busy !== null}
-              className="w-full rounded bg-indigo-600 px-4 py-2.5 text-sm font-medium hover:bg-indigo-500 disabled:opacity-50"
+              className="w-full rounded bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-500 disabled:opacity-50"
             >
               {busy === "email"
                 ? mode === "signup"
@@ -216,13 +216,13 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-400">
+          <p className="text-center text-sm text-gray-500">
             {mode === "signup" ? (
               <>
                 Already have an account?{" "}
                 <button
                   onClick={() => switchMode("signin")}
-                  className="text-indigo-400 hover:text-indigo-300"
+                  className="text-accent-600 hover:text-accent-500"
                 >
                   Sign in
                 </button>
@@ -232,7 +232,7 @@ export default function LoginPage() {
                 Don&apos;t have an account?{" "}
                 <button
                   onClick={() => switchMode("signup")}
-                  className="text-indigo-400 hover:text-indigo-300"
+                  className="text-accent-600 hover:text-accent-500"
                 >
                   Create one
                 </button>

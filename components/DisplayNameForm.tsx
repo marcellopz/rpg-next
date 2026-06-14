@@ -42,7 +42,7 @@ export function DisplayNameForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <label htmlFor="displayName" className="block text-sm text-gray-300">
+      <label htmlFor="displayName" className="block text-sm text-gray-700">
         Display name
       </label>
       <input
@@ -55,18 +55,18 @@ export function DisplayNameForm({
           setStatus("idle");
         }}
         placeholder="How others see you"
-        className="w-full rounded border border-gray-700 bg-gray-900 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+        className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
       />
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       {status === "saved" && (
-        <p className="text-sm text-green-400">Display name saved.</p>
+        <p className="text-sm text-green-600">Display name saved.</p>
       )}
 
       <button
         type="submit"
         disabled={busy || displayName.trim() === initialDisplayName.trim()}
-        className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500 disabled:opacity-50"
+        className="rounded bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-500 disabled:opacity-50"
       >
         {busy ? "Saving…" : "Save"}
       </button>

@@ -32,20 +32,27 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="min-h-screen">
-        <header className="border-b border-gray-800 px-6 py-3">
-          <nav className="flex items-center justify-between gap-6 text-sm">
-            <div className="flex items-center gap-6">
-              <Link href="/" className="font-semibold">
-                RPG Manager
+      <body className="flex min-h-screen flex-col bg-[#f0f0f0] text-gray-900">
+        <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 px-6 py-4 shadow-sm backdrop-blur">
+          <nav className="mx-auto flex max-w-6xl items-center justify-between gap-6">
+            <div className="flex items-center gap-8">
+              <Link href="/" className="flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.svg" alt="" className="h-9 w-9" />
+                <span className="text-lg font-semibold text-gray-900">
+                  RPG Manager
+                </span>
               </Link>
               <Link
                 href="/campaigns"
-                className="text-gray-300 hover:text-white"
+                className="text-sm text-gray-600 hover:text-gray-900"
               >
                 Campaigns
               </Link>
-              <Link href="/library" className="text-gray-300 hover:text-white">
+              <Link
+                href="/library"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 Library
               </Link>
             </div>
@@ -55,9 +62,13 @@ export default async function RootLayout({
                 <>
                   <Link
                     href="/account"
-                    className="flex items-center gap-2 text-gray-300 hover:text-white"
+                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
                   >
-                    <PictoAvatar seed={avatarSeed} size={28} />
+                    <PictoAvatar
+                      seed={avatarSeed}
+                      size={40}
+                      className="border border-gray-300"
+                    />
                     <span className="max-w-[12rem] truncate">
                       {displayName}
                     </span>
@@ -67,7 +78,7 @@ export default async function RootLayout({
               ) : (
                 <Link
                   href="/login"
-                  className="rounded bg-indigo-600 px-3 py-1.5 font-medium text-white hover:bg-indigo-500"
+                  className="rounded bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-500"
                 >
                   Sign in
                 </Link>
@@ -75,7 +86,14 @@ export default async function RootLayout({
             </div>
           </nav>
         </header>
-        <main className="px-6 py-8">{children}</main>
+        <main className="flex-1">{children}</main>
+        <footer className="mt-auto border-t border-gray-200 bg-white px-6 py-8">
+          <div className="mx-auto flex max-w-6xl items-center gap-2 text-sm text-gray-500">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="" className="h-6 w-6" />
+            <span>RPG Manager</span>
+          </div>
+        </footer>
       </body>
     </html>
   );
