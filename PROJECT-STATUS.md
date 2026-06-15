@@ -13,7 +13,7 @@ The app has been **stripped down to the authentication flow plus placeholder rou
 - **Auth callback** (`app/auth/callback/route.ts`): exchanges the OAuth `code` for a session and verifies the email-confirmation OTP (`token_hash` + `type`)
 - **Session middleware** (`lib/supabase/middleware.ts` + `middleware.ts`):
   - Refreshes the Supabase session cookie on every request
-  - Redirects unauthenticated users to `/login` (public paths: `/`, `/login`, `/auth`, `/tv`, `/join`)
+  - Redirects unauthenticated users to `/login` (public paths: `/`, `/login`, `/auth`, `/tv`, `/join`, `/campaigns`, `/library`)
   - Redirects signed-in users away from `/login`
   - Still routes legacy webOS TV user-agents to `/tv`
 - **Navbar auth state** (`app/layout.tsx`): left-aligned links; right-aligned "Sign in" button when logged out, or profile (avatar/name/email) + "Sign out" when logged in

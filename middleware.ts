@@ -3,7 +3,7 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 // Paths that never require authentication. Everything else redirects to
 // /login when there's no signed-in user.
-const PUBLIC_PATHS = ["/login", "/auth", "/tv", "/join"];
+const PUBLIC_PATHS = ["/login", "/auth", "/tv", "/join", "/campaigns", "/library"];
 
 function isPublic(pathname: string) {
   if (pathname === "/") return true;
