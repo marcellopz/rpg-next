@@ -26,6 +26,21 @@ Campaign creation, invites, role changes, page save hardening, and DM-controlled
 
 ---
 
+## Schema change rule — STOP before touching migrations
+
+**Never create, modify, or delete a migration file without explicit approval.**
+
+Migrations are destructive by nature: they alter a live database and cannot be automatically undone. Before doing any of the following, **stop and present the proposed change to the user for review**:
+
+- Adding, renaming, or dropping a table or column
+- Changing a column type, constraint, or default
+- Adding or modifying an RLS policy or helper function
+- Creating or deleting a migration file under `supabase/migrations/`
+
+The proposal must include: the exact SQL, which migration file it belongs to (new or existing), and what data (if any) would be lost or altered on the remote database.
+
+---
+
 ## Key directories
 
 ```
@@ -91,16 +106,19 @@ The main app is unrestricted. Only `/tv` must follow these rules:
 ## Dev setup
 
 1. Copy `.env.example` → `.env.local` and fill in Supabase project URL + keys
-2. Run SQL migrations in Supabase SQL editor: `supabase/migrations/0001_init.sql` then `0002_rls.sql`
+2. Run migrations: `pnpm supabase login` → `pnpm supabase link --project-ref <ref>` → `pnpm db:push`
 3. Create two Storage buckets in Supabase dashboard: `public-assets` (public) and `private-files` (private)
 4. Enable Realtime for the `combat_log_entries` table (Database → Replication)
-5. `npm install && npm run dev`
+5. `pnpm install && pnpm dev`
 
 ## Commands
 
 ```bash
-npm run dev        # Start dev server (localhost:3000)
-npm run typecheck  # tsc --noEmit
-npm run lint       # next lint
-npm run build      # Production build
+pnpm dev           # Start dev server (localhost:3000)
+pnpm typecheck     # tsc --noEmit
+pnpm lint          # next lint
+pnpm build         # Production build
+pnpm db:push       # Apply pending migrations to remote DB
+pnpm db:migrations # List applied/pending migrations
+pnpm db:new <name> # Scaffold a new migration file
 ```

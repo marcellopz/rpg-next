@@ -31,8 +31,12 @@ The app has the **authentication flow plus campaign CRUD**, with the remaining f
 - `middleware.ts` — session-refresh helper for Next.js middleware
 
 ### Database (`supabase/migrations/`)
-- `0001_init.sql` (schema) and `0002_rls.sql` (RLS + `is_member()` helper)
-- `0003_campaign_description.sql` — adds a `description` column to `campaigns` (run this in the Supabase SQL editor)
+
+> **Schema changes require explicit approval before any migration file is created or modified.** Present the proposed SQL, the target file, and any data impact to the user first.
+
+- `0001_init.sql` — `campaigns` + `memberships` tables (with `description` column)
+- `0002_rls.sql` — `is_member()` helper + RLS policies for campaigns and memberships
+- All other tables (invites, wiki, characters, combat log, files, library) are deferred; each will get its own numbered migration when the feature is built
 - `rpg-manager-reference.md` (full design spec and code patterns) kept for reference
 
 ---
@@ -72,10 +76,24 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 
 ---
 
+## Planned migrations (one per feature, added when built)
+
+| File | Feature |
+|---|---|
+| `0003_invites.sql` | Invites table (join flow) |
+| `0004_wiki.sql` | Categories, pages, page_recovery_snapshots |
+| `0005_characters.sql` | Characters, inventory_items |
+| `0006_combat_log.sql` | Combat log entries + realtime publication |
+| `0007_files.sql` | Files metadata |
+| `0008_library.sql` | Personal library tables |
+
+---
+
 ## Environment checklist
 
 - [ ] `.env.local` filled in (Supabase URL, anon key, service role key, `APP_URL`)
-- [ ] `0001_init.sql`, `0002_rls.sql`, and `0003_campaign_description.sql` run in the Supabase SQL editor
+- [ ] `pnpm supabase login` + `pnpm supabase link --project-ref <ref>` to link the CLI
+- [ ] `pnpm db:push` to apply `0001_init.sql` and `0002_rls.sql`
 - [ ] **Auth → Providers → Google** enabled (Client ID + secret) with redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`
 - [ ] **Auth → URL Configuration**: add `http://localhost:3000/auth/callback` to the redirect allowlist
 - [ ] **Auth → Providers → Email**: confirm whether email confirmation is required (affects the sign-up flow)
