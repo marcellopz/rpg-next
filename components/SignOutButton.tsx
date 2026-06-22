@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -17,12 +18,8 @@ export function SignOutButton() {
   }
 
   return (
-    <button
-      onClick={handleSignOut}
-      disabled={busy}
-      className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50"
-    >
+    <Button variant="secondary" size="sm" onClick={handleSignOut} disabled={busy}>
       {busy ? "Signing out…" : "Sign out"}
-    </button>
+    </Button>
   );
 }

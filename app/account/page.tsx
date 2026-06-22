@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { DisplayNameForm } from "@/components/DisplayNameForm";
+import { Typography } from "@/components/ui";
 
 export default async function AccountPage() {
   const supabase = createServerClient();
@@ -18,13 +19,13 @@ export default async function AccountPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6 px-6 py-8">
-      <h1 className="text-xl font-bold">Account</h1>
+      <Typography variant="h1">Account</Typography>
 
       <div className="flex items-center gap-3">
         <PictoAvatar seed={avatarSeed} size={56} />
-        <div className="text-sm">
-          <p className="text-gray-700">{user?.email}</p>
-          <p className="text-gray-500">Signed in</p>
+        <div>
+          <Typography variant="body">{user?.email}</Typography>
+          <Typography variant="muted">Signed in</Typography>
         </div>
       </div>
 

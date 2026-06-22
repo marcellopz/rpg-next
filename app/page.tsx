@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { buttonVariants } from "@/components/ui";
+import { cn } from "@/lib/cn";
 
 function IconBook() {
   return (
@@ -128,7 +130,10 @@ export default function HomePage() {
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               href="/campaigns"
-              className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-accent-700 shadow-sm hover:bg-gray-100"
+              className={cn(
+                buttonVariants({ variant: "white", size: "lg" }),
+                "font-semibold"
+              )}
             >
               Go to campaigns
             </Link>
@@ -271,7 +276,10 @@ export default function HomePage() {
           </p>
           <Link
             href="/campaigns"
-            className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-accent-700 shadow-sm hover:bg-gray-100"
+            className={cn(
+              buttonVariants({ variant: "white", size: "lg" }),
+              "font-semibold"
+            )}
           >
             Go to campaigns
           </Link>

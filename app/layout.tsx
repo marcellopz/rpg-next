@@ -4,6 +4,7 @@ import "./globals.css";
 import { createServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/SignOutButton";
 import { PictoAvatar } from "@/components/PictoAvatar";
+import { buttonVariants } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "RPG Campaign Manager",
@@ -76,10 +77,7 @@ export default async function RootLayout({
                   <SignOutButton />
                 </>
               ) : (
-                <Link
-                  href="/login"
-                  className="rounded bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-500"
-                >
+                <Link href="/login" className={buttonVariants()}>
                   Sign in
                 </Link>
               )}

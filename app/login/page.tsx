@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Button, TextField, Typography } from "@/components/ui";
 
 type Mode = "signin" | "signup";
 
@@ -124,14 +125,14 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-sm space-y-6 px-6 py-12">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">
+        <Typography variant="h2">
           {mode === "signup" ? "Create account" : "Sign in"}
-        </h1>
-        <p className="text-sm text-gray-500">
+        </Typography>
+        <Typography variant="muted">
           {mode === "signup"
             ? "Set up access to your RPG campaigns."
             : "Continue to your RPG campaigns."}
-        </p>
+        </Typography>
       </div>
 
       {error && (
@@ -141,13 +142,14 @@ export default function LoginPage() {
       )}
 
       <>
-          <button
+          <Button
+            variant="secondary"
+            fullWidth
             onClick={signInWithGoogle}
             disabled={busy !== null}
-            className="flex w-full items-center justify-center gap-2 rounded border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
           >
             {busy === "google" ? "Redirecting…" : "Continue with Google"}
-          </button>
+          </Button>
 
           <div className="flex items-center gap-3 text-xs text-gray-400">
             <div className="h-px flex-1 bg-gray-200" />
@@ -157,7 +159,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleEmailSubmit} className="space-y-3">
             {mode === "signup" && (
-              <input
+              <TextField
                 type="text"
                 required
                 maxLength={60}
@@ -165,19 +167,17 @@ export default function LoginPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Display name"
-                className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
               />
             )}
-            <input
+            <TextField
               type="email"
               required
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
             />
-            <input
+            <TextField
               type="password"
               required
               minLength={6}
@@ -187,10 +187,9 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
             />
             {mode === "signup" && (
-              <input
+              <TextField
                 type="password"
                 required
                 minLength={6}
@@ -198,14 +197,9 @@ export default function LoginPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repeat password"
-                className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-500 focus:outline-none"
               />
             )}
-            <button
-              type="submit"
-              disabled={busy !== null}
-              className="w-full rounded bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-500 disabled:opacity-50"
-            >
+            <Button type="submit" variant="primary" fullWidth disabled={busy !== null}>
               {busy === "email"
                 ? mode === "signup"
                   ? "Creating account…"
@@ -213,7 +207,7 @@ export default function LoginPage() {
                 : mode === "signup"
                   ? "Create account"
                   : "Sign in"}
-            </button>
+            </Button>
           </form>
 
           <p className="text-center text-sm text-gray-500">
