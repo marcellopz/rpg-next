@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CampaignSettings } from "@/components/CampaignSettings";
+import { CampaignSettings } from "@/components/campaigns/CampaignSettings";
 import { Typography, buttonVariants, Chip } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { getCampaignDetailForCurrentUser } from "@/lib/queries/campaigns";

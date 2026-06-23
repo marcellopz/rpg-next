@@ -1,4 +1,4 @@
-import type { Campaign } from "@/components/CampaignCard";
+import type { Campaign } from "@/components/campaigns/CampaignCard";
 import { shadowsOfEldermoor } from "./shadows-of-eldermoor";
 import { saltveilChronicles } from "./saltveil-chronicles";
 import { neonRequiem } from "./neon-requiem";

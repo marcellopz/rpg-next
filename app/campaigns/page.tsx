@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { CampaignCard } from "@/components/CampaignCard";
-import { NewCampaignButton } from "@/components/NewCampaignButton";
+import { CampaignCard } from "@/components/campaigns/CampaignCard";
+import { NewCampaignButton } from "@/components/campaigns/NewCampaignButton";
 import { Typography, buttonVariants } from "@/components/ui";
 import { DEMO_CAMPAIGNS } from "@/data/demo-campaigns";
 import { getCampaignsForCurrentUser } from "@/lib/queries/campaigns";
@@ -29,7 +29,7 @@ export default async function CampaignsPage() {
   // Logged-out: browse demo content with a sign-in CTA.
   if (!isSignedIn) {
     return (
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <Typography variant="h1">Campaigns</Typography>
@@ -53,7 +53,7 @@ export default async function CampaignsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <Typography variant="h1">Campaigns</Typography>

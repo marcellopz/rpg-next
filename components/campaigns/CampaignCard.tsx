@@ -9,6 +9,9 @@ export type Campaign = {
   memberCount?: number;
   // Stable seeds (user ids or emails) used to render member avatars.
   members?: string[];
+  // Human-readable label for each seed (display name or email). Falls back to
+  // the seed itself when a label is not provided (e.g. demo campaigns).
+  memberLabels?: Record<string, string>;
   role?: "dm" | "player";
   // Sample campaign shown for illustration; not part of the user's account.
   demo?: boolean;
@@ -22,7 +25,7 @@ function emblemFor(name: string): string {
 }
 
 export function CampaignCard({ campaign }: { campaign: Campaign }) {
-  const { id, name, description, members = [], memberCount, role, demo } =
+  const { id, name, description, members = [], memberCount, memberLabels, role, demo } =
     campaign;
   const count = memberCount ?? members.length;
   const shown = members.slice(0, MAX_AVATARS);
@@ -65,7 +68,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
             {shown.length > 0 && (
               <div className="flex -space-x-2">
                 {shown.map((seed) => (
-                  <Tooltip key={seed} label={seed}>
+                  <Tooltip key={seed} label={memberLabels?.[seed] ?? seed}>
                     <PictoAvatar
                       seed={seed}
                       size={32}

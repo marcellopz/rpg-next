@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import "./globals.css";
 import { createServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/SignOutButton";
@@ -35,11 +36,10 @@ export default async function RootLayout({
     <html lang="en">
       <body className="flex min-h-screen flex-col bg-[#f0f0f0] text-gray-900">
         <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 px-6 py-4 shadow-sm backdrop-blur">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between gap-6">
+          <nav className="mx-auto flex max-w-7xl items-center justify-between gap-6">
             <div className="flex items-center gap-8">
               <Link href="/" className="flex items-center gap-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.svg" alt="" className="h-9 w-9" />
+                <Image src="/logo.svg" alt="" width={36} height={36} />
                 <span className="text-lg font-semibold text-gray-900">
                   RPG Manager
                 </span>
@@ -86,9 +86,8 @@ export default async function RootLayout({
         </header>
         <main className="flex-1">{children}</main>
         <footer className="mt-auto border-t border-gray-200 bg-white px-6 py-8">
-          <div className="mx-auto flex max-w-6xl items-center gap-2 text-sm text-gray-500">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="" className="h-6 w-6" />
+          <div className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-gray-500">
+            <Image src="/logo.svg" alt="" width={24} height={24} />
             <span>RPG Manager</span>
           </div>
         </footer>

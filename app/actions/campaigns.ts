@@ -5,7 +5,8 @@
 // live in server actions. RLS denies client writes to campaigns/memberships, so
 // these use the service-role admin client AFTER verifying the caller.
 import { revalidatePath } from "next/cache";
-import { createServerClient, createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
+import { getCurrentUserId, isCampaignAdmin } from "@/lib/queries/campaigns";
 
 export type ActionResult<T = undefined> =
   | { ok: true; data: T }
@@ -13,39 +14,6 @@ export type ActionResult<T = undefined> =
 
 const NAME_MAX = 120;
 const DESC_MAX = 2000;
-
-type AdminClient = ReturnType<typeof createAdminClient>;
-
-async function getCurrentUserId(): Promise<string | null> {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user?.id ?? null;
-}
-
-// True if the user owns the campaign or holds the DM role on it.
-async function isCampaignAdmin(
-  admin: AdminClient,
-  userId: string,
-  campaignId: string,
-): Promise<boolean> {
-  const { data: campaign } = await admin
-    .from("campaigns")
-    .select("owner_id")
-    .eq("id", campaignId)
-    .maybeSingle();
-  if (!campaign) return false;
-  if (campaign.owner_id === userId) return true;
-
-  const { data: membership } = await admin
-    .from("memberships")
-    .select("role")
-    .eq("campaign_id", campaignId)
-    .eq("user_id", userId)
-    .maybeSingle();
-  return membership?.role === "dm";
-}
 
 function validateFields(name: string, description: string): string | null {
   if (!name) return "Campaign name is required.";
@@ -76,11 +44,13 @@ export async function createCampaign(input: {
     .insert({ name, description, owner_id: userId })
     .select("id")
     .single();
-  if (cErr || !campaign)
+  if (cErr || !campaign) {
+    console.error("[createCampaign] insert error:", cErr);
     return {
       ok: false,
       error: "Could not create the campaign. Please try again.",
     };
+  }
 
   const { error: mErr } = await admin
     .from("memberships")
@@ -100,7 +70,7 @@ export async function createCampaign(input: {
 
 export async function updateCampaign(
   id: string,
-  input: { name: string; description?: string },
+  input: { name: string; description?: string }
 ): Promise<ActionResult> {
   const userId = await getCurrentUserId();
   if (!userId) return { ok: false, error: "You must be signed in." };
@@ -110,14 +80,14 @@ export async function updateCampaign(
   const invalid = validateFields(name, description);
   if (invalid) return { ok: false, error: invalid };
 
-  const admin = createAdminClient();
-  const allowed = await isCampaignAdmin(admin, userId, id);
+  const allowed = await isCampaignAdmin(userId, id);
   if (!allowed)
     return {
       ok: false,
       error: "You don't have permission to edit this campaign.",
     };
 
+  const admin = createAdminClient();
   const { error } = await admin
     .from("campaigns")
     .update({ name, description })
@@ -134,14 +104,14 @@ export async function deleteCampaign(id: string): Promise<ActionResult> {
   const userId = await getCurrentUserId();
   if (!userId) return { ok: false, error: "You must be signed in." };
 
-  const admin = createAdminClient();
-  const allowed = await isCampaignAdmin(admin, userId, id);
+  const allowed = await isCampaignAdmin(userId, id);
   if (!allowed)
     return {
       ok: false,
       error: "You don't have permission to delete this campaign.",
     };
 
+  const admin = createAdminClient();
   // memberships (and other campaign-scoped rows) cascade via FK on delete.
   const { error } = await admin.from("campaigns").delete().eq("id", id);
   if (error)

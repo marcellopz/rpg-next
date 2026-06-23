@@ -148,7 +148,7 @@ export default function HomePage() {
       </header>
 
       {/* Bento feature grid */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
+      <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl font-bold">Everything your table needs</h2>
           <p className="mt-3 text-gray-600">
@@ -197,7 +197,7 @@ export default function HomePage() {
 
       {/* Alternating showcase rows */}
       <section className="bg-white py-20">
-        <div className="mx-auto max-w-6xl space-y-20 px-6">
+        <div className="mx-auto max-w-7xl space-y-20 px-6">
           {/* Inventory — text left, image right */}
           <div className="flex flex-col items-center gap-10 lg:flex-row">
             <div className="flex-1">
@@ -268,7 +268,7 @@ export default function HomePage() {
 
       {/* CTA band — full-bleed accent */}
       <section className="bg-accent-600">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-16 text-center text-white">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-6 py-16 text-center text-white">
           <h2 className="text-3xl font-bold">Ready to roll initiative?</h2>
           <p className="max-w-xl text-white/85">
             Spin up a campaign and bring your whole table along — players, lore,

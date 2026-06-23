@@ -1,7 +1,7 @@
 // Read-side data access for campaigns. Keep Supabase queries here (named for
-// what they fetch) rather than inline in components/pages.
-import { createServerClient } from "@/lib/supabase/server";
-import type { Campaign } from "@/components/CampaignCard";
+// what they fetch) rather than inline in components/pages or server actions.
+import { createServerClient, createAdminClient } from "@/lib/supabase/server";
+import type { Campaign } from "@/components/campaigns/CampaignCard";
 
 type MembershipWithCampaign = {
   role: "dm" | "player";
@@ -17,6 +17,40 @@ export type CampaignsForCurrentUser = {
   isSignedIn: boolean;
   campaigns: Campaign[];
 };
+
+// The current user's id, or null when there is no session.
+export async function getCurrentUserId(): Promise<string | null> {
+  const supabase = createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id ?? null;
+}
+
+// True if the user owns the campaign or holds the DM role on it.
+// Uses the admin client to bypass RLS — only called from trusted server actions.
+export async function isCampaignAdmin(
+  userId: string,
+  campaignId: string
+): Promise<boolean> {
+  const admin = createAdminClient();
+
+  const { data: campaign } = await admin
+    .from("campaigns")
+    .select("owner_id")
+    .eq("id", campaignId)
+    .maybeSingle();
+  if (!campaign) return false;
+  if (campaign.owner_id === userId) return true;
+
+  const { data: membership } = await admin
+    .from("memberships")
+    .select("role")
+    .eq("campaign_id", campaignId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return membership?.role === "dm";
+}
 
 // The signed-in user's campaigns (newest first) with member avatars + role.
 // Returns isSignedIn:false (and no campaigns) when there's no session, so the
@@ -48,6 +82,9 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
   // them in one query and group member ids per campaign (they double as stable
   // avatar seeds).
   const memberSeeds = new Map<string, string[]>();
+  // Collect all unique member ids so we can resolve their display names in one
+  // parallel batch, rather than per-campaign.
+  const allMemberIds = new Set<string>();
   if (campaignIds.length > 0) {
     const { data: memberRows } = await supabase
       .from("memberships")
@@ -57,8 +94,24 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
       const seeds = memberSeeds.get(m.campaign_id) ?? [];
       seeds.push(m.user_id);
       memberSeeds.set(m.campaign_id, seeds);
+      allMemberIds.add(m.user_id);
     }
   }
+
+  // Resolve display names for every member via the admin auth API.
+  const admin = createAdminClient();
+  const labelMap: Record<string, string> = {};
+  await Promise.all(
+    Array.from(allMemberIds).map(async (userId) => {
+      const { data } = await admin.auth.admin.getUserById(userId);
+      if (data.user) {
+        labelMap[userId] =
+          (data.user.user_metadata?.display_name as string | undefined) ??
+          data.user.email ??
+          userId;
+      }
+    })
+  );
 
   const campaigns: Campaign[] = rows
     .sort((a, b) => b.campaigns.created_at.localeCompare(a.campaigns.created_at))
@@ -70,6 +123,7 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
         description: r.campaigns.description ?? "",
         members: seeds,
         memberCount: seeds.length || 1,
+        memberLabels: labelMap,
         role: r.role,
       };
     });
