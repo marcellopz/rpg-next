@@ -29,7 +29,7 @@ export default async function CampaignsPage() {
   // Logged-out: browse demo content with a sign-in CTA.
   if (!isSignedIn) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-10">
+      <div className="app-container py-10">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <Typography variant="h1">Campaigns</Typography>
@@ -53,7 +53,7 @@ export default async function CampaignsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10">
+    <div className="app-container py-6">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <Typography variant="h1">Campaigns</Typography>
