@@ -7,6 +7,7 @@ type MembershipWithCampaign = {
   role: "dm" | "player";
   campaigns: {
     id: string;
+    public_code: string;
     name: string;
     description: string | null;
     created_at: string;
@@ -65,7 +66,7 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
   // RLS scopes this to the caller's memberships.
   const { data: membershipRows } = await supabase
     .from("memberships")
-    .select("role, campaigns(id, name, description, created_at)")
+    .select("role, campaigns(id, public_code, name, description, created_at)")
     .eq("user_id", user.id)
     .returns<MembershipWithCampaign[]>();
 
@@ -118,7 +119,7 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
     .map((r) => {
       const seeds = memberSeeds.get(r.campaigns.id) ?? [];
       return {
-        id: r.campaigns.id,
+        id: r.campaigns.public_code,
         name: r.campaigns.name,
         description: r.campaigns.description ?? "",
         members: seeds,
@@ -133,6 +134,7 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
 
 export type CampaignDetail = {
   id: string;
+  publicCode: string;
   name: string;
   description: string;
   role: "dm" | "player" | null;
@@ -143,7 +145,7 @@ export type CampaignDetail = {
 // may administer it. Returns null when the campaign doesn't exist or the caller
 // can't access it (RLS yields no row, including for malformed/demo ids).
 export async function getCampaignDetailForCurrentUser(
-  campaignId: string
+  campaignCode: string
 ): Promise<CampaignDetail | null> {
   const supabase = createServerClient();
   const {
@@ -152,8 +154,8 @@ export async function getCampaignDetailForCurrentUser(
 
   const { data: campaign } = await supabase
     .from("campaigns")
-    .select("id, name, description, owner_id, created_at")
-    .eq("id", campaignId)
+    .select("id, public_code, name, description, owner_id, created_at")
+    .eq("public_code", campaignCode)
     .maybeSingle();
   if (!campaign) return null;
 
@@ -171,6 +173,7 @@ export async function getCampaignDetailForCurrentUser(
 
   return {
     id: campaign.id,
+    publicCode: campaign.public_code,
     name: campaign.name,
     description: campaign.description ?? "",
     role,

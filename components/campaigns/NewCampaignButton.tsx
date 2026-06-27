@@ -46,7 +46,7 @@ export function NewCampaignButton() {
       }
       setOpen(false);
       reset();
-      router.push(`/campaigns/${result.data.id}`);
+      router.push(`/campaigns/${result.data.publicCode}`);
       router.refresh();
     });
   }

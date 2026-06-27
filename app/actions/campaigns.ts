@@ -5,6 +5,7 @@
 // live in server actions. RLS denies client writes to campaigns/memberships, so
 // these use the service-role admin client AFTER verifying the caller.
 import { revalidatePath } from "next/cache";
+import { randomInt } from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getCurrentUserId, isCampaignAdmin } from "@/lib/queries/campaigns";
 
@@ -14,6 +15,9 @@ export type ActionResult<T = undefined> =
 
 const NAME_MAX = 120;
 const DESC_MAX = 2000;
+const PUBLIC_CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
+const PUBLIC_CODE_LENGTH = 6;
+const PUBLIC_CODE_ATTEMPTS = 5;
 
 function validateFields(name: string, description: string): string | null {
   if (!name) return "Campaign name is required.";
@@ -24,10 +28,20 @@ function validateFields(name: string, description: string): string | null {
   return null;
 }
 
+function generatePublicCode(): string {
+  let code = "";
+
+  for (let i = 0; i < PUBLIC_CODE_LENGTH; i += 1) {
+    code += PUBLIC_CODE_ALPHABET[randomInt(PUBLIC_CODE_ALPHABET.length)];
+  }
+
+  return code;
+}
+
 export async function createCampaign(input: {
   name: string;
   description?: string;
-}): Promise<ActionResult<{ id: string }>> {
+}): Promise<ActionResult<{ id: string; publicCode: string }>> {
   const userId = await getCurrentUserId();
   if (!userId)
     return { ok: false, error: "You must be signed in to create a campaign." };
@@ -39,13 +53,28 @@ export async function createCampaign(input: {
 
   const admin = createAdminClient();
 
-  const { data: campaign, error: cErr } = await admin
-    .from("campaigns")
-    .insert({ name, description, owner_id: userId })
-    .select("id")
-    .single();
-  if (cErr || !campaign) {
-    console.error("[createCampaign] insert error:", cErr);
+  let campaign: { id: string; public_code: string } | null = null;
+  let lastCreateError: unknown = null;
+
+  for (let attempt = 0; attempt < PUBLIC_CODE_ATTEMPTS; attempt += 1) {
+    const publicCode = generatePublicCode();
+    const { data, error } = await admin
+      .from("campaigns")
+      .insert({ name, description, owner_id: userId, public_code: publicCode })
+      .select("id, public_code")
+      .single();
+
+    if (!error && data) {
+      campaign = data;
+      break;
+    }
+
+    lastCreateError = error;
+    if (error?.code !== "23505") break;
+  }
+
+  if (!campaign) {
+    console.error("[createCampaign] insert error:", lastCreateError);
     return {
       ok: false,
       error: "Could not create the campaign. Please try again.",
@@ -65,7 +94,7 @@ export async function createCampaign(input: {
   }
 
   revalidatePath("/campaigns");
-  return { ok: true, data: { id: campaign.id } };
+  return { ok: true, data: { id: campaign.id, publicCode: campaign.public_code } };
 }
 
 export async function updateCampaign(
@@ -88,15 +117,17 @@ export async function updateCampaign(
     };
 
   const admin = createAdminClient();
-  const { error } = await admin
+  const { data: campaign, error } = await admin
     .from("campaigns")
     .update({ name, description })
-    .eq("id", id);
+    .eq("id", id)
+    .select("public_code")
+    .maybeSingle();
   if (error)
     return { ok: false, error: "Could not save changes. Please try again." };
 
   revalidatePath("/campaigns");
-  revalidatePath(`/campaigns/${id}`);
+  if (campaign?.public_code) revalidatePath(`/campaigns/${campaign.public_code}`);
   return { ok: true, data: undefined };
 }
 
