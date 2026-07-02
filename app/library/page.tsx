@@ -166,8 +166,8 @@ function KindCard({ item }: { item: DemoItem }): ReactNode {
 
 export default function LibraryPage() {
   return (
-    <div className="app-container py-10">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <div id="library-page" className="app-container py-10">
+      <div id="library-header" className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Personal library</h1>
           <p className="mt-1 text-gray-600">
@@ -183,7 +183,7 @@ export default function LibraryPage() {
         </Link>
       </div>
 
-      <div className="mb-8 flex flex-wrap gap-2">
+      <div id="library-filters" className="mb-8 flex flex-wrap gap-2">
         {FILTERS.map((f, i) => (
           <button
             key={f}
@@ -199,7 +199,7 @@ export default function LibraryPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div id="library-grid" className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {DEMO_ITEMS.map((item) => (
           <KindCard key={item.id} item={item} />
         ))}

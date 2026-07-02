@@ -27,8 +27,8 @@ export function Navbar({ user }: { user: User | null }) {
   const avatarSeed = user?.email ?? user?.id ?? "";
 
   return (
-    <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 py-3 shadow-sm backdrop-blur sm:py-4">
-      <nav className="app-container flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+    <header id="site-header" className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 py-3 shadow-sm backdrop-blur sm:py-4">
+      <nav id="site-nav" className="app-container flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="flex min-w-0 items-center gap-4 sm:gap-8">
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <Image src="/logo.svg" alt="" width={36} height={36} priority />
@@ -37,7 +37,7 @@ export function Navbar({ user }: { user: User | null }) {
             </span>
           </Link>
 
-          <div className="hidden items-center gap-6 sm:flex">
+          <div id="site-nav-desktop" className="hidden items-center gap-6 sm:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -50,7 +50,7 @@ export function Navbar({ user }: { user: User | null }) {
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div id="site-auth" className="flex shrink-0 items-center gap-3">
           {user ? (
             <>
               <Link
@@ -75,7 +75,7 @@ export function Navbar({ user }: { user: User | null }) {
           )}
         </div>
 
-        <div className="flex w-full items-center gap-5 border-t border-gray-100 pt-3 sm:hidden">
+        <div id="site-nav-mobile" className="flex w-full items-center gap-5 border-t border-gray-100 pt-3 sm:hidden">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}

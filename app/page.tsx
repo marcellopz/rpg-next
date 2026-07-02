@@ -110,7 +110,7 @@ export default function HomePage() {
   return (
     <div className="bg-[#f0f0f0]">
       {/* Hero — accent-driven CSS gradient, no background image */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-accent-700 via-accent-600 to-accent-800 text-white">
+      <header id="home-hero" className="relative overflow-hidden bg-gradient-to-br from-accent-700 via-accent-600 to-accent-800 text-white">
         <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -right-16 h-80 w-80 rounded-full bg-black/20 blur-3xl" />
         <div className="relative mx-auto flex max-w-4xl flex-col items-center px-6 py-24 text-center sm:py-32">
@@ -148,7 +148,7 @@ export default function HomePage() {
       </header>
 
       {/* Bento feature grid */}
-      <section className="app-container py-20">
+      <section id="home-features" className="app-container py-20">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl font-bold">Everything your table needs</h2>
           <p className="mt-3 text-gray-600">
@@ -196,7 +196,7 @@ export default function HomePage() {
       </section>
 
       {/* Alternating showcase rows */}
-      <section className="bg-white py-20">
+      <section id="home-showcase" className="bg-white py-20">
         <div className="app-container space-y-20">
           {/* Inventory — text left, image right */}
           <div className="flex flex-col items-center gap-10 lg:flex-row">
@@ -267,7 +267,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA band — full-bleed accent */}
-      <section className="bg-accent-600">
+      <section id="home-cta" className="bg-accent-600">
         <div className="app-container flex flex-col items-center gap-6 py-16 text-center text-white">
           <h2 className="text-3xl font-bold">Ready to roll initiative?</h2>
           <p className="max-w-xl text-white/85">

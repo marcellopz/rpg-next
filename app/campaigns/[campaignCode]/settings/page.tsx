@@ -27,7 +27,7 @@ export default async function CampaignSettingsPage({
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div id="campaign-settings-page" className="mx-auto max-w-3xl px-6 py-10">
       <Link
         href={`/campaigns/${campaign.publicCode}`}
         className="text-sm text-gray-500 hover:text-gray-900"

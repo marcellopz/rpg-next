@@ -56,7 +56,7 @@ export function CampaignSettings({
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl border border-gray-200 bg-white p-6">
+      <section id="campaign-settings-general" className="rounded-2xl border border-gray-200 bg-white p-6">
         <Typography variant="h3" as="h2">
           Campaign settings
         </Typography>
@@ -110,7 +110,7 @@ export function CampaignSettings({
         </form>
       </section>
 
-      <section className="rounded-2xl border border-red-200 bg-white p-6">
+      <section id="campaign-settings-danger" className="rounded-2xl border border-red-200 bg-white p-6">
         <Typography variant="h3" as="h2" className="text-red-700">
           Danger zone
         </Typography>

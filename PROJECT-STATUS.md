@@ -25,6 +25,13 @@ The app has the **authentication flow plus campaign CRUD**, with the remaining f
 - **Detail** (`app/campaigns/[campaignId]/page.tsx`): name/description header + role badge; owner/DM also gets `components/CampaignSettings.tsx` (edit name/description + delete with confirm).
 - **Card** (`components/CampaignCard.tsx`): real shape `{ id, name, description, memberCount?, role? }`.
 
+### Element IDs
+- **Systematic ID convention**: kebab-case with scope prefixes (`site-*`, `campaign-*`, `{page}-*`)
+- **Global landmarks**: navbar, main content, footer have consistent IDs
+- **Campaign workspace**: comprehensive ID structure for the OneNote-style interface
+- **Form consistency**: standardized field and wrapper IDs across all forms
+- **Modal pattern**: established naming for dialog overlays and error states
+
 ### Supabase clients (`lib/supabase/`)
 - `client.ts` — browser client (anon key, RLS)
 - `server.ts` — `createServerClient()` (user-scoped) + `createAdminClient()` (service role)

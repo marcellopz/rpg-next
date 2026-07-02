@@ -87,6 +87,25 @@ Every table with a `campaign_id` uses this. Personal library tables use `owner_i
 - Envelope + typed body pattern: `library_items` (common fields) + per-kind body tables
 - Transfer actions copy data, never link — each space stays self-contained
 
+## Element ID Conventions
+
+**Systematic HTML IDs for referencing and testing**
+
+Use kebab-case with scope prefixes: `{scope}-{section}[-{element}]`
+
+| Scope | Examples | Purpose |
+|-------|----------|---------|
+| `site-*` | `site-header`, `site-main`, `site-footer` | Global landmarks |
+| `{page}-*` | `campaigns-list`, `library-grid` | Page sections |
+| `campaign-*` | `campaign-workspace`, `campaign-editor` | Campaign workspace |
+| `{feature}-modal` | `new-campaign-modal` | Dialog overlays |
+
+**Guidelines:**
+- IDs on semantic landmarks and interactive regions, not every styled div
+- Keep form field IDs for label association (`htmlFor`)
+- Use stable data IDs for list items (`campaign-card-{publicCode}`)
+- Reserve `tv-*` namespace for webOS display surface
+
 ---
 
 ## TV / webOS constraints (scoped to `/tv` routes only)

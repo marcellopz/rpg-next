@@ -7,7 +7,7 @@ import { getCampaignsForCurrentUser } from "@/lib/queries/campaigns";
 
 function DemoSection() {
   return (
-    <div className="mt-14">
+    <div id="campaigns-demo" className="mt-14">
       <Typography variant="h3" as="h2">
         Demo campaigns
       </Typography>
@@ -29,8 +29,8 @@ export default async function CampaignsPage() {
   // Logged-out: browse demo content with a sign-in CTA.
   if (!isSignedIn) {
     return (
-      <div className="app-container py-10">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div id="campaigns-page" className="app-container py-10">
+        <div id="campaigns-header" className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <Typography variant="h1">Campaigns</Typography>
             <Typography variant="subtitle" className="mt-1">
@@ -43,7 +43,7 @@ export default async function CampaignsPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div id="campaigns-list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {DEMO_CAMPAIGNS.map((c) => (
             <CampaignCard key={c.id} campaign={c} />
           ))}
@@ -53,8 +53,8 @@ export default async function CampaignsPage() {
   }
 
   return (
-    <div className="app-container py-6">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <div id="campaigns-page" className="app-container py-6">
+      <div id="campaigns-header" className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <Typography variant="h1">Campaigns</Typography>
           <Typography variant="subtitle" className="mt-1">

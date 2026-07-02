@@ -58,7 +58,7 @@ export function NewCampaignButton() {
       </Button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div id="new-campaign-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/40"
             onClick={close}
@@ -77,7 +77,7 @@ export function NewCampaignButton() {
               Give your campaign a name. You can change it later.
             </Typography>
 
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            <form id="new-campaign-form" onSubmit={handleSubmit} className="mt-4 space-y-4">
               <TextField
                 id="campaign-name"
                 label="Name"
@@ -104,7 +104,7 @@ export function NewCampaignButton() {
                 placeholder="A short pitch for your players."
               />
 
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p id="new-campaign-error" className="text-sm text-red-600">{error}</p>}
 
               <div className="flex justify-end gap-2 pt-1">
                 <Button

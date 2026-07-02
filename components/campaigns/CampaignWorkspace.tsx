@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { CampaignToolCard } from "@/components/campaigns/CampaignToolCard";
 import { Chip, Typography, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
@@ -22,31 +21,14 @@ const NOTE_CATEGORIES = [
   },
 ];
 
-const TOOL_CARDS = [
-  {
-    title: "Combat tracker",
-    description: "Initiative, rounds, HP, conditions, and DM notes.",
-  },
-  {
-    title: "Inventory log",
-    description: "Party treasure, item changes, and character backpacks.",
-  },
-  {
-    title: "Character sheets",
-    description: "Player-facing sheets connected to campaign notes.",
-  },
-  {
-    title: "Handouts and files",
-    description: "Images, PDFs, maps, and private DM uploads.",
-  },
-  {
-    title: "Members and invites",
-    description: "Invite players and review campaign access.",
-  },
-  {
-    title: "TV display",
-    description: "Read-only campaign surface for the living-room screen.",
-  },
+// Upcoming campaign tools; rendered as a compact strip under the header until
+// each one is actually built.
+const UPCOMING_TOOLS = [
+  "Combat tracker",
+  "Inventory log",
+  "Character sheets",
+  "Handouts & files",
+  "Members & invites",
 ];
 
 export function CampaignWorkspace({
@@ -63,12 +45,14 @@ export function CampaignWorkspace({
   publicCode: string;
 }) {
   return (
-    <div className="app-container py-6">
+    <div id="campaign-workspace" className="app-container py-6">
 
-      <header className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+      <header id="campaign-header" className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
         <div className="bg-gradient-to-br from-accent-700 via-accent-600 to-accent-500 px-6 py-8 text-white md:px-8">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div className="max-w-3xl">
+          <div className="flex flex-wrap items-start gap-5">
+            {/* Large basis: when the description needs the room, the button
+                group wraps below instead of squeezing the text. */}
+            <div className="min-w-0 flex-1 basis-[32rem]">
               <div className="flex flex-wrap items-center gap-2">
                 {role && (
                   <Chip variant="onDark" className="uppercase tracking-wide">
@@ -76,16 +60,7 @@ export function CampaignWorkspace({
                   </Chip>
                 )}
                 <Chip variant="onDarkSolid">Campaign workspace</Chip>
-              </div>
-              <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
-                {name}
-              </h1>
-              <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-6 text-white/80 md:text-base">
-                {description || "No description yet."}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
+                            <div id="campaign-actions" className="ml-auto flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled
@@ -121,28 +96,40 @@ export function CampaignWorkspace({
                 </Link>
               )}
             </div>
+              </div>
+              <h1 id="campaign-title" className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
+                {name}
+              </h1>
+              <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-6 line-clamp-2 text-white/80 md:text-base">
+                {description || "No description yet."}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-4 border-t border-gray-200 bg-gray-50 px-6 py-4 text-sm md:grid-cols-3 md:px-8">
-          <div>
-            <span className="font-medium text-gray-900">Primary tool</span>
-            <p className="mt-1 text-gray-600">Structured campaign notes</p>
-          </div>
-          <div>
-            <span className="font-medium text-gray-900">Current phase</span>
-            <p className="mt-1 text-gray-600">Layout placeholders</p>
-          </div>
-          <div>
-            <span className="font-medium text-gray-900">Campaign code</span>
-            <p className="mt-1 font-mono text-gray-600">{publicCode}</p>
-          </div>
+        <div id="campaign-tools" className="flex flex-wrap items-center gap-2 border-t border-gray-200 bg-gray-50 px-6 py-3 md:px-8">
+          <span className="mr-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+            Tools
+          </span>
+          <span id="campaign-tool-notes" className="inline-flex items-center gap-1.5 rounded-full bg-accent-600 px-3 py-1 text-xs font-medium text-white">
+            Notes
+          </span>
+          {UPCOMING_TOOLS.map((tool) => (
+            <span
+              key={tool}
+              className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-400"
+            >
+              {tool}
+            </span>
+          ))}
         </div>
       </header>
 
-      <section className="mt-6 grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)_20rem]">
-        <aside className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex rounded-xl bg-gray-100 p-1 text-xs font-medium">
+      {/* Navigator and content share one card: the sidebar selects what the
+          main pane shows, so they read as a single connected surface. */}
+      <section id="campaign-body" className="mt-6 grid overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <aside id="campaign-sidebar" className="border-b border-gray-200 bg-gray-50 p-4 lg:border-b-0 lg:border-r">
+          <div id="campaign-notes-tabs" className="flex rounded-xl bg-gray-100 p-1 text-xs font-medium">
             <button
               type="button"
               className="flex-1 rounded-lg bg-white px-3 py-2 text-gray-900 shadow-sm"
@@ -158,7 +145,7 @@ export function CampaignWorkspace({
             </button>
           </div>
 
-          <div className="mt-4 space-y-4">
+          <div id="campaign-category-tree" className="mt-4 space-y-4">
             {NOTE_CATEGORIES.map((category, index) => (
               <div key={category.name}>
                 <div
@@ -180,7 +167,7 @@ export function CampaignWorkspace({
                       className={cn(
                         "block w-full rounded-md px-3 py-2 text-left text-sm",
                         index === 0 && pageIndex === 0
-                          ? "bg-gray-100 text-gray-900"
+                          ? "bg-white text-gray-900 shadow-sm"
                           : "text-gray-500"
                       )}
                     >
@@ -192,7 +179,7 @@ export function CampaignWorkspace({
             ))}
           </div>
 
-          <div className="mt-5 grid gap-2">
+          <div id="campaign-sidebar-actions" className="mt-5 grid gap-2">
             <button
               type="button"
               disabled
@@ -210,8 +197,8 @@ export function CampaignWorkspace({
           </div>
         </aside>
 
-        <main className="min-h-[42rem] rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
+        <main id="campaign-editor" className="min-h-[42rem] bg-white">
+          <div id="campaign-editor-toolbar" className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
             <div>
               <Typography variant="h2">Campaign primer</Typography>
               <Typography variant="muted" className="mt-1">
@@ -232,7 +219,7 @@ export function CampaignWorkspace({
             </div>
           </div>
 
-          <div className="p-5">
+          <div id="campaign-editor-content" className="p-5">
             <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6">
               <Chip variant="accent">First tool to build</Chip>
               <h2 className="mt-4 text-2xl font-semibold text-gray-900">
@@ -255,21 +242,6 @@ export function CampaignWorkspace({
             </div>
           </div>
         </main>
-
-        <aside className="space-y-4">
-          <CampaignToolCard
-            title="Notes"
-            description="Categories, pages, private notes, search, and recovery."
-            status="Primary"
-          />
-          {TOOL_CARDS.map((tool) => (
-            <CampaignToolCard
-              key={tool.title}
-              title={tool.title}
-              description={tool.description}
-            />
-          ))}
-        </aside>
       </section>
     </div>
   );

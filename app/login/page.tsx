@@ -123,7 +123,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm space-y-6 px-6 py-12">
+    <div id="login-page" className="mx-auto max-w-sm space-y-6 px-6 py-12">
       <div className="space-y-1">
         <Typography variant="h2">
           {mode === "signup" ? "Create account" : "Sign in"}
@@ -136,7 +136,7 @@ export default function LoginPage() {
       </div>
 
       {error && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p id="login-error" className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </p>
       )}
@@ -157,7 +157,7 @@ export default function LoginPage() {
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
-          <form onSubmit={handleEmailSubmit} className="space-y-3">
+          <form id="login-form" onSubmit={handleEmailSubmit} className="space-y-3">
             {mode === "signup" && (
               <TextField
                 type="text"

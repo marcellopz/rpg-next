@@ -23,8 +23,8 @@ export default async function RootLayout({
     <html lang="en">
       <body className="flex min-h-screen flex-col bg-[#f0f0f0] text-gray-900">
         <Navbar user={user} />
-        <main className="flex-1">{children}</main>
-        <footer className="mt-auto border-t border-gray-200 bg-white py-8">
+        <main id="site-main" className="flex-1">{children}</main>
+        <footer id="site-footer" className="mt-auto border-t border-gray-200 bg-white py-8">
           <div className="app-container flex items-center gap-2 text-sm text-gray-500">
             <Image src="/logo.svg" alt="" width={24} height={24} />
             <span>RPG Manager</span>

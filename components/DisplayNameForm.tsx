@@ -42,9 +42,9 @@ export function DisplayNameForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
+    <form id="account-settings-form" onSubmit={handleSubmit} className="space-y-3">
       <TextField
-        id="displayName"
+        id="account-display-name"
         label="Display name"
         type="text"
         maxLength={60}
