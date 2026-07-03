@@ -7,3 +7,7 @@ export type { TypographyProps, TypographyVariant } from "./Typography";
 export { Tooltip } from "./Tooltip";
 export { Chip } from "./Chip";
 export type { ChipVariant } from "./Chip";
+export { IconButton } from "./IconButton";
+export type { IconButtonProps } from "./IconButton";
+export { Menu } from "./Menu";
+export type { MenuEntry } from "./Menu";

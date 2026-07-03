@@ -18,9 +18,20 @@ import {
   Strikethrough,
   Undo,
 } from "lucide-react";
+import { Button } from "@/components/ui";
 import { ToolbarButton, ToolbarDivider } from "./ToolbarButton";
 
-export function EditorToolbar({ editor }: { editor: Editor }) {
+export function EditorToolbar({
+  editor,
+  onSave,
+  saveDisabled,
+  saving,
+}: {
+  editor: Editor;
+  onSave?: () => void;
+  saveDisabled?: boolean;
+  saving?: boolean;
+}) {
   return (
     <div
       id="campaign-editor-formatting"
@@ -113,24 +124,20 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         onClick={() => editor.chain().focus().setHorizontalRule().run()}
       />
 
-      {/* Right side: document actions (not wired up yet) */}
+      {/* Right side: document actions. History is still a placeholder. */}
       <div id="campaign-editor-actions" className="ml-auto flex items-center gap-1">
-        <button
-          type="button"
-          disabled
-          className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-500 opacity-70"
-        >
+        <Button variant="secondary" size="xs" disabled>
           <History className="h-3.5 w-3.5" />
           History
-        </button>
-        <button
-          type="button"
-          disabled
-          className="flex items-center gap-1.5 rounded-md bg-accent-600 px-2.5 py-1.5 text-xs font-medium text-white opacity-60"
+        </Button>
+        <Button
+          size="xs"
+          disabled={!onSave || saveDisabled || saving}
+          onClick={onSave}
         >
           <Save className="h-3.5 w-3.5" />
-          Save
-        </button>
+          {saving ? "Saving…" : "Save"}
+        </Button>
       </div>
     </div>
   );

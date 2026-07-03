@@ -44,15 +44,19 @@ The proposal must include: the exact SQL, which migration file it belongs to (ne
 ## Key directories
 
 ```
-app/actions/          # Server actions: campaigns.ts, invites.ts, pages.ts, files.ts, library-transfer.ts
-app/campaigns/        # Campaign list + detail + page editor
+app/actions/          # Server actions (writes): campaigns.ts, categories.ts, pages.ts
+app/campaigns/        # Campaign list + [campaignCode] workspace (?tab= & ?page= select the note)
 app/join/[token]/     # Invite acceptance flow
 app/library/          # Personal library (cross-campaign, user-owned)
 app/tv/               # Read-only TV display surface (webOS-safe)
-components/           # CombatLog.tsx (realtime), TvCombatLog.tsx (read-only)
+components/campaigns/ # CampaignCard, CampaignWorkspace, settings, new-campaign modal
+components/ui/        # Shared primitives: Button, IconButton, Menu, TextField, Typography, Chip, Tooltip
+components/wiki/      # NotesSidebar, PageEditorPanel (save flow), NewItemForm
+components/editor/    # PageEditor (Tiptap), EditorToolbar, editor.css
+lib/queries/          # Read-side data access: campaigns.ts, notes.ts (user-scoped client, RLS filters)
 lib/supabase/         # client.ts (browser, anon key) | server.ts (server, service-role key)
 lib/editor/extensions.ts  # SHARED Tiptap extensions — used by editor, generateText, generateHTML
-supabase/migrations/  # 0001_init.sql (schema) | 0002_rls.sql (RLS policies + is_member helper)
+supabase/migrations/  # 0001 init | 0002 RLS + is_member | 0003 grants | 0004 public_code | 0005 wiki
 middleware.ts         # Routes webOS user-agents to /tv automatically
 ```
 
@@ -86,6 +90,22 @@ Every table with a `campaign_id` uses this. Personal library tables use `owner_i
 **Personal library** (`app/actions/library-transfer.ts`)
 - Envelope + typed body pattern: `library_items` (common fields) + per-kind body tables
 - Transfer actions copy data, never link — each space stays self-contained
+
+## UI components — never style raw HTML for common elements
+
+Always build interfaces from the primitives in `components/ui/` instead of hand-styling basic HTML:
+
+| Instead of | Use |
+|---|---|
+| `<button>` | `Button` (variants: primary, secondary, danger, dangerOutline, ghost, white; sizes xs/sm/md/lg) or `IconButton` for icon-only |
+| `<input>` / `<textarea>` | `TextField` / `TextArea` (built-in label, hint, and error display) |
+| Headings / body / muted text | `Typography` (variants h1–h3, subtitle, body, muted, small) |
+| Styled links that look like buttons | `buttonVariants()` on a `<Link>` |
+| Badges | `Chip` |
+| Hover hints | `Tooltip` |
+| Dropdown action menus | `Menu` (icon trigger + entries with optional `danger`) |
+
+If a needed primitive doesn't exist yet, **add it to `components/ui/`** (and export it from `index.ts`) rather than styling raw elements inline. Truly bespoke one-off controls (e.g. the editor's `ToolbarButton`, tree rows) may stay raw — but they should be the exception.
 
 ## Component file organization
 

@@ -9,11 +9,21 @@ import "./editor.css";
 
 export function PageEditor({
   initialContent,
+  editable = true,
   onChange,
+  onSave,
+  saveDisabled,
+  saving,
 }: {
   initialContent?: JSONContent;
+  /** When false the document is rendered read-only, without the toolbar. */
+  editable?: boolean;
   /** Called with the full Tiptap JSON document on every change. */
   onChange?: (contentJson: JSONContent) => void;
+  /** Enables the toolbar Save button when provided. */
+  onSave?: () => void;
+  saveDisabled?: boolean;
+  saving?: boolean;
 }) {
   const editor = useEditor({
     extensions: [
@@ -23,6 +33,7 @@ export function PageEditor({
       }),
     ],
     content: initialContent,
+    editable,
     // Avoid SSR hydration mismatches; the editor only exists in the browser.
     immediatelyRender: false,
     editorProps: {
@@ -47,7 +58,14 @@ export function PageEditor({
 
   return (
     <div id="campaign-editor-shell" className="flex min-h-0 flex-1 flex-col">
-      <EditorToolbar editor={editor} />
+      {editable && (
+        <EditorToolbar
+          editor={editor}
+          onSave={onSave}
+          saveDisabled={saveDisabled}
+          saving={saving}
+        />
+      )}
       <div
         className="flex-1 cursor-text px-5 py-4"
         onClick={() => editor.chain().focus().run()}
