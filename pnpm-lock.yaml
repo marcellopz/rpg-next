@@ -14,6 +14,9 @@ dependencies:
   '@tiptap/core':
     specifier: ^2.6.6
     version: 2.27.2(@tiptap/pm@2.27.2)
+  '@tiptap/extension-placeholder':
+    specifier: ^2.6.6
+    version: 2.27.2(@tiptap/core@2.27.2)(@tiptap/pm@2.27.2)
   '@tiptap/html':
     specifier: ^2.6.6
     version: 2.27.2(@tiptap/core@2.27.2)(@tiptap/pm@2.27.2)
@@ -656,6 +659,16 @@ packages:
       '@tiptap/core': ^2.7.0
     dependencies:
       '@tiptap/core': 2.27.2(@tiptap/pm@2.27.2)
+    dev: false
+
+  /@tiptap/extension-placeholder@2.27.2(@tiptap/core@2.27.2)(@tiptap/pm@2.27.2):
+    resolution: {integrity: sha512-IjsgSVYJRjpAKmIoapU0E2R4E2FPY3kpvU7/1i7PUYisylqejSJxmtJPGYw0FOMQY9oxnEEvfZHMBA610tqKpg==}
+    peerDependencies:
+      '@tiptap/core': ^2.7.0
+      '@tiptap/pm': ^2.7.0
+    dependencies:
+      '@tiptap/core': 2.27.2(@tiptap/pm@2.27.2)
+      '@tiptap/pm': 2.27.2
     dev: false
 
   /@tiptap/extension-strike@2.27.2(@tiptap/core@2.27.2):

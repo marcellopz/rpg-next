@@ -87,6 +87,18 @@ Every table with a `campaign_id` uses this. Personal library tables use `owner_i
 - Envelope + typed body pattern: `library_items` (common fields) + per-kind body tables
 - Transfer actions copy data, never link — each space stays self-contained
 
+## Component file organization
+
+A component file should export **one main component**. For secondary components (helpers rendered by the main one):
+
+- **One small secondary component** (a few lines, only used here) → may stay in the same file
+- **More than one secondary component, or a secondary component that isn't small** → move each to its own file
+- **More than 3 related component files** → group them in a folder named after the feature (e.g. `components/campaigns/`, `components/editor/`)
+
+Example: `components/editor/` — `PageEditor.tsx` (main), `EditorToolbar.tsx` and `ToolbarButton.tsx` (extracted secondaries), `editor.css` (scoped styles, imported by the component that needs it).
+
+---
+
 ## Element ID Conventions
 
 **Systematic HTML IDs for referencing and testing**

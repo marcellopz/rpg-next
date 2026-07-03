@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Chip, Typography, buttonVariants } from "@/components/ui";
+import type { JSONContent } from "@tiptap/core";
+import { PageEditor } from "@/components/editor/PageEditor";
+import { Chip, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 const NOTE_CATEGORIES = [
@@ -20,6 +22,95 @@ const NOTE_CATEGORIES = [
     pages: ["Capital city", "The old road", "Hidden sanctum"],
   },
 ];
+
+// Demo document for the selected page. Editing works fully in the browser;
+// persistence to Supabase comes with the wiki feature.
+const DEMO_PAGE_CONTENT: JSONContent = {
+  type: "doc",
+  content: [
+    {
+      type: "heading",
+      attrs: { level: 1 },
+      content: [{ type: "text", text: "Campaign primer" }],
+    },
+    {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "Welcome to the campaign notebook. This editor already supports rich text — try the toolbar above or keyboard shortcuts like ",
+        },
+        { type: "text", marks: [{ type: "code" }], text: "Ctrl+B" },
+        { type: "text", text: " and " },
+        { type: "text", marks: [{ type: "code" }], text: "Ctrl+I" },
+        { type: "text", text: "." },
+      ],
+    },
+    {
+      type: "heading",
+      attrs: { level: 2 },
+      content: [{ type: "text", text: "The setup" }],
+    },
+    {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "The frontier town of Eldermoor has gone quiet. The last caravan returned with empty wagons and emptier stares. The party is hired to find out why.",
+        },
+      ],
+    },
+    {
+      type: "bulletList",
+      content: [
+        {
+          type: "listItem",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                { type: "text", marks: [{ type: "bold" }], text: "Hook: " },
+                {
+                  type: "text",
+                  text: "a letter from the mayor, sealed with wax that smells of ash.",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: "listItem",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                { type: "text", marks: [{ type: "bold" }], text: "Stakes: " },
+                {
+                  type: "text",
+                  text: "the harvest festival is in ten days — and the road must be open by then.",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "blockquote",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "\u201cNothing leaves Eldermoor anymore. Not goods, not letters, not people.\u201d — Mayor Hesta",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
 
 // Upcoming campaign tools; rendered as a compact strip under the header until
 // each one is actually built.
@@ -197,49 +288,9 @@ export function CampaignWorkspace({
           </div>
         </aside>
 
-        <main id="campaign-editor" className="min-h-[42rem] bg-white">
-          <div id="campaign-editor-toolbar" className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
-            <div>
-              <Typography variant="h2">Campaign primer</Typography>
-              <Typography variant="muted" className="mt-1">
-                Main note-taking surface placeholder.
-              </Typography>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {["Save", "History", "Formatting", "Find"].map((action) => (
-                <button
-                  key={action}
-                  type="button"
-                  disabled
-                  className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500"
-                >
-                  {action}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div id="campaign-editor-content" className="p-5">
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6">
-              <Chip variant="accent">First tool to build</Chip>
-              <h2 className="mt-4 text-2xl font-semibold text-gray-900">
-                Notes belong here
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
-                This space will become the rich text campaign notebook: public
-                pages, private player notes, categories, page history, autosave,
-                and recovery. For now it shows the intended hierarchy and
-                editor footprint without persisting note content.
-              </p>
-
-              <div className="mt-6 space-y-3 rounded-xl bg-white p-5 text-sm text-gray-600 shadow-sm">
-                <div className="h-4 w-2/3 rounded bg-gray-200" />
-                <div className="h-4 w-full rounded bg-gray-100" />
-                <div className="h-4 w-5/6 rounded bg-gray-100" />
-                <div className="h-24 rounded-lg border border-gray-200 bg-gray-50" />
-                <div className="h-4 w-3/4 rounded bg-gray-100" />
-              </div>
-            </div>
+        <main id="campaign-editor" className="flex min-h-[42rem] flex-col bg-white">
+          <div id="campaign-editor-content" className="flex min-h-0 flex-1 flex-col">
+            <PageEditor initialContent={DEMO_PAGE_CONTENT} />
           </div>
         </main>
       </section>

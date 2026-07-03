@@ -1,8 +1,8 @@
 # RPG Campaign Manager — Project Status
 
-> Last updated: 2026-06-21
+> Last updated: 2026-07-03
 
-The app has the **authentication flow plus campaign CRUD**, with the remaining feature routes still as placeholders. Other feature logic (combat log, wiki editor, personal library, TV rendering) will be rebuilt on top of this foundation. The database schema (`supabase/migrations/`) and the design spec (`rpg-manager-reference.md`) are kept for reference.
+The app has the **authentication flow, campaign CRUD, and a working (client-only) rich-text editor** in the campaign workspace. Remaining feature routes are still placeholders. Other feature logic (combat log, personal library, TV rendering, editor persistence) will be rebuilt on top of this foundation. The database schema (`supabase/migrations/`) and the design spec (`rpg-manager-reference.md`) are kept for reference.
 
 ---
 
@@ -16,14 +16,21 @@ The app has the **authentication flow plus campaign CRUD**, with the remaining f
   - Redirects unauthenticated users to `/login` (public paths: `/`, `/login`, `/auth`, `/tv`, `/join`, `/campaigns`, `/library`)
   - Redirects signed-in users away from `/login`
   - Still routes legacy webOS TV user-agents to `/tv`
-- **Navbar auth state** (`app/layout.tsx`): left-aligned links; right-aligned "Sign in" button when logged out, or profile (avatar/name/email) + "Sign out" when logged in
+- **Navbar auth state** (`components/Navbar.tsx`): left-aligned links; right-aligned "Sign in" button when logged out, or profile (avatar/name/email) + "Sign out" when logged in. On mobile the nav links collapse behind a hamburger toggle (lucide `Menu`/`X` icons); the drawer auto-closes on route change.
 - **Sign-out** (`components/SignOutButton.tsx`)
 
 ### Campaigns (CRUD)
 - **Server actions** (`app/actions/campaigns.ts`): `createCampaign`, `updateCampaign`, `deleteCampaign`. Writes use the service-role admin client after verifying the caller is signed in and (for edit/delete) is the campaign owner or DM. Create also adds the creator's `dm` membership and rolls back the campaign if that fails.
-- **List** (`app/campaigns/page.tsx`): signed-in users see their real campaigns (with member counts + role) and a "New campaign" modal (`components/NewCampaignButton.tsx`); logged-out visitors see demo cards + a sign-in CTA.
-- **Detail** (`app/campaigns/[campaignId]/page.tsx`): name/description header + role badge; owner/DM also gets `components/CampaignSettings.tsx` (edit name/description + delete with confirm).
-- **Card** (`components/CampaignCard.tsx`): real shape `{ id, name, description, memberCount?, role? }`.
+- **List** (`app/campaigns/page.tsx`): signed-in users see their real campaigns (with member counts + role) and a "New campaign" modal (`components/campaigns/NewCampaignButton.tsx`); logged-out visitors see demo cards + a sign-in CTA. Demo campaigns (`data/demo-campaigns/`) are also shown to signed-in users with a "Demo" chip.
+- **Workspace** (`app/campaigns/[campaignCode]/page.tsx` → `components/campaigns/CampaignWorkspace.tsx`): campaign hero header (role chip, actions, tools strip) + notes navigator sidebar + the live editor pane. Campaigns are addressed by a short `public_code` in the URL, not the UUID.
+- **Settings** (`app/campaigns/[campaignCode]/settings/page.tsx`): owner/DM-only route with `components/campaigns/CampaignSettings.tsx` (edit name/description + delete with confirm).
+- **Card** (`components/campaigns/CampaignCard.tsx`): member avatars with display-name tooltips, Demo/DM chips.
+
+### Text editor (client-only, no persistence yet)
+- **Shared extensions** (`lib/editor/extensions.ts`): `editorExtensions` (StarterKit, headings 1–3) — the single schema source that `generateText` (search/wipe-guard) and `generateHTML` (TV notes) must reuse when the backend lands. Editor-only plugins (e.g. Placeholder) stay out of this list.
+- **Editor component** (`components/editor/PageEditor.tsx`): Tiptap 2 with a formatting toolbar (undo/redo, H1–H3, bold/italic/strike/inline code, bullet/numbered lists, blockquote, horizontal rule), active-state highlighting, and an `onChange` callback that emits the document JSON for future saves. `immediatelyRender: false` for SSR safety.
+- **Document styles** (`app/globals.css`): scoped typography under `.page-editor-content` + empty-doc placeholder styling.
+- **Integration**: mounted in the campaign workspace editor pane, seeded with a demo document. Save/History buttons are disabled placeholders — **nothing is persisted**; that arrives with the wiki backend (`0004_wiki.sql` + `savePage` hardening).
 
 ### Element IDs
 - **Systematic ID convention**: kebab-case with scope prefixes (`site-*`, `campaign-*`, `{page}-*`)
@@ -52,7 +59,7 @@ The app has the **authentication flow plus campaign CRUD**, with the remaining f
 
 These render a simple "Coming soon" and exist only to preserve the route structure:
 
-- `app/campaigns/[campaignId]/pages/[pageId]/page.tsx` — wiki page editor
+- `app/campaigns/[campaignCode]/pages/[pageId]/page.tsx` — wiki page editor
 - `app/join/[token]/page.tsx` — invite acceptance
 - `app/library/page.tsx` — personal library
 - `app/tv/page.tsx`, `app/tv/[campaignId]/page.tsx`, `app/tv/[campaignId]/combat/page.tsx`, `app/tv/notes/[pageId]/page.tsx` — read-only TV surface (`app/tv/layout.tsx` + `tv.css` retained)
@@ -63,10 +70,7 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 
 - **Server actions** (`app/actions/`): `invites.ts`, `pages.ts`, `files.ts`, `library-transfer.ts` (`campaigns.ts` is rebuilt)
 - **Components**: `CombatLog.tsx`, `TvCombatLog.tsx`
-- **Feature components**: `PageEditor.tsx`, `AcceptInvite.tsx` (`NewCampaignButton.tsx` is rebuilt)
-- **Editor extensions**: `lib/editor/extensions.ts`
-
-> Note: Tiptap dependencies remain in `package.json` but are currently unused; they'll be needed again when the wiki editor and TV note rendering are rebuilt.
+- **Feature components**: `AcceptInvite.tsx` (`NewCampaignButton.tsx`, `PageEditor.tsx`, and `lib/editor/extensions.ts` are rebuilt)
 
 ---
 
@@ -74,7 +78,7 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 
 1. ~~**Campaigns + memberships**~~ — done (`createCampaign`/`updateCampaign`/`deleteCampaign` + list/detail UI). Next: member management within a campaign.
 2. **Invites** — rebuild `inviteMember` / `acceptInvite` + the `/join/[token]` flow
-3. **Wiki** — rebuild the Tiptap editor (`PageEditor`), `savePage` hardening, and shared `lib/editor/extensions.ts`
+3. **Wiki backend** — editor UI is done; next is `0004_wiki.sql` (categories, pages, snapshots), `savePage` hardening, and wiring the sidebar navigator to real data
 4. **Characters + inventory**
 5. **Combat log (realtime)** — rebuild `CombatLog` / `TvCombatLog`
 6. **File uploads**
