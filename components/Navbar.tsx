@@ -1,6 +1,11 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
+import { Menu, X } from "lucide-react";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { SignOutButton } from "@/components/SignOutButton";
 import { buttonVariants } from "@/components/ui";
@@ -22,13 +27,18 @@ function getDisplayName(user: User | null): string | null {
 
 export function Navbar({ user }: { user: User | null }) {
   const displayName = getDisplayName(user);
-  // Seed the procedural avatar off the email (stable per user); fall back to
-  // the user id if for some reason there's no email.
   const avatarSeed = user?.email ?? user?.id ?? "";
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close the mobile menu whenever the user navigates to a new route.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   return (
-    <header id="site-header" className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 py-3 shadow-sm backdrop-blur sm:py-4">
-      <nav id="site-nav" className="app-container flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+    <header id="site-header" className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 shadow-sm backdrop-blur">
+      <nav id="site-nav" className="app-container flex items-center justify-between gap-x-6 py-3 sm:py-4">
         <div className="flex min-w-0 items-center gap-4 sm:gap-8">
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <Image src="/logo.svg" alt="" width={36} height={36} priority />
@@ -50,43 +60,69 @@ export function Navbar({ user }: { user: User | null }) {
           </div>
         </div>
 
-        <div id="site-auth" className="flex shrink-0 items-center gap-3">
-          {user ? (
-            <>
-              <Link
-                href="/account"
-                className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
-              >
-                <PictoAvatar
-                  seed={avatarSeed}
-                  size={40}
-                  className="border border-gray-300"
-                />
-                <span className="hidden max-w-[12rem] truncate md:inline">
-                  {displayName}
-                </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <div id="site-auth" className="flex shrink-0 items-center gap-3">
+            {user ? (
+              <>
+                <Link
+                  href="/account"
+                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
+                >
+                  <PictoAvatar
+                    seed={avatarSeed}
+                    size={40}
+                    className="border border-gray-300"
+                  />
+                  <span className="hidden max-w-[12rem] truncate md:inline">
+                    {displayName}
+                  </span>
+                </Link>
+                <SignOutButton />
+              </>
+            ) : (
+              <Link href="/login" className={buttonVariants({ size: "sm" })}>
+                Sign in
               </Link>
-              <SignOutButton />
-            </>
-          ) : (
-            <Link href="/login" className={buttonVariants({ size: "sm" })}>
-              Sign in
-            </Link>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div id="site-nav-mobile" className="flex w-full items-center gap-5 border-t border-gray-100 pt-3 sm:hidden">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {/* Hamburger — mobile only */}
+          <button
+            type="button"
+            className="ml-1 flex items-center justify-center rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 sm:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="site-nav-mobile"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? (
+              <X className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <Menu className="h-5 w-5" aria-hidden="true" />
+            )}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile drawer — hidden by default, toggled via hamburger */}
+      {menuOpen && (
+        <div
+          id="site-nav-mobile"
+          className="border-t border-gray-100 bg-white sm:hidden"
+        >
+          <div className="app-container flex flex-col py-3">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-md px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
