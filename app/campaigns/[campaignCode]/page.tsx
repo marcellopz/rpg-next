@@ -8,6 +8,12 @@ import {
   getCurrentUserId,
 } from "@/lib/queries/campaigns";
 import {
+  getInventoryForCampaign,
+  getInventoryLog,
+  type Character,
+  type InventoryLogEntry,
+} from "@/lib/queries/inventory";
+import {
   getNoteTreesForCampaign,
   getPageForCurrentUser,
   type NotePage,
@@ -29,7 +35,7 @@ export default async function CampaignPage({
   searchParams,
 }: {
   params: { campaignCode: string };
-  searchParams: { tab?: string; page?: string; tool?: string };
+  searchParams: { tab?: string; page?: string; tool?: string; character?: string };
 }) {
   const campaign = await getCampaignDetailForCurrentUser(params.campaignCode);
 
@@ -53,6 +59,9 @@ export default async function CampaignPage({
   let tree: NoteTree = EMPTY_TREE;
   let activeTab: "campaign" | "personal" = "campaign";
   let selectedPage: NotePage | null = null;
+  let characters: Character[] = [];
+  let inventoryLog: InventoryLogEntry[] = [];
+  let selectedCharacterId: string | null = null;
 
   if (activeTool === "notes") {
     const trees = await getNoteTreesForCampaign(campaign.id);
@@ -64,6 +73,17 @@ export default async function CampaignPage({
       const page = await getPageForCurrentUser(selectedPageId);
       if (page && page.campaignId === campaign.id) selectedPage = page;
     }
+  }
+
+  if (activeTool === "inventory") {
+    [characters, inventoryLog] = await Promise.all([
+      getInventoryForCampaign(campaign.id),
+      getInventoryLog(campaign.id),
+    ]);
+    selectedCharacterId =
+      characters.find((c) => c.id === searchParams.character)?.id ??
+      characters[0]?.id ??
+      null;
   }
 
   return (
@@ -78,6 +98,9 @@ export default async function CampaignPage({
       tree={tree}
       activeTab={activeTab}
       selectedPage={selectedPage}
+      characters={characters}
+      inventoryLog={inventoryLog}
+      selectedCharacterId={selectedCharacterId}
       canEditSelected={
         !!selectedPage &&
         (selectedPage.visibility === "public" || selectedPage.ownerId === userId)

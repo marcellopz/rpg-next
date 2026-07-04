@@ -7,7 +7,9 @@ import {
   type CampaignToolId,
 } from "@/components/campaigns/campaign-tools";
 import { ToolPlaceholder } from "@/components/campaigns/ToolPlaceholder";
+import { InventoryTool } from "@/components/inventory/InventoryTool";
 import type { NoteScope } from "@/app/actions/categories";
+import type { Character, InventoryLogEntry } from "@/lib/queries/inventory";
 import type { NotePage, NoteTree } from "@/lib/queries/notes";
 import { Chip, Typography, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -24,6 +26,9 @@ export function CampaignWorkspace({
   activeTab,
   selectedPage,
   canEditSelected,
+  characters,
+  inventoryLog,
+  selectedCharacterId,
 }: {
   campaignId: string;
   name: string;
@@ -36,6 +41,9 @@ export function CampaignWorkspace({
   activeTab: NoteScope;
   selectedPage: NotePage | null;
   canEditSelected: boolean;
+  characters: Character[];
+  inventoryLog: InventoryLogEntry[];
+  selectedCharacterId: string | null;
 }) {
   const treeHasPages =
     tree.rootPages.length > 0 ||
@@ -155,6 +163,14 @@ export function CampaignWorkspace({
               </div>
             </main>
           </div>
+        ) : activeTool === "inventory" ? (
+          <InventoryTool
+            campaignId={campaignId}
+            publicCode={publicCode}
+            characters={characters}
+            selectedCharacterId={selectedCharacterId}
+            log={inventoryLog}
+          />
         ) : (
           <ToolPlaceholder
             title={toolMeta.label}

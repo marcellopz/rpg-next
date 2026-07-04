@@ -33,6 +33,13 @@ The app has the **authentication flow, campaign CRUD, in-app campaign invites, a
 - **Account UI** (`components/account/AccountInvites.tsx`): pending campaign invites appear on `/account` with Accept/Decline actions.
 - **Settings UI** (`components/campaigns/CampaignMembersSettings.tsx`): admins can invite by email, see current members, see invite status (`pending`, `accepted`, `revoked`), and revoke pending invites.
 
+### Inventory tool (`?tool=inventory`)
+- **Data model** (`supabase/migrations/0008_inventory.sql`): `characters` (STR + platinum/gold/silver/copper + sort order), `inventory_items` (name, type normal/magic/consumable, per-unit weight, quantity, sort order), and `inventory_log_entries` (append-only change history with actor, typed change, human description, item snapshot).
+- **Read queries** (`lib/queries/inventory.ts`): `getInventoryForCampaign` (characters with items), `getInventoryLog` (newest first).
+- **Server actions** (`app/actions/inventory.ts`): character create/rename/delete/stat updates, item add/edit/delete, cross-character `transferItem` (single `transfer` log entry), and unlogged reorders. Every other mutation writes a log entry.
+- **UI** (`components/inventory/`): party sidebar with drag reorder + add/rename/delete, character panel with click-to-edit stats and encumbrance bands (STR×5/10/15/30, coins at 0.02 lb), items table with inline edits, drag reorder, "Send to" transfers, and a "View log" history modal. Selected character via `?character={id}`.
+- **Realtime** (`0009_inventory_realtime.sql` + `useInventoryRealtime`): the three inventory tables are in the `supabase_realtime` publication; open clients subscribe (RLS-filtered per member) and live-refresh when anyone edits.
+
 ### Wiki notes (categories + pages, persisted)
 - **Data model** (`supabase/migrations/0005_wiki.sql`): `categories`, `pages`, `page_recovery_snapshots`. `categories.owner_id` null = shared "Campaign notes" tree; set = that user's private "My notes" tree. `pages.visibility` (`public`/`private`), nullable `category_id` (root-level pages), soft delete via `deleted_at`. RLS allows member reads only; all writes go through server actions.
 - **Read queries** (`lib/queries/notes.ts`): `getNoteTreesForCampaign` (both sidebar trees, no content) + `getPageForCurrentUser` (single page with `content_json` for the editor).
@@ -80,7 +87,9 @@ The app has the **authentication flow, campaign CRUD, in-app campaign invites, a
 - `0005_wiki.sql` — `categories`, `pages`, `page_recovery_snapshots` + read-only RLS + grants
 - `0006_page_sort_order.sql` — `pages.sort_order` for manual drag ordering (backfilled from `created_at`)
 - `0007_campaign_invites.sql` — in-app campaign invites by email + invitee read RLS + grants
-- All other tables (characters, combat log, files, library) are deferred; each will get its own numbered migration when the feature is built
+- `0008_inventory.sql` — `characters`, `inventory_items`, `inventory_log_entries` + member read RLS + grants
+- `0009_inventory_realtime.sql` — inventory tables added to the `supabase_realtime` publication for live updates
+- All other tables (combat log, files, library) are deferred; each will get its own numbered migration when the feature is built
 - `rpg-manager-reference.md` (full design spec and code patterns) kept for reference
 
 ---
@@ -109,7 +118,7 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 1. ~~**Campaigns + memberships**~~ — done (`createCampaign`/`updateCampaign`/`deleteCampaign` + list/detail UI). Next: member management within a campaign.
 2. ~~**Wiki backend**~~ — done (`0005_wiki.sql`, category/page CRUD, hardened `savePage`, sidebar + editor wiring). Next: snapshot browsing behind the History button.
 3. ~~**Campaign invites**~~ — done (in-app email-addressed invites, `/account` accept/decline, navbar badge, settings member/invite status). Later: optional email delivery if wanted.
-4. **Characters + inventory**
+4. ~~**Characters + inventory**~~ — done (`0008_inventory.sql`, party characters with stats/coins, item CRUD with inline edits, transfers, change log). Character sheets remain a separate future feature.
 5. **Combat log (realtime)** — rebuild `CombatLog` / `TvCombatLog`
 6. **File uploads**
 7. **Personal library**
@@ -121,10 +130,9 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 
 | File | Feature |
 |---|---|
-| `0008_characters.sql` | Characters, inventory_items |
-| `0009_combat_log.sql` | Combat log entries + realtime publication |
-| `0010_files.sql` | Files metadata |
-| `0011_library.sql` | Personal library tables |
+| `0010_combat_log.sql` | Combat log entries + realtime publication |
+| `0011_files.sql` | Files metadata |
+| `0012_library.sql` | Personal library tables |
 
 ---
 
@@ -132,7 +140,7 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 
 - [ ] `.env.local` filled in (Supabase URL, anon key, service role key)
 - [ ] `pnpm supabase login` + `pnpm supabase link --project-ref <ref>` to link the CLI
-- [ ] `pnpm db:push` to apply all migrations (`0001`–`0007`)
+- [ ] `pnpm db:push` to apply all migrations (`0001`–`0008`)
 - [ ] **Auth → Providers → Google** enabled (Client ID + secret) with redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`
 - [ ] **Auth → URL Configuration**: add `http://localhost:3000/auth/callback` to the redirect allowlist
 - [ ] **Auth → Providers → Email**: confirm whether email confirmation is required (affects the sign-up flow)

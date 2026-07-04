@@ -44,8 +44,8 @@ The proposal must include: the exact SQL, which migration file it belongs to (ne
 ## Key directories
 
 ```
-app/actions/          # Server actions (writes): campaigns.ts, categories.ts, pages.ts, invites.ts
-app/campaigns/        # Campaign list + [campaignCode] workspace (?tab= & ?page= select the note)
+app/actions/          # Server actions (writes): campaigns.ts, categories.ts, pages.ts, invites.ts, inventory.ts
+app/campaigns/        # Campaign list + [campaignCode] workspace (?tool= picks the tool; ?tab= & ?page= the note; ?character= the inventory)
 app/join/[token]/     # Invite acceptance flow
 app/library/          # Personal library (cross-campaign, user-owned)
 app/tv/               # Read-only TV display surface (webOS-safe)
@@ -53,10 +53,11 @@ components/campaigns/ # CampaignCard, CampaignWorkspace, settings, new-campaign 
 components/ui/        # Shared primitives: Button, IconButton, Menu, TextField, Typography, Chip, Tooltip
 components/notes-navigator/ # NotesSidebar, NotesTabs, NoteCategoryGroup, NotePageRow, drag/drop hook
 components/notes-editor/    # PageEditorPanel, PageEditor (Tiptap), EditorToolbar, editor.css
-lib/queries/          # Read-side data access: campaigns.ts, notes.ts, invites.ts
+components/inventory/       # InventoryTool, useInventoryRealtime, InlineEdit, encumbrance; characters/, items/, log/
+lib/queries/          # Read-side data access: campaigns.ts, notes.ts, invites.ts, inventory.ts
 lib/supabase/         # client.ts (browser, anon key) | server.ts (server, service-role key)
 lib/editor/extensions.ts  # SHARED Tiptap extensions — used by editor, generateText, generateHTML
-supabase/migrations/  # 0001 init | 0002 RLS + is_member | 0003 grants | 0004 public_code | 0005 wiki | 0007 invites
+supabase/migrations/  # 0001 init | 0002 RLS + is_member | 0003 grants | 0004 public_code | 0005 wiki | 0007 invites | 0008 inventory | 0009 inventory realtime
 middleware.ts         # Routes webOS user-agents to /tv automatically
 ```
 

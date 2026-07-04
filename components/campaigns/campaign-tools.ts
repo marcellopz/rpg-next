@@ -26,10 +26,9 @@ export const CAMPAIGN_TOOLS: {
   },
   {
     id: "inventory",
-    label: "Inventory log",
-    hint: "Record loot, consumables, and party gear changes over time.",
-    placeholder:
-      "Session-by-session inventory entries with who picked up what, quantities, and where items ended up.",
+    label: "Inventory",
+    hint: "Track each party member's gear, coins, and carry weight.",
+    placeholder: "",
   },
   {
     id: "maps",
