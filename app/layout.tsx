@@ -3,6 +3,7 @@ import Image from "next/image";
 import "./globals.css";
 import { createServerClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/Navbar";
+import { getPendingInviteCountForCurrentUser } from "@/lib/queries/invites";
 
 export const metadata: Metadata = {
   title: "RPG Campaign Manager",
@@ -18,11 +19,12 @@ export default async function RootLayout({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const pendingInviteCount = user ? await getPendingInviteCountForCurrentUser() : 0;
 
   return (
     <html lang="en">
       <body className="flex min-h-screen flex-col bg-[#f0f0f0] text-gray-900">
-        <Navbar user={user} />
+        <Navbar user={user} pendingInviteCount={pendingInviteCount} />
         <main id="site-main" className="flex-1">{children}</main>
         <footer id="site-footer" className="mt-auto border-t border-gray-200 bg-white py-8">
           <div className="app-container flex items-center gap-2 text-sm text-gray-500">

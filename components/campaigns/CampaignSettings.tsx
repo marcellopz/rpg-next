@@ -3,16 +3,20 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateCampaign, deleteCampaign } from "@/app/actions/campaigns";
+import type { CampaignPeopleForAdmin } from "@/lib/queries/invites";
+import { CampaignMembersSettings } from "@/components/campaigns/CampaignMembersSettings";
 import { Button, TextField, TextArea, Typography } from "@/components/ui";
 
 export function CampaignSettings({
   campaignId,
   initialName,
   initialDescription,
+  people,
 }: {
   campaignId: string;
   initialName: string;
   initialDescription: string;
+  people: CampaignPeopleForAdmin;
 }) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
@@ -109,6 +113,8 @@ export function CampaignSettings({
           </div>
         </form>
       </section>
+
+      <CampaignMembersSettings campaignId={campaignId} people={people} />
 
       <section id="campaign-settings-danger" className="rounded-2xl border border-red-200 bg-white p-6">
         <Typography variant="h3" as="h2" className="text-red-700">

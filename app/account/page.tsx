@@ -1,7 +1,9 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { DisplayNameForm } from "@/components/DisplayNameForm";
+import { AccountInvites } from "@/components/account/AccountInvites";
 import { Typography } from "@/components/ui";
+import { getPendingInvitesForCurrentUser } from "@/lib/queries/invites";
 
 export default async function AccountPage() {
   const supabase = createServerClient();
@@ -16,9 +18,10 @@ export default async function AccountPage() {
     (user?.user_metadata?.name as string | undefined) ??
     "";
   const avatarSeed = user?.email ?? user?.id ?? "";
+  const invites = await getPendingInvitesForCurrentUser();
 
   return (
-    <div id="account-page" className="mx-auto max-w-lg space-y-6 px-6 py-8">
+    <div id="account-page" className="mx-auto max-w-2xl space-y-6 px-6 py-8">
       <Typography variant="h1">Account</Typography>
 
       <div id="account-profile" className="flex items-center gap-3">
@@ -30,6 +33,7 @@ export default async function AccountPage() {
       </div>
 
       <DisplayNameForm initialDisplayName={currentDisplayName} />
+      <AccountInvites invites={invites} />
     </div>
   );
 }

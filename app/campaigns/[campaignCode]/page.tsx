@@ -78,7 +78,10 @@ export default async function CampaignPage({
       tree={tree}
       activeTab={activeTab}
       selectedPage={selectedPage}
-      canEditSelected={!!selectedPage && selectedPage.ownerId === userId}
+      canEditSelected={
+        !!selectedPage &&
+        (selectedPage.visibility === "public" || selectedPage.ownerId === userId)
+      }
     />
   );
 }

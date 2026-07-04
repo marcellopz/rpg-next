@@ -44,7 +44,7 @@ The proposal must include: the exact SQL, which migration file it belongs to (ne
 ## Key directories
 
 ```
-app/actions/          # Server actions (writes): campaigns.ts, categories.ts, pages.ts
+app/actions/          # Server actions (writes): campaigns.ts, categories.ts, pages.ts, invites.ts
 app/campaigns/        # Campaign list + [campaignCode] workspace (?tab= & ?page= select the note)
 app/join/[token]/     # Invite acceptance flow
 app/library/          # Personal library (cross-campaign, user-owned)
@@ -53,10 +53,10 @@ components/campaigns/ # CampaignCard, CampaignWorkspace, settings, new-campaign 
 components/ui/        # Shared primitives: Button, IconButton, Menu, TextField, Typography, Chip, Tooltip
 components/notes-navigator/ # NotesSidebar, NotesTabs, NoteCategoryGroup, NotePageRow, drag/drop hook
 components/notes-editor/    # PageEditorPanel, PageEditor (Tiptap), EditorToolbar, editor.css
-lib/queries/          # Read-side data access: campaigns.ts, notes.ts (user-scoped client, RLS filters)
+lib/queries/          # Read-side data access: campaigns.ts, notes.ts, invites.ts
 lib/supabase/         # client.ts (browser, anon key) | server.ts (server, service-role key)
 lib/editor/extensions.ts  # SHARED Tiptap extensions — used by editor, generateText, generateHTML
-supabase/migrations/  # 0001 init | 0002 RLS + is_member | 0003 grants | 0004 public_code | 0005 wiki
+supabase/migrations/  # 0001 init | 0002 RLS + is_member | 0003 grants | 0004 public_code | 0005 wiki | 0007 invites
 middleware.ts         # Routes webOS user-agents to /tv automatically
 ```
 
@@ -82,10 +82,16 @@ is_member(campaign_id)  -- true if auth.uid() is in memberships for that campaig
 Every table with a `campaign_id` uses this. Personal library tables use `owner_id = auth.uid()`.
 
 **Page save hardening** (`app/actions/pages.ts → savePage`)
+- Shared campaign notes are collaborative: any campaign member may create/edit/delete shared pages and categories. Personal "My notes" content remains owner-only.
 - Layer 1: `previous_content_json` (last-known-good) + `deleted_at` soft delete
 - Layer 2: Server-side wipe guard — blocks save if new text < 10% of old; asks user to confirm
 - Layer 3: Capped rolling snapshots in `page_recovery_snapshots` (newest 10 per page)
 - `content_text` is always derived on the server from JSON via `generateText` — never trusted from the client
+
+**Campaign invites** (`app/actions/invites.ts`)
+- No outbound email is sent. Invites are addressed to `invitee_email` and shown in-app on `/account` when the signed-in user's email matches.
+- Campaign settings show members and invite status. Create/revoke require campaign admin; accept/decline require the invitee email to match the current user.
+- Invites are player-only for now.
 
 **Personal library** (`app/actions/library-transfer.ts`)
 - Envelope + typed body pattern: `library_items` (common fields) + per-kind body tables

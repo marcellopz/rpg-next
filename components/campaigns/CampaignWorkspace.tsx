@@ -76,16 +76,14 @@ export function CampaignWorkspace({
                   >
                     Search
                   </button>
-                  <button
-                    type="button"
-                    disabled
-                    className={cn(
-                      buttonVariants({ variant: "white", size: "sm" }),
-                      "opacity-80"
-                    )}
-                  >
-                    Invite
-                  </button>
+                  {isAdmin && (
+                    <Link
+                      href={`/campaigns/${publicCode}/settings#campaign-settings-members`}
+                      className={buttonVariants({ variant: "white", size: "sm" })}
+                    >
+                      Invite
+                    </Link>
+                  )}
                   <Link
                     href={`/tv/${publicCode}`}
                     className={buttonVariants({ variant: "white", size: "sm" })}

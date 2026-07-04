@@ -25,7 +25,13 @@ function getDisplayName(user: User | null): string | null {
   );
 }
 
-export function Navbar({ user }: { user: User | null }) {
+export function Navbar({
+  user,
+  pendingInviteCount = 0,
+}: {
+  user: User | null;
+  pendingInviteCount?: number;
+}) {
   const displayName = getDisplayName(user);
   const avatarSeed = user?.email ?? user?.id ?? "";
   const [menuOpen, setMenuOpen] = useState(false);
@@ -68,11 +74,18 @@ export function Navbar({ user }: { user: User | null }) {
                   href="/account"
                   className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
                 >
-                  <PictoAvatar
-                    seed={avatarSeed}
-                    size={40}
-                    className="border border-gray-300"
-                  />
+                  <span className="relative inline-flex">
+                    <PictoAvatar
+                      seed={avatarSeed}
+                      size={40}
+                      className="border border-gray-300"
+                    />
+                    {pendingInviteCount > 0 && (
+                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[0.65rem] font-semibold leading-none text-white ring-2 ring-white">
+                        {pendingInviteCount > 9 ? "9+" : pendingInviteCount}
+                      </span>
+                    )}
+                  </span>
                   <span className="hidden max-w-[12rem] truncate md:inline">
                     {displayName}
                   </span>

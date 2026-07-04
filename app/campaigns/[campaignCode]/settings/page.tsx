@@ -3,6 +3,7 @@ import { CampaignSettings } from "@/components/campaigns/CampaignSettings";
 import { Typography, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { getCampaignDetailForCurrentUser } from "@/lib/queries/campaigns";
+import { getCampaignPeopleForAdmin } from "@/lib/queries/invites";
 
 export default async function CampaignSettingsPage({
   params,
@@ -26,6 +27,8 @@ export default async function CampaignSettingsPage({
     );
   }
 
+  const people = await getCampaignPeopleForAdmin(campaign.id);
+
   return (
     <div id="campaign-settings-page" className="mx-auto max-w-3xl px-6 py-10">
       <Link
@@ -48,6 +51,7 @@ export default async function CampaignSettingsPage({
           campaignId={campaign.id}
           initialName={campaign.name}
           initialDescription={campaign.description}
+          people={people ?? { members: [], invites: [] }}
         />
       </div>
     </div>

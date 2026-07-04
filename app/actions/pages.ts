@@ -52,8 +52,9 @@ type PageRow = {
   deleted_at: string | null;
 };
 
-// Load a page and check the caller may modify it. Page writes are owner-only
-// (the spec's rule); membership is checked too in case the owner left.
+// Load a page and check the caller may modify it. Shared campaign pages are
+// collaborative: any campaign member may edit them. Private "My notes" pages
+// remain owner-only.
 async function getEditablePage(
   pageId: string,
   userId: string
@@ -68,10 +69,10 @@ async function getEditablePage(
     .maybeSingle<PageRow>();
   if (!page || page.deleted_at) return { error: "Page not found." };
 
-  if (page.owner_id !== userId)
-    return { error: "Only the page's creator can modify it." };
   if (!(await isCampaignMember(userId, page.campaign_id)))
     return { error: "You don't have access to this campaign." };
+  if (page.visibility === "private" && page.owner_id !== userId)
+    return { error: "Only the page's creator can modify it." };
 
   return { page };
 }
