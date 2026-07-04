@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { loginUrl } from "@/lib/auth/login-url";
 
 type Kind = "Character" | "Item" | "Spell" | "Note" | "Map" | "Monster";
 
@@ -176,7 +177,7 @@ export default function LibraryPage() {
           </p>
         </div>
         <Link
-          href="/login"
+          href={loginUrl("/library")}
           className="rounded-md bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-500"
         >
           Add to library

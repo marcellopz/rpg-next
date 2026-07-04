@@ -299,7 +299,8 @@ export async function inviteMember(campaignId: string, email?: string) {
     expires_at: expires.toISOString(),
   })
 
-  return `${process.env.APP_URL}/join/${token}` // share this link
+  // Invites are in-app (shown on /account when invitee_email matches the signed-in user).
+  return { ok: true }
 }
 
 export async function acceptInvite(token: string) {

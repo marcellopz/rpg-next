@@ -130,7 +130,7 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 
 ## Environment checklist
 
-- [ ] `.env.local` filled in (Supabase URL, anon key, service role key, `APP_URL`)
+- [ ] `.env.local` filled in (Supabase URL, anon key, service role key)
 - [ ] `pnpm supabase login` + `pnpm supabase link --project-ref <ref>` to link the CLI
 - [ ] `pnpm db:push` to apply all migrations (`0001`–`0007`)
 - [ ] **Auth → Providers → Google** enabled (Client ID + secret) with redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`

@@ -28,16 +28,20 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  // 3. Signed-in users shouldn't see the login page.
+  // 3. Signed-in users shouldn't see the login page — honor `next` when present.
   if (user && pathname === "/login") {
-    return NextResponse.redirect(new URL("/campaigns", req.url));
+    const next = req.nextUrl.searchParams.get("next");
+    const destination =
+      next && next.startsWith("/") && !next.startsWith("//") ? next : "/campaigns";
+    return NextResponse.redirect(new URL(destination, req.url));
   }
 
   // 4. Unauthenticated users hitting a protected route go to /login, with a
   //    `next` param so we can send them back after they sign in.
   if (!user && !isPublic(pathname)) {
+    const returnPath = pathname + req.nextUrl.search;
     const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("next", pathname);
+    loginUrl.searchParams.set("next", returnPath);
     return NextResponse.redirect(loginUrl);
   }
 

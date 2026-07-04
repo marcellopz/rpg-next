@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  AUTH_RETURN_COOKIE,
+  AUTH_RETURN_MAX_AGE,
+  safeReturnPath,
+} from "@/lib/auth/login-url";
 import { Button, TextField, Typography } from "@/components/ui";
 
 type Mode = "signin" | "signup";
@@ -26,9 +31,13 @@ export default function LoginPage() {
 
   // Where to send the user after a successful sign-in.
   function nextPath() {
-    return (
-      new URLSearchParams(window.location.search).get("next") ?? "/campaigns"
+    return safeReturnPath(
+      new URLSearchParams(window.location.search).get("next")
     );
+  }
+
+  function rememberReturnPath() {
+    document.cookie = `${AUTH_RETURN_COOKIE}=${encodeURIComponent(nextPath())}; path=/; max-age=${AUTH_RETURN_MAX_AGE}; SameSite=Lax`;
   }
 
   // Build the callback URL, forwarding any `next` param so OAuth / email
@@ -63,6 +72,7 @@ export default function LoginPage() {
   async function signInWithGoogle() {
     setBusy("google");
     setError(null);
+    rememberReturnPath();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: callbackUrl() },

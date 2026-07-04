@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { Menu, X } from "lucide-react";
 import { PictoAvatar } from "@/components/PictoAvatar";
+import { SignInLink } from "@/components/SignInLink";
 import { SignOutButton } from "@/components/SignOutButton";
 import { buttonVariants } from "@/components/ui";
 
@@ -93,9 +94,15 @@ export function Navbar({
                 <SignOutButton />
               </>
             ) : (
-              <Link href="/login" className={buttonVariants({ size: "sm" })}>
-                Sign in
-              </Link>
+              <Suspense
+                fallback={
+                  <Link href="/login" className={buttonVariants({ size: "sm" })}>
+                    Sign in
+                  </Link>
+                }
+              >
+                <SignInLink className={buttonVariants({ size: "sm" })} />
+              </Suspense>
             )}
           </div>
 

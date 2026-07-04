@@ -2,6 +2,7 @@ export type CampaignToolId =
   | "notes"
   | "combat"
   | "inventory"
+  | "maps"
   | "handouts";
 
 export const CAMPAIGN_TOOLS: {
@@ -31,6 +32,12 @@ export const CAMPAIGN_TOOLS: {
       "Session-by-session inventory entries with who picked up what, quantities, and where items ended up.",
   },
   {
+    id: "maps",
+    label: "Map",
+    hint: "Upload a map for the table.",
+    placeholder: "A map for the table.",
+  },
+  {
     id: "handouts",
     label: "Handouts & files",
     hint: "Upload maps, images, and PDFs for the table.",
@@ -40,7 +47,7 @@ export const CAMPAIGN_TOOLS: {
 ];
 
 export const CAMPAIGN_TOOL_TABS = CAMPAIGN_TOOLS.filter(
-  (tool) => tool.id !== "combat"
+  (tool) => tool.id !== "combat",
 );
 
 const TOOL_IDS = new Set(CAMPAIGN_TOOLS.map((t) => t.id));

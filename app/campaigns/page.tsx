@@ -3,6 +3,7 @@ import { CampaignCard } from "@/components/campaigns/CampaignCard";
 import { NewCampaignButton } from "@/components/campaigns/NewCampaignButton";
 import { Typography, buttonVariants } from "@/components/ui";
 import { DEMO_CAMPAIGNS } from "@/data/demo-campaigns";
+import { loginUrl } from "@/lib/auth/login-url";
 import { getCampaignsForCurrentUser } from "@/lib/queries/campaigns";
 
 function DemoSection() {
@@ -38,7 +39,7 @@ export default async function CampaignsPage() {
               own.
             </Typography>
           </div>
-          <Link href="/login" className={buttonVariants()}>
+          <Link href={loginUrl("/campaigns")} className={buttonVariants()}>
             Sign in
           </Link>
         </div>
