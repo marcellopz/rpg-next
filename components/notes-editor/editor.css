@@ -2,7 +2,7 @@
    Tiptap editor content (.page-editor-content = ProseMirror root)
    Scoped typographic styles so the document reads well without a global
    typography plugin. Keep in sync with the TV note renderer styles later.
-   Imported by components/editor/PageEditor.tsx.
+   Imported by components/notes-editor/PageEditor.tsx.
 --------------------------------------------------------------------------- */
 
 .page-editor-content {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CampaignWorkspace } from "@/components/campaigns/CampaignWorkspace";
+import { parseCampaignTool } from "@/components/campaigns/campaign-tools";
 import { Typography, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import {
@@ -12,6 +13,8 @@ import {
   type NotePage,
   type NoteTree,
 } from "@/lib/queries/notes";
+
+const EMPTY_TREE: NoteTree = { categories: [], rootPages: [] };
 
 // The first page in tree order: first category with pages wins, then root.
 function defaultPageId(tree: NoteTree): string | null {
@@ -26,7 +29,7 @@ export default async function CampaignPage({
   searchParams,
 }: {
   params: { campaignCode: string };
-  searchParams: { tab?: string; page?: string };
+  searchParams: { tab?: string; page?: string; tool?: string };
 }) {
   const campaign = await getCampaignDetailForCurrentUser(params.campaignCode);
 
@@ -44,20 +47,23 @@ export default async function CampaignPage({
     );
   }
 
-  const [userId, trees] = await Promise.all([
-    getCurrentUserId(),
-    getNoteTreesForCampaign(campaign.id),
-  ]);
+  const activeTool = parseCampaignTool(searchParams.tool);
+  const userId = await getCurrentUserId();
 
-  const activeTab = searchParams.tab === "my" ? "personal" : "campaign";
-  const tree = trees[activeTab];
-
-  const selectedPageId = searchParams.page ?? defaultPageId(tree);
+  let tree: NoteTree = EMPTY_TREE;
+  let activeTab: "campaign" | "personal" = "campaign";
   let selectedPage: NotePage | null = null;
-  if (selectedPageId) {
-    const page = await getPageForCurrentUser(selectedPageId);
-    // Guard against a ?page= id from another campaign.
-    if (page && page.campaignId === campaign.id) selectedPage = page;
+
+  if (activeTool === "notes") {
+    const trees = await getNoteTreesForCampaign(campaign.id);
+    activeTab = searchParams.tab === "my" ? "personal" : "campaign";
+    tree = trees[activeTab];
+
+    const selectedPageId = searchParams.page ?? defaultPageId(tree);
+    if (selectedPageId) {
+      const page = await getPageForCurrentUser(selectedPageId);
+      if (page && page.campaignId === campaign.id) selectedPage = page;
+    }
   }
 
   return (
@@ -68,6 +74,7 @@ export default async function CampaignPage({
       role={campaign.role}
       isAdmin={campaign.isAdmin}
       publicCode={campaign.publicCode}
+      activeTool={activeTool}
       tree={tree}
       activeTab={activeTab}
       selectedPage={selectedPage}

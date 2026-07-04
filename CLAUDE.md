@@ -51,8 +51,8 @@ app/library/          # Personal library (cross-campaign, user-owned)
 app/tv/               # Read-only TV display surface (webOS-safe)
 components/campaigns/ # CampaignCard, CampaignWorkspace, settings, new-campaign modal
 components/ui/        # Shared primitives: Button, IconButton, Menu, TextField, Typography, Chip, Tooltip
-components/wiki/      # NotesSidebar, PageEditorPanel (save flow), NewItemForm
-components/editor/    # PageEditor (Tiptap), EditorToolbar, editor.css
+components/notes-navigator/ # NotesSidebar, NotesTabs, NoteCategoryGroup, NotePageRow, drag/drop hook
+components/notes-editor/    # PageEditorPanel, PageEditor (Tiptap), EditorToolbar, editor.css
 lib/queries/          # Read-side data access: campaigns.ts, notes.ts (user-scoped client, RLS filters)
 lib/supabase/         # client.ts (browser, anon key) | server.ts (server, service-role key)
 lib/editor/extensions.ts  # SHARED Tiptap extensions — used by editor, generateText, generateHTML
@@ -113,9 +113,9 @@ A component file should export **one main component**. For secondary components 
 
 - **One small secondary component** (a few lines, only used here) → may stay in the same file
 - **More than one secondary component, or a secondary component that isn't small** → move each to its own file
-- **More than 3 related component files** → group them in a folder named after the feature (e.g. `components/campaigns/`, `components/editor/`)
+- **More than 3 related component files** → group them in a folder named after the feature (e.g. `components/campaigns/`, `components/notes-editor/`)
 
-Example: `components/editor/` — `PageEditor.tsx` (main), `EditorToolbar.tsx` and `ToolbarButton.tsx` (extracted secondaries), `editor.css` (scoped styles, imported by the component that needs it).
+Example: `components/notes-editor/` — `PageEditor.tsx` (main), `EditorToolbar.tsx` and `ToolbarButton.tsx` (extracted secondaries), `editor.css` (scoped styles, imported by the component that needs it).
 
 ---
 

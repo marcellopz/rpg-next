@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { savePage } from "@/app/actions/pages";
 import type { NotePage } from "@/lib/queries/notes";
-import { PageEditor } from "@/components/editor/PageEditor";
+import { PageEditor } from "./PageEditor";
 
 // Client wrapper that owns the save flow for the selected page: tracks the
 // latest document JSON and dirty state, and runs the wipe-guard confirmation
