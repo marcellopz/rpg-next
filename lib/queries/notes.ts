@@ -1,7 +1,7 @@
 // Read-side data access for wiki notes (categories + pages). User-scoped
 // client everywhere: RLS hides other users' private trees and soft-deleted
 // pages, so no additional filtering is needed for authorization.
-import { createServerClient } from "@/lib/supabase/server";
+import { createServerClient, getCurrentUser } from "@/lib/supabase/server";
 import type { JSONContent } from "@tiptap/core";
 
 export type NotePageSummary = {
@@ -81,11 +81,10 @@ export async function getNoteTreesForCampaign(
   campaignId: string
 ): Promise<NoteTrees> {
   const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const [{ data: categoryRows }, { data: pageRows }] = await Promise.all([
+  // The user lookup and both table reads run in parallel — none depend on
+  // each other; the user id is only needed to split the personal tree.
+  const [user, { data: categoryRows }, { data: pageRows }] = await Promise.all([
+    getCurrentUser(),
     supabase
       .from("categories")
       .select("id, name, owner_id, sort_order, created_at")

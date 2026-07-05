@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/components/navigation/NavLink";
 import type { NoteScope } from "@/app/actions/categories";
 import { cn } from "@/lib/cn";
 
@@ -14,7 +14,7 @@ export function NotesTabs({
       id="campaign-notes-tabs"
       className="flex rounded-xl bg-gray-100 p-1 text-xs font-medium"
     >
-      <Link
+      <NavLink
         href={basePath}
         className={cn(
           "flex-1 rounded-lg px-3 py-2 text-center",
@@ -24,8 +24,8 @@ export function NotesTabs({
         )}
       >
         Campaign notes
-      </Link>
-      <Link
+      </NavLink>
+      <NavLink
         href={`${basePath}?tab=my`}
         className={cn(
           "flex-1 rounded-lg px-3 py-2 text-center",
@@ -35,7 +35,7 @@ export function NotesTabs({
         )}
       >
         My notes
-      </Link>
+      </NavLink>
     </div>
   );
 }

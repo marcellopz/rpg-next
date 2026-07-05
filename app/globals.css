@@ -40,3 +40,17 @@ body {
   background: #f0f0f0;
   color: #1a1a1a;
 }
+
+/* Indeterminate top progress bar shown while a navigation is in flight. */
+@keyframes nav-progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.nav-progress-bar {
+  animation: nav-progress-slide 1.5s ease-in-out infinite;
+}

@@ -3,7 +3,8 @@ export type CampaignToolId =
   | "combat"
   | "inventory"
   | "maps"
-  | "handouts";
+  | "handouts"
+  | "resources";
 
 export const CAMPAIGN_TOOLS: {
   id: CampaignToolId;
@@ -35,6 +36,13 @@ export const CAMPAIGN_TOOLS: {
     label: "Map",
     hint: "Upload a map for the table.",
     placeholder: "A map for the table.",
+  },
+  {
+    id: "resources",
+    label: "Resources",
+    hint: "Keep track of resources like spell slots, character abilities, and other resources.",
+    placeholder:
+      "A resource tracker for spell slots, character abilities, and other resources.",
   },
   {
     id: "handouts",

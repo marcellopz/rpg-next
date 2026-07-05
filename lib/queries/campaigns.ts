@@ -1,6 +1,10 @@
 // Read-side data access for campaigns. Keep Supabase queries here (named for
 // what they fetch) rather than inline in components/pages or server actions.
-import { createServerClient, createAdminClient } from "@/lib/supabase/server";
+import {
+  createServerClient,
+  createAdminClient,
+  getCurrentUser,
+} from "@/lib/supabase/server";
 import type { Campaign } from "@/components/campaigns/CampaignCard";
 
 type MembershipWithCampaign = {
@@ -21,10 +25,7 @@ export type CampaignsForCurrentUser = {
 
 // The current user's id, or null when there is no session.
 export async function getCurrentUserId(): Promise<string | null> {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   return user?.id ?? null;
 }
 
@@ -81,11 +82,9 @@ export async function isCampaignAdmin(
 // Returns isSignedIn:false (and no campaigns) when there's no session, so the
 // caller can decide what to show logged-out visitors.
 export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentUser> {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return { isSignedIn: false, campaigns: [] };
+  const supabase = createServerClient();
 
   // RLS scopes this to the caller's memberships.
   const { data: membershipRows } = await supabase
@@ -172,15 +171,16 @@ export async function getCampaignDetailForCurrentUser(
   campaignCode: string
 ): Promise<CampaignDetail | null> {
   const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: campaign } = await supabase
-    .from("campaigns")
-    .select("id, public_code, name, description, owner_id, created_at")
-    .eq("public_code", campaignCode)
-    .maybeSingle();
+  // Fetch the user and campaign in parallel; the membership lookup can start
+  // as soon as the campaign row is known but doesn't need the user row first.
+  const [user, { data: campaign }] = await Promise.all([
+    getCurrentUser(),
+    supabase
+      .from("campaigns")
+      .select("id, public_code, name, description, owner_id, created_at")
+      .eq("public_code", campaignCode)
+      .maybeSingle(),
+  ]);
   if (!campaign) return null;
 
   let role: "dm" | "player" | null = null;

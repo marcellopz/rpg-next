@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/components/navigation/NavLink";
 import { NotesSidebar } from "@/components/notes-navigator/NotesSidebar";
 import { PageEditorPanel } from "@/components/notes-editor/PageEditorPanel";
 import { CampaignToolTabs } from "@/components/campaigns/CampaignToolTabs";
@@ -65,7 +65,7 @@ export function CampaignWorkspace({
                 )}
                 <Chip variant="onDarkSolid">Campaign workspace</Chip>
                 <div id="campaign-actions" className="ml-auto flex flex-wrap gap-2">
-                  <Link
+                  <NavLink
                     href={`/campaigns/${publicCode}?tool=combat`}
                     className={cn(
                       buttonVariants({ variant: "white", size: "md" }),
@@ -73,7 +73,7 @@ export function CampaignWorkspace({
                     )}
                   >
                     Combat tracker
-                  </Link>
+                  </NavLink>
                   <button
                     type="button"
                     disabled
@@ -85,26 +85,26 @@ export function CampaignWorkspace({
                     Search
                   </button>
                   {isAdmin && (
-                    <Link
+                    <NavLink
                       href={`/campaigns/${publicCode}/settings#campaign-settings-members`}
                       className={buttonVariants({ variant: "white", size: "sm" })}
                     >
                       Invite
-                    </Link>
+                    </NavLink>
                   )}
-                  <Link
+                  <NavLink
                     href={`/tv/${publicCode}`}
                     className={buttonVariants({ variant: "white", size: "sm" })}
                   >
                     TV display
-                  </Link>
+                  </NavLink>
                   {isAdmin && (
-                    <Link
+                    <NavLink
                       href={`/campaigns/${publicCode}/settings`}
                       className={buttonVariants({ variant: "white", size: "sm" })}
                     >
                       Settings
-                    </Link>
+                    </NavLink>
                   )}
                 </div>
               </div>

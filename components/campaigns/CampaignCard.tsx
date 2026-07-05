@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/components/navigation/NavLink";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { Tooltip, Chip } from "@/components/ui";
 
@@ -32,7 +32,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
   const overflow = count - shown.length;
 
   return (
-    <Link
+    <NavLink
       href={`/campaigns/${id}`}
       className="group flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm"
     >
@@ -87,6 +87,6 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
           </span>
         </div>
       </div>
-    </Link>
+    </NavLink>
   );
 }

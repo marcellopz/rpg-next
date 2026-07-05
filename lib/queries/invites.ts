@@ -1,4 +1,4 @@
-import { createAdminClient, createServerClient } from "@/lib/supabase/server";
+import { createAdminClient, getCurrentUser } from "@/lib/supabase/server";
 import { isCampaignAdmin } from "@/lib/queries/campaigns";
 
 export type AccountInvite = {
@@ -78,10 +78,7 @@ async function getAuthLabels(userIds: string[]): Promise<Record<string, AuthLabe
 }
 
 export async function getPendingInviteCountForCurrentUser(): Promise<number> {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user?.email) return 0;
 
   const admin = createAdminClient();
@@ -107,10 +104,7 @@ type AccountInviteRow = {
 };
 
 export async function getPendingInvitesForCurrentUser(): Promise<AccountInvite[]> {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user?.email) return [];
 
   const admin = createAdminClient();
@@ -167,10 +161,7 @@ function inviteStatus(row: InviteAdminRow): CampaignInviteStatus {
 export async function getCampaignPeopleForAdmin(
   campaignId: string
 ): Promise<CampaignPeopleForAdmin | null> {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return null;
   if (!(await isCampaignAdmin(user.id, campaignId))) return null;
 

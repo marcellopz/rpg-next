@@ -6,12 +6,16 @@
 //  - createAdminClient(): service-role key, bypasses RLS. Use ONLY for trusted
 //    multi-step logic that must write rows a user can't write directly
 //    (e.g. memberships, invites).
+import { cache } from "react";
 import { cookies } from "next/headers";
 import {
   createServerClient as createSSRClient,
   type CookieOptions,
 } from "@supabase/ssr";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import {
+  createClient as createSupabaseClient,
+  type User,
+} from "@supabase/supabase-js";
 
 export function createServerClient() {
   const cookieStore = cookies();
@@ -50,3 +54,15 @@ export function createAdminClient() {
     { auth: { persistSession: false } }
   );
 }
+
+// The signed-in user, deduplicated per request. auth.getUser() is a network
+// round trip to the Supabase auth server; without cache() a single navigation
+// repeats it in the layout, page, and every query helper (~6 sequential round
+// trips). With cache() the whole render shares one call.
+export const getCurrentUser = cache(async (): Promise<User | null> => {
+  const supabase = createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+});

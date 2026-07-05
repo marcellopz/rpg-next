@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/components/navigation/NavLink";
 import { FileText } from "lucide-react";
 import type { NotePageSummary } from "@/lib/queries/notes";
 import { Menu } from "@/components/ui";
@@ -49,7 +49,7 @@ export function NotePageRow({
           "opacity-40"
       )}
     >
-      <Link
+      <NavLink
         href={controller.pageHref(page.id)}
         draggable={false}
         className={cn(
@@ -61,7 +61,7 @@ export function NotePageRow({
       >
         <FileText className="h-4 w-4 shrink-0 text-gray-400" />
         <span className="truncate">{page.title}</span>
-      </Link>
+      </NavLink>
       <div className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
         <Menu
           label={`Options for ${page.title}`}

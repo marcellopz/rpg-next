@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { DisplayNameForm } from "@/components/DisplayNameForm";
 import { AccountInvites } from "@/components/account/AccountInvites";
@@ -6,10 +6,7 @@ import { Typography } from "@/components/ui";
 import { getPendingInvitesForCurrentUser } from "@/lib/queries/invites";
 
 export default async function AccountPage() {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   // Middleware protects this route, so `user` is expected to be present.
   const currentDisplayName =

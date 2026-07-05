@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { Menu, X } from "lucide-react";
 import { PictoAvatar } from "@/components/PictoAvatar";
+import { NavLink } from "@/components/navigation/NavLink";
 import { SignInLink } from "@/components/SignInLink";
 import { SignOutButton } from "@/components/SignOutButton";
 import { buttonVariants } from "@/components/ui";
@@ -56,13 +57,13 @@ export function Navbar({
 
           <div id="site-nav-desktop" className="hidden items-center gap-6 sm:flex">
             {NAV_LINKS.map((link) => (
-              <Link
+              <NavLink
                 key={link.href}
                 href={link.href}
                 className="text-sm text-gray-600 hover:text-gray-900"
               >
                 {link.label}
-              </Link>
+              </NavLink>
             ))}
           </div>
         </div>
@@ -71,7 +72,7 @@ export function Navbar({
           <div id="site-auth" className="flex shrink-0 items-center gap-3">
             {user ? (
               <>
-                <Link
+                <NavLink
                   href="/account"
                   className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
                 >
@@ -90,7 +91,7 @@ export function Navbar({
                   <span className="hidden max-w-[12rem] truncate md:inline">
                     {displayName}
                   </span>
-                </Link>
+                </NavLink>
                 <SignOutButton />
               </>
             ) : (
@@ -132,13 +133,13 @@ export function Navbar({
         >
           <div className="app-container flex flex-col py-3">
             {NAV_LINKS.map((link) => (
-              <Link
+              <NavLink
                 key={link.href}
                 href={link.href}
                 className="rounded-md px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               >
                 {link.label}
-              </Link>
+              </NavLink>
             ))}
           </div>
         </div>

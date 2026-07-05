@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NavLink } from "@/components/navigation/NavLink";
 import type { DragEvent } from "react";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { Menu, type MenuEntry } from "@/components/ui";
@@ -49,7 +49,7 @@ export function CharacterRow({
         dragging && "opacity-40"
       )}
     >
-      <Link
+      <NavLink
         href={href}
         draggable={false}
         className={cn(
@@ -65,7 +65,7 @@ export function CharacterRow({
           className="border border-gray-200"
         />
         <span className="truncate font-medium">{character.name}</span>
-      </Link>
+      </NavLink>
       <div className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
         <Menu label={`Options for ${character.name}`} entries={menuEntries} />
       </div>

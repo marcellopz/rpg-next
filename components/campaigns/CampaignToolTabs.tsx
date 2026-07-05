@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/components/navigation/NavLink";
 import {
   CAMPAIGN_TOOL_TABS,
   type CampaignToolId,
@@ -43,7 +43,7 @@ export function CampaignToolTabs({
         {CAMPAIGN_TOOL_TABS.map((tool) => {
           const selected = tool.id === activeTool;
           return (
-            <Link
+            <NavLink
               key={tool.id}
               id={tool.id === "notes" ? "campaign-tool-notes" : undefined}
               href={toolHref(tool.id)}
@@ -57,7 +57,7 @@ export function CampaignToolTabs({
               )}
             >
               {tool.label}
-            </Link>
+            </NavLink>
           );
         })}
       </div>

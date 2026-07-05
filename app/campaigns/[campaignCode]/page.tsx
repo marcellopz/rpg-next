@@ -64,15 +64,22 @@ export default async function CampaignPage({
   let selectedCharacterId: string | null = null;
 
   if (activeTool === "notes") {
-    const trees = await getNoteTreesForCampaign(campaign.id);
     activeTab = searchParams.tab === "my" ? "personal" : "campaign";
+
+    // When the URL names a page, fetch it in parallel with the trees; only
+    // fall back to a second round trip when we need the tree to pick a default.
+    const [trees, pageFromUrl] = await Promise.all([
+      getNoteTreesForCampaign(campaign.id),
+      searchParams.page ? getPageForCurrentUser(searchParams.page) : null,
+    ]);
     tree = trees[activeTab];
 
-    const selectedPageId = searchParams.page ?? defaultPageId(tree);
-    if (selectedPageId) {
-      const page = await getPageForCurrentUser(selectedPageId);
-      if (page && page.campaignId === campaign.id) selectedPage = page;
+    let page = pageFromUrl;
+    if (!page) {
+      const fallbackId = defaultPageId(tree);
+      if (fallbackId) page = await getPageForCurrentUser(fallbackId);
     }
+    if (page && page.campaignId === campaign.id) selectedPage = page;
   }
 
   if (activeTool === "inventory") {
