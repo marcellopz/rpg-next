@@ -14,6 +14,13 @@ import {
   type InventoryLogEntry,
 } from "@/lib/queries/inventory";
 import {
+  EMPTY_LAYOUTS,
+  getInventoryCharacterOptions,
+  getResourcesForCampaign,
+  type ResourcesDashboard,
+  type InventoryCharacterOption,
+} from "@/lib/queries/resources";
+import {
   getNoteTreesForCampaign,
   getPageForCurrentUser,
   type NotePage,
@@ -62,6 +69,8 @@ export default async function CampaignPage({
   let characters: Character[] = [];
   let inventoryLog: InventoryLogEntry[] = [];
   let selectedCharacterId: string | null = null;
+  let resources: ResourcesDashboard = { cards: [], layouts: EMPTY_LAYOUTS };
+  let inventoryCharacterOptions: InventoryCharacterOption[] = [];
 
   if (activeTool === "notes") {
     activeTab = searchParams.tab === "my" ? "personal" : "campaign";
@@ -93,6 +102,13 @@ export default async function CampaignPage({
       null;
   }
 
+  if (activeTool === "resources") {
+    [resources, inventoryCharacterOptions] = await Promise.all([
+      getResourcesForCampaign(campaign.id),
+      getInventoryCharacterOptions(campaign.id),
+    ]);
+  }
+
   return (
     <CampaignWorkspace
       campaignId={campaign.id}
@@ -108,6 +124,8 @@ export default async function CampaignPage({
       characters={characters}
       inventoryLog={inventoryLog}
       selectedCharacterId={selectedCharacterId}
+      resources={resources}
+      inventoryCharacterOptions={inventoryCharacterOptions}
       canEditSelected={
         !!selectedPage &&
         (selectedPage.visibility === "public" || selectedPage.ownerId === userId)

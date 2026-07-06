@@ -8,9 +8,14 @@ import {
 } from "@/components/campaigns/campaign-tools";
 import { ToolPlaceholder } from "@/components/campaigns/ToolPlaceholder";
 import { InventoryTool } from "@/components/inventory/InventoryTool";
+import { ResourcesTool } from "@/components/resources/ResourcesTool";
 import type { NoteScope } from "@/app/actions/categories";
 import type { Character, InventoryLogEntry } from "@/lib/queries/inventory";
 import type { NotePage, NoteTree } from "@/lib/queries/notes";
+import type {
+  InventoryCharacterOption,
+  ResourcesDashboard,
+} from "@/lib/queries/resources";
 import { Chip, Typography, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
@@ -29,6 +34,8 @@ export function CampaignWorkspace({
   characters,
   inventoryLog,
   selectedCharacterId,
+  resources,
+  inventoryCharacterOptions,
 }: {
   campaignId: string;
   name: string;
@@ -44,6 +51,8 @@ export function CampaignWorkspace({
   characters: Character[];
   inventoryLog: InventoryLogEntry[];
   selectedCharacterId: string | null;
+  resources: ResourcesDashboard;
+  inventoryCharacterOptions: InventoryCharacterOption[];
 }) {
   const treeHasPages =
     tree.rootPages.length > 0 ||
@@ -170,6 +179,12 @@ export function CampaignWorkspace({
             characters={characters}
             selectedCharacterId={selectedCharacterId}
             log={inventoryLog}
+          />
+        ) : activeTool === "resources" ? (
+          <ResourcesTool
+            campaignId={campaignId}
+            dashboard={resources}
+            inventoryCharacters={inventoryCharacterOptions}
           />
         ) : (
           <ToolPlaceholder

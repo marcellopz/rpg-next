@@ -2,7 +2,7 @@ export type CampaignToolId =
   | "notes"
   | "combat"
   | "inventory"
-  | "maps"
+  | "map"
   | "handouts"
   | "resources";
 
@@ -32,17 +32,17 @@ export const CAMPAIGN_TOOLS: {
     placeholder: "",
   },
   {
-    id: "maps",
-    label: "Map",
-    hint: "Upload a map for the table.",
-    placeholder: "A map for the table.",
-  },
-  {
     id: "resources",
     label: "Resources",
     hint: "Keep track of resources like spell slots, character abilities, and other resources.",
     placeholder:
       "A resource tracker for spell slots, character abilities, and other resources.",
+  },
+  {
+    id: "map",
+    label: "World map",
+    hint: "Upload a world map for the table.",
+    placeholder: "A world map for the table.",
   },
   {
     id: "handouts",
