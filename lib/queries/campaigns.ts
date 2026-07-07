@@ -7,6 +7,12 @@ import {
 } from "@/lib/supabase/server";
 import type { Campaign } from "@/components/campaigns/CampaignCard";
 
+export {
+  isCampaignMember,
+  isCampaignOwner,
+  isCampaignDm,
+} from "@/lib/campaign/permissions";
+
 type MembershipWithCampaign = {
   role: "dm" | "player";
   campaigns: {
@@ -14,6 +20,7 @@ type MembershipWithCampaign = {
     public_code: string;
     name: string;
     description: string | null;
+    owner_id: string;
     created_at: string;
   } | null;
 };
@@ -29,55 +36,6 @@ export async function getCurrentUserId(): Promise<string | null> {
   return user?.id ?? null;
 }
 
-// True if the user belongs to the campaign (any role) or owns it.
-// Uses the admin client to bypass RLS — only called from trusted server actions.
-export async function isCampaignMember(
-  userId: string,
-  campaignId: string
-): Promise<boolean> {
-  const admin = createAdminClient();
-
-  const { data: membership } = await admin
-    .from("memberships")
-    .select("id")
-    .eq("campaign_id", campaignId)
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (membership) return true;
-
-  const { data: campaign } = await admin
-    .from("campaigns")
-    .select("owner_id")
-    .eq("id", campaignId)
-    .maybeSingle();
-  return campaign?.owner_id === userId;
-}
-
-// True if the user owns the campaign or holds the DM role on it.
-// Uses the admin client to bypass RLS — only called from trusted server actions.
-export async function isCampaignAdmin(
-  userId: string,
-  campaignId: string
-): Promise<boolean> {
-  const admin = createAdminClient();
-
-  const { data: campaign } = await admin
-    .from("campaigns")
-    .select("owner_id")
-    .eq("id", campaignId)
-    .maybeSingle();
-  if (!campaign) return false;
-  if (campaign.owner_id === userId) return true;
-
-  const { data: membership } = await admin
-    .from("memberships")
-    .select("role")
-    .eq("campaign_id", campaignId)
-    .eq("user_id", userId)
-    .maybeSingle();
-  return membership?.role === "dm";
-}
-
 // The signed-in user's campaigns (newest first) with member avatars + role.
 // Returns isSignedIn:false (and no campaigns) when there's no session, so the
 // caller can decide what to show logged-out visitors.
@@ -89,7 +47,9 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
   // RLS scopes this to the caller's memberships.
   const { data: membershipRows } = await supabase
     .from("memberships")
-    .select("role, campaigns(id, public_code, name, description, created_at)")
+    .select(
+      "role, campaigns(id, public_code, name, description, owner_id, created_at)"
+    )
     .eq("user_id", user.id)
     .returns<MembershipWithCampaign[]>();
 
@@ -102,12 +62,7 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
   );
   const campaignIds = rows.map((r) => r.campaigns.id);
 
-  // The user can read memberships for every campaign they belong to, so fetch
-  // them in one query and group member ids per campaign (they double as stable
-  // avatar seeds).
   const memberSeeds = new Map<string, string[]>();
-  // Collect all unique member ids so we can resolve their display names in one
-  // parallel batch, rather than per-campaign.
   const allMemberIds = new Set<string>();
   if (campaignIds.length > 0) {
     const { data: memberRows } = await supabase
@@ -122,7 +77,6 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
     }
   }
 
-  // Resolve display names for every member via the admin auth API.
   const admin = createAdminClient();
   const labelMap: Record<string, string> = {};
   await Promise.all(
@@ -149,6 +103,7 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
         memberCount: seeds.length || 1,
         memberLabels: labelMap,
         role: r.role,
+        isOwner: r.campaigns.owner_id === user.id,
       };
     });
 
@@ -161,18 +116,18 @@ export type CampaignDetail = {
   name: string;
   description: string;
   role: "dm" | "player" | null;
+  /** Campaign admin (owner). Controls settings, invites, and DM assignment. */
   isAdmin: boolean;
+  /** Membership DM role. Will gate combat editing when that tool ships. */
+  isDm: boolean;
 };
 
-// A single campaign for the current viewer, plus their role and whether they
-// may administer it. Returns null when the campaign doesn't exist or the caller
-// can't access it (RLS yields no row, including for malformed/demo ids).
+// A single campaign for the current viewer, plus their role and permissions.
+// Returns null when the campaign doesn't exist or the caller can't access it.
 export async function getCampaignDetailForCurrentUser(
   campaignCode: string
 ): Promise<CampaignDetail | null> {
   const supabase = createServerClient();
-  // Fetch the user and campaign in parallel; the membership lookup can start
-  // as soon as the campaign row is known but doesn't need the user row first.
   const [user, { data: campaign }] = await Promise.all([
     getCurrentUser(),
     supabase
@@ -193,7 +148,9 @@ export async function getCampaignDetailForCurrentUser(
       .maybeSingle();
     role = (membership?.role as "dm" | "player" | undefined) ?? null;
   }
-  const isAdmin = !!user && (campaign.owner_id === user.id || role === "dm");
+
+  const isAdmin = !!user && campaign.owner_id === user.id;
+  const isDm = role === "dm";
 
   return {
     id: campaign.id,
@@ -202,5 +159,6 @@ export async function getCampaignDetailForCurrentUser(
     description: campaign.description ?? "",
     role,
     isAdmin,
+    isDm,
   };
 }

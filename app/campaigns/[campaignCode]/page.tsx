@@ -20,6 +20,8 @@ import {
   type ResourcesDashboard,
   type InventoryCharacterOption,
 } from "@/lib/queries/resources";
+import { getCombatForCampaign } from "@/lib/queries/combat";
+import type { CombatState } from "@/lib/combat/types";
 import {
   getNoteTreesForCampaign,
   getPageForCurrentUser,
@@ -71,6 +73,9 @@ export default async function CampaignPage({
   let selectedCharacterId: string | null = null;
   let resources: ResourcesDashboard = { cards: [], layouts: EMPTY_LAYOUTS };
   let inventoryCharacterOptions: InventoryCharacterOption[] = [];
+  let combat: CombatState | null = null;
+
+  combat = await getCombatForCampaign(campaign.id);
 
   if (activeTool === "notes") {
     activeTab = searchParams.tab === "my" ? "personal" : "campaign";
@@ -116,6 +121,7 @@ export default async function CampaignPage({
       description={campaign.description}
       role={campaign.role}
       isAdmin={campaign.isAdmin}
+      isDm={campaign.isDm}
       publicCode={campaign.publicCode}
       activeTool={activeTool}
       tree={tree}
@@ -126,6 +132,7 @@ export default async function CampaignPage({
       selectedCharacterId={selectedCharacterId}
       resources={resources}
       inventoryCharacterOptions={inventoryCharacterOptions}
+      combat={combat}
       canEditSelected={
         !!selectedPage &&
         (selectedPage.visibility === "public" || selectedPage.ownerId === userId)

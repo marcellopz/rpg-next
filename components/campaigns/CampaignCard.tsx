@@ -13,6 +13,8 @@ export type Campaign = {
   // the seed itself when a label is not provided (e.g. demo campaigns).
   memberLabels?: Record<string, string>;
   role?: "dm" | "player";
+  /** True when the signed-in user owns this campaign (Admin). */
+  isOwner?: boolean;
   // Sample campaign shown for illustration; not part of the user's account.
   demo?: boolean;
 };
@@ -25,7 +27,7 @@ function emblemFor(name: string): string {
 }
 
 export function CampaignCard({ campaign }: { campaign: Campaign }) {
-  const { id, name, description, members = [], memberCount, memberLabels, role, demo } =
+  const { id, name, description, members = [], memberCount, memberLabels, role, isOwner, demo } =
     campaign;
   const count = memberCount ?? members.length;
   const shown = members.slice(0, MAX_AVATARS);
@@ -46,6 +48,14 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
             className="absolute left-3 top-3 uppercase tracking-wide"
           >
             Demo
+          </Chip>
+        )}
+        {isOwner && (
+          <Chip
+            variant="onDarkSolid"
+            className="absolute left-3 top-3 uppercase tracking-wide"
+          >
+            Admin
           </Chip>
         )}
         {role === "dm" && (

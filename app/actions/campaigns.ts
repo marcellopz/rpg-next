@@ -1,13 +1,16 @@
 "use server";
 
 // Campaign writes are trusted, multi-step authorization logic (create a
-// campaign AND the creator's DM membership; only a DM may edit/delete), so they
-// live in server actions. RLS denies client writes to campaigns/memberships, so
+// campaign AND the creator's membership). Only the campaign admin (owner)
+// may edit settings, invites, and member roles. RLS denies client writes, so
 // these use the service-role admin client AFTER verifying the caller.
 import { revalidatePath } from "next/cache";
 import { randomInt } from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
-import { getCurrentUserId, isCampaignAdmin } from "@/lib/queries/campaigns";
+import {
+  getCurrentUserId,
+  isCampaignOwner,
+} from "@/lib/queries/campaigns";
 
 export type ActionResult<T = undefined> =
   | { ok: true; data: T }
@@ -36,6 +39,14 @@ function generatePublicCode(): string {
   }
 
   return code;
+}
+
+async function revalidateCampaign(publicCode: string | null | undefined) {
+  revalidatePath("/campaigns");
+  if (publicCode) {
+    revalidatePath(`/campaigns/${publicCode}`);
+    revalidatePath(`/campaigns/${publicCode}/settings`);
+  }
 }
 
 export async function createCampaign(input: {
@@ -81,11 +92,11 @@ export async function createCampaign(input: {
     };
   }
 
+  // Creator is Admin (owner) and starts as DM for combat control later.
   const { error: mErr } = await admin
     .from("memberships")
     .insert({ campaign_id: campaign.id, user_id: userId, role: "dm" });
   if (mErr) {
-    // Roll back the orphaned campaign so the user can retry cleanly.
     await admin.from("campaigns").delete().eq("id", campaign.id);
     return {
       ok: false,
@@ -109,12 +120,12 @@ export async function updateCampaign(
   const invalid = validateFields(name, description);
   if (invalid) return { ok: false, error: invalid };
 
-  const allowed = await isCampaignAdmin(userId, id);
-  if (!allowed)
+  if (!(await isCampaignOwner(userId, id))) {
     return {
       ok: false,
       error: "You don't have permission to edit this campaign.",
     };
+  }
 
   const admin = createAdminClient();
   const { data: campaign, error } = await admin
@@ -126,8 +137,7 @@ export async function updateCampaign(
   if (error)
     return { ok: false, error: "Could not save changes. Please try again." };
 
-  revalidatePath("/campaigns");
-  if (campaign?.public_code) revalidatePath(`/campaigns/${campaign.public_code}`);
+  await revalidateCampaign(campaign?.public_code);
   return { ok: true, data: undefined };
 }
 
@@ -135,15 +145,14 @@ export async function deleteCampaign(id: string): Promise<ActionResult> {
   const userId = await getCurrentUserId();
   if (!userId) return { ok: false, error: "You must be signed in." };
 
-  const allowed = await isCampaignAdmin(userId, id);
-  if (!allowed)
+  if (!(await isCampaignOwner(userId, id))) {
     return {
       ok: false,
       error: "You don't have permission to delete this campaign.",
     };
+  }
 
   const admin = createAdminClient();
-  // memberships (and other campaign-scoped rows) cascade via FK on delete.
   const { error } = await admin.from("campaigns").delete().eq("id", id);
   if (error)
     return {
@@ -152,5 +161,47 @@ export async function deleteCampaign(id: string): Promise<ActionResult> {
     };
 
   revalidatePath("/campaigns");
+  return { ok: true, data: undefined };
+}
+
+export async function setMemberRole(input: {
+  campaignId: string;
+  userId: string;
+  role: "dm" | "player";
+}): Promise<ActionResult> {
+  const callerId = await getCurrentUserId();
+  if (!callerId) return { ok: false, error: "You must be signed in." };
+
+  if (!(await isCampaignOwner(callerId, input.campaignId))) {
+    return {
+      ok: false,
+      error: "Only the campaign admin can change member roles.",
+    };
+  }
+
+  const admin = createAdminClient();
+  const { data: membership } = await admin
+    .from("memberships")
+    .select("id")
+    .eq("campaign_id", input.campaignId)
+    .eq("user_id", input.userId)
+    .maybeSingle();
+  if (!membership) return { ok: false, error: "Member not found." };
+
+  const { data: campaign, error } = await admin
+    .from("memberships")
+    .update({ role: input.role })
+    .eq("id", membership.id)
+    .select("campaign_id")
+    .maybeSingle();
+  if (error || !campaign)
+    return { ok: false, error: "Could not update member role." };
+
+  const { data: campaignRow } = await admin
+    .from("campaigns")
+    .select("public_code")
+    .eq("id", input.campaignId)
+    .maybeSingle();
+  await revalidateCampaign(campaignRow?.public_code);
   return { ok: true, data: undefined };
 }

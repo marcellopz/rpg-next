@@ -2,15 +2,79 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { setMemberRole } from "@/app/actions/campaigns";
 import {
   createCampaignInvite,
   revokeCampaignInvite,
 } from "@/app/actions/invites";
-import type { CampaignPeopleForAdmin } from "@/lib/queries/invites";
-import { Button, Chip, TextField, Typography } from "@/components/ui";
+import type { CampaignMemberRow, CampaignPeopleForAdmin } from "@/lib/queries/invites";
+import { Button, Chip, Menu, TextField, Typography } from "@/components/ui";
 
 function statusLabel(status: string) {
   return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function MemberRoleBadges({ member }: { member: CampaignMemberRow }) {
+  return (
+    <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+      {member.isOwner && <Chip variant="accent">Admin</Chip>}
+      {!member.isOwner && member.role === "dm" && (
+        <Chip variant="accent">DM</Chip>
+      )}
+      {!member.isOwner && member.role === "player" && (
+        <Chip variant="neutral">Player</Chip>
+      )}
+      {member.isOwner && member.role === "dm" && (
+        <Chip variant="accent">DM</Chip>
+      )}
+    </div>
+  );
+}
+
+function MemberRoleMenu({
+  campaignId,
+  member,
+}: {
+  campaignId: string;
+  member: CampaignMemberRow;
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  function changeRole(role: "dm" | "player") {
+    if (member.role === role) return;
+    startTransition(async () => {
+      const result = await setMemberRole({
+        campaignId,
+        userId: member.userId,
+        role,
+      });
+      if (result?.ok) router.refresh();
+    });
+  }
+
+  const entries = [];
+  if (member.role !== "dm") {
+    entries.push({
+      label: "Make DM",
+      onSelect: () => changeRole("dm"),
+    });
+  }
+  if (member.role !== "player") {
+    entries.push({
+      label: "Make player",
+      onSelect: () => changeRole("player"),
+    });
+  }
+
+  if (entries.length === 0) return null;
+
+  return (
+    <Menu
+      label={`Change role for ${member.displayName}`}
+      entries={entries}
+    />
+  );
 }
 
 export function CampaignMembersSettings({
@@ -33,8 +97,8 @@ export function CampaignMembersSettings({
     setSaved(false);
     startTransition(async () => {
       const result = await createCampaignInvite({ campaignId, email });
-      if (!result.ok) {
-        setError(result.error);
+      if (!result?.ok) {
+        setError(result?.error ?? "Could not create invite.");
         return;
       }
       setEmail("");
@@ -49,7 +113,7 @@ export function CampaignMembersSettings({
     setActiveInviteId(inviteId);
     startTransition(async () => {
       const result = await revokeCampaignInvite(inviteId);
-      if (!result.ok) setError(result.error);
+      if (!result?.ok) setError(result?.error ?? "Could not revoke invite.");
       setActiveInviteId(null);
       router.refresh();
     });
@@ -64,7 +128,7 @@ export function CampaignMembersSettings({
         Members and invites
       </Typography>
       <Typography variant="muted" className="mt-1">
-        Invite players by email and track who has joined the campaign.
+        Invite players by email, assign DMs, and track who has joined.
       </Typography>
 
       <form onSubmit={sendInvite} className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -102,7 +166,7 @@ export function CampaignMembersSettings({
                 className="rounded-xl border border-gray-200 bg-gray-50 p-3"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <Typography variant="body" className="truncate font-medium">
                       {member.displayName}
                     </Typography>
@@ -111,10 +175,16 @@ export function CampaignMembersSettings({
                         {member.email}
                       </Typography>
                     )}
+                    {member.isOwner && (
+                      <Typography variant="small" as="p" className="mt-1 text-gray-500">
+                        Campaign admin
+                      </Typography>
+                    )}
                   </div>
-                  <Chip variant={member.role === "dm" ? "accent" : "neutral"}>
-                    {member.role === "dm" ? "DM" : "Player"}
-                  </Chip>
+                  <div className="flex items-center gap-1">
+                    <MemberRoleBadges member={member} />
+                    <MemberRoleMenu campaignId={campaignId} member={member} />
+                  </div>
                 </div>
               </div>
             ))}

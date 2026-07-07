@@ -1,5 +1,5 @@
 import { createAdminClient, getCurrentUser } from "@/lib/supabase/server";
-import { isCampaignAdmin } from "@/lib/queries/campaigns";
+import { isCampaignOwner } from "@/lib/campaign/permissions";
 
 export type AccountInvite = {
   id: string;
@@ -17,6 +17,7 @@ export type CampaignMemberRow = {
   displayName: string;
   email: string | null;
   role: "dm" | "player";
+  isOwner: boolean;
   joinedAt: string;
 };
 
@@ -163,9 +164,16 @@ export async function getCampaignPeopleForAdmin(
 ): Promise<CampaignPeopleForAdmin | null> {
   const user = await getCurrentUser();
   if (!user) return null;
-  if (!(await isCampaignAdmin(user.id, campaignId))) return null;
+  if (!(await isCampaignOwner(user.id, campaignId))) return null;
 
   const admin = createAdminClient();
+  const { data: campaign } = await admin
+    .from("campaigns")
+    .select("owner_id")
+    .eq("id", campaignId)
+    .maybeSingle();
+  const ownerId = campaign?.owner_id ?? null;
+
   const [{ data: memberRows }, { data: inviteRows }] = await Promise.all([
     admin
       .from("memberships")
@@ -200,6 +208,7 @@ export async function getCampaignPeopleForAdmin(
         displayName: label?.displayName ?? row.user_id,
         email: label?.email ?? null,
         role: row.role,
+        isOwner: row.user_id === ownerId,
         joinedAt: row.created_at,
       };
     }),

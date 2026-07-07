@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient, createServerClient } from "@/lib/supabase/server";
-import { getCurrentUserId, isCampaignAdmin } from "@/lib/queries/campaigns";
+import { getCurrentUserId, isCampaignOwner } from "@/lib/queries/campaigns";
 import type { ActionResult } from "@/app/actions/campaigns";
 
 const EMAIL_MAX = 320;
@@ -73,7 +73,7 @@ export async function createCampaignInvite(input: {
   if (email === user.email)
     return { ok: false, error: "You are already a member of this campaign." };
 
-  if (!(await isCampaignAdmin(user.id, input.campaignId))) {
+  if (!(await isCampaignOwner(user.id, input.campaignId))) {
     return {
       ok: false,
       error: "You don't have permission to invite members to this campaign.",
@@ -119,7 +119,7 @@ export async function revokeCampaignInvite(
     .eq("id", inviteId)
     .maybeSingle<InviteRow>();
   if (!invite) return { ok: false, error: "Invite not found." };
-  if (!(await isCampaignAdmin(userId, invite.campaign_id))) {
+  if (!(await isCampaignOwner(userId, invite.campaign_id))) {
     return { ok: false, error: "You don't have permission to revoke this invite." };
   }
   if (invite.accepted_at)

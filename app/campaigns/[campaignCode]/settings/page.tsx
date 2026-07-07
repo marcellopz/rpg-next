@@ -17,8 +17,8 @@ export default async function CampaignSettingsPage({
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
         <Typography variant="h2">Campaign settings not available</Typography>
         <Typography variant="subtitle" className="mt-2">
-          This campaign doesn&apos;t exist, or you don&apos;t have permission to
-          manage it.
+          This campaign doesn&apos;t exist, or you don&apos;t have admin
+          permission to manage it.
         </Typography>
         <Link href="/campaigns" className={cn("mt-6", buttonVariants())}>
           Back to campaigns
@@ -41,7 +41,7 @@ export default async function CampaignSettingsPage({
       <header className="mt-4">
         <Typography variant="h1">Campaign settings</Typography>
         <Typography variant="subtitle" className="mt-2">
-          Manage the campaign profile and destructive actions for{" "}
+          Only the campaign admin can change settings for{" "}
           <span className="font-medium text-gray-900">{campaign.name}</span>.
         </Typography>
       </header>

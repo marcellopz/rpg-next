@@ -16,6 +16,8 @@ import type {
   InventoryCharacterOption,
   ResourcesDashboard,
 } from "@/lib/queries/resources";
+import { CombatTrackerLauncher } from "@/components/combat/CombatTrackerLauncher";
+import type { CombatState } from "@/lib/combat/types";
 import { Chip, Typography, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
@@ -25,6 +27,7 @@ export function CampaignWorkspace({
   description,
   role,
   isAdmin,
+  isDm,
   publicCode,
   activeTool,
   tree,
@@ -36,12 +39,14 @@ export function CampaignWorkspace({
   selectedCharacterId,
   resources,
   inventoryCharacterOptions,
+  combat,
 }: {
   campaignId: string;
   name: string;
   description: string;
   role: "dm" | "player" | null;
   isAdmin: boolean;
+  isDm: boolean;
   publicCode: string;
   activeTool: CampaignToolId;
   tree: NoteTree;
@@ -53,6 +58,7 @@ export function CampaignWorkspace({
   selectedCharacterId: string | null;
   resources: ResourcesDashboard;
   inventoryCharacterOptions: InventoryCharacterOption[];
+  combat: CombatState | null;
 }) {
   const treeHasPages =
     tree.rootPages.length > 0 ||
@@ -67,22 +73,28 @@ export function CampaignWorkspace({
           <div className="flex flex-wrap items-start gap-5">
             <div className="min-w-0 flex-1 basis-[32rem]">
               <div className="flex flex-wrap items-center gap-2">
-                {role && (
+                {isAdmin && (
+                  <Chip variant="onDarkSolid" className="uppercase tracking-wide">
+                    Admin
+                  </Chip>
+                )}
+                {isDm && (
                   <Chip variant="onDark" className="uppercase tracking-wide">
-                    {role === "dm" ? "DM" : "Player"}
+                    DM
+                  </Chip>
+                )}
+                {!isAdmin && !isDm && role === "player" && (
+                  <Chip variant="onDark" className="uppercase tracking-wide">
+                    Player
                   </Chip>
                 )}
                 <Chip variant="onDarkSolid">Campaign workspace</Chip>
                 <div id="campaign-actions" className="ml-auto flex flex-wrap gap-2">
-                  <NavLink
-                    href={`/campaigns/${publicCode}?tool=combat`}
-                    className={cn(
-                      buttonVariants({ variant: "white", size: "md" }),
-                      "font-semibold shadow-lg shadow-black/10"
-                    )}
-                  >
-                    Combat tracker
-                  </NavLink>
+                  <CombatTrackerLauncher
+                    campaignId={campaignId}
+                    isDm={isDm}
+                    combat={combat}
+                  />
                   <button
                     type="button"
                     disabled
