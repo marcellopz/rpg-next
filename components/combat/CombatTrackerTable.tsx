@@ -9,22 +9,21 @@ import { CombatTrackerRow } from "@/components/combat/CombatTrackerRow";
 
 function CombatTableHeader({ showHpColumns }: { showHpColumns: boolean }) {
   return (
-    <div className="tracker-table-header">
-      <div className="tracker-table-initiative" title="Initiative">
+    <div
+      role="row"
+      className={`tracker-table-header ${showHpColumns ? "with-hp" : "without-hp"}`}
+    >
+      <div role="columnheader" className="tracker-table-initiative" title="Initiative">
         Init
       </div>
-      <span className="separator" />
-      <div className="tracker-table-name">Name</div>
+      <div role="columnheader" className="tracker-table-name">Combatant</div>
       {showHpColumns && (
         <>
-          <span className="separator" />
-          <div className="tracker-table-ac">AC</div>
-          <span className="separator" />
-          <div className="tracker-table-hp">HP</div>
+          <div role="columnheader" className="tracker-table-ac">AC</div>
+          <div role="columnheader" className="tracker-table-hp">Hit points</div>
         </>
       )}
-      <span className="separator" />
-      <div className="tracker-table-reaction">Reaction</div>
+      <div role="columnheader" className="tracker-table-reaction">Reaction</div>
     </div>
   );
 }
@@ -71,27 +70,33 @@ export function CombatTrackerTable() {
   }
 
   return (
-    <div className="tracker-table">
-      <CombatTableHeader showHpColumns={showHpColumns} />
-      <div className="tracker-table-body">
-        {sorted.length === 0 ? (
-          <div id="no-combatants">No combatants yet.</div>
-        ) : (
-          sorted.map((combatant) => (
-            <CombatTrackerRow
-              key={combatant.id}
-              combatant={combatant}
-              turn={turn}
-              showHpColumns={showHpColumns}
-              dragging={dragId === combatant.id}
-              dragEnabled={isDm}
-              onDragStart={() => setDragId(combatant.id)}
-              onDragEnd={clearDrag}
-              onDragOver={(e) => handleDragOver(e, combatant.id)}
-              onDrop={(e) => handleDrop(e, combatant.id)}
-            />
-          ))
-        )}
+    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+      <div
+        role="table"
+        aria-label="Combat initiative"
+        className="tracker-table min-w-[42rem]"
+      >
+        <CombatTableHeader showHpColumns={showHpColumns} />
+        <div role="rowgroup" className="tracker-table-body">
+          {sorted.length === 0 ? (
+            <div id="no-combatants">No combatants yet.</div>
+          ) : (
+            sorted.map((combatant) => (
+              <CombatTrackerRow
+                key={combatant.id}
+                combatant={combatant}
+                turn={turn}
+                showHpColumns={showHpColumns}
+                dragging={dragId === combatant.id}
+                dragEnabled={isDm}
+                onDragStart={() => setDragId(combatant.id)}
+                onDragEnd={clearDrag}
+                onDragOver={(e) => handleDragOver(e, combatant.id)}
+                onDrop={(e) => handleDrop(e, combatant.id)}
+              />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

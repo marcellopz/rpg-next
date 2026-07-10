@@ -30,8 +30,15 @@ export function CombatRowContextMenu({
         onClose();
       }
     }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [open, onClose]);
 
   if (!open) return null;
@@ -39,39 +46,53 @@ export function CombatRowContextMenu({
   return (
     <div
       ref={menuRef}
-      className="context-menu"
-      style={{ top: y, left: x }}
+      role="menu"
+      aria-label="Combatant actions"
+      className="fixed z-[70] min-w-40 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+      style={{
+        top: Math.min(y, window.innerHeight - 140),
+        left: Math.min(x, window.innerWidth - 180),
+      }}
     >
-      <ul>
-        <li
+      <div>
+        <button
+          type="button"
+          role="menuitem"
+          className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
           onClick={() => {
             onClose();
             onAddCondition();
           }}
         >
           Add condition
-        </li>
+        </button>
         {isDm && (
           <>
-            <li
+            <button
+              type="button"
+              role="menuitem"
+              className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
               onClick={() => {
                 onEdit();
                 onClose();
               }}
             >
               Edit
-            </li>
-            <li
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
               onClick={() => {
                 onClose();
                 onDelete();
               }}
             >
               Delete
-            </li>
+            </button>
           </>
         )}
-      </ul>
+      </div>
     </div>
   );
 }

@@ -1,19 +1,24 @@
-import { getHpColorClass } from "@/lib/combat/hp-colors";
-
 export function CombatColorLegend() {
-  const segments: { label: string; cls: ReturnType<typeof getHpColorClass> }[] = [
-    { label: "0% - 25%", cls: "preto" },
-    { label: "25% - 50%", cls: "vermelho" },
-    { label: "50% - 75%", cls: "amarelo" },
-    { label: "75% - 100%", cls: "verde" },
+  const segments = [
+    { label: "Critical", dot: "bg-gray-700" },
+    { label: "Bloodied", dot: "bg-red-500" },
+    { label: "Hurt", dot: "bg-amber-500" },
+    { label: "Healthy", dot: "bg-emerald-500" },
   ];
 
   return (
-    <div className="combat-color-system-bar">
+    <div
+      className="flex flex-wrap items-center gap-x-3 gap-y-1.5"
+      aria-label="Health status legend"
+    >
       {segments.map((seg) => (
-        <div key={seg.cls} className={`${seg.cls} px-4`}>
+        <span
+          key={seg.label}
+          className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-medium text-gray-500"
+        >
+          <span className={`h-2 w-2 rounded-full ${seg.dot}`} aria-hidden />
           {seg.label}
-        </div>
+        </span>
       ))}
     </div>
   );

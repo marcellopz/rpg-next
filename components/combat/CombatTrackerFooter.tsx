@@ -1,6 +1,14 @@
 "use client";
 
 import {
+  ArrowDownUp,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Plus,
+  RotateCcw,
+} from "lucide-react";
+import {
   advanceTurn,
   resetRound,
   retreatTurn,
@@ -27,103 +35,111 @@ export function CombatTrackerFooter({
 
   const { session } = combat;
 
+  if (!isDm) {
+    return (
+      <div className="flex justify-center">
+        <span className="rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold text-accent-700">
+          {session.round === 0 ? "Waiting to start" : `Round ${session.round}`}
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className="tracker-actions">
-      {isDm ? (
-        <div id="actions-1" className="flex flex-wrap items-center gap-3">
-          {session.round > 0 && (
-            <>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  runAction(
-                    (prev) => (prev ? applyRetreatTurn(prev) : prev),
-                    () => retreatTurn(campaignId)
-                  )
-                }
-              >
-                Prev
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  runAction(
-                    (prev) => (prev ? applyAdvanceTurn(prev) : prev),
-                    () => advanceTurn(campaignId)
-                  )
-                }
-              >
-                Next
-              </Button>
-            </>
-          )}
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() =>
-              runAction(
-                (prev) => (prev ? applySortByInitiative(prev) : prev),
-                () => sortByInitiative(campaignId)
-              )
-            }
-          >
-            Sort
-          </Button>
-        </div>
-      ) : (
-        <div />
-      )}
-      {isDm ? (
-        <div id="actions-2" className="flex flex-wrap items-center gap-3">
-          {session.round === 0 ? (
+    <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-wrap items-center gap-2">
+        {session.round > 0 && (
+          <div className="inline-flex rounded-md shadow-sm">
             <Button
               type="button"
-              variant="primary"
+              variant="secondary"
               size="sm"
+              className="rounded-r-none"
               onClick={() =>
                 runAction(
-                  (prev) => (prev ? applySetRound(prev, 1) : prev),
-                  () => setRound({ campaignId, round: 1 })
+                  (prev) => (prev ? applyRetreatTurn(prev) : prev),
+                  () => retreatTurn(campaignId)
                 )
               }
             >
-              Start
+              <ChevronLeft className="mr-1 h-4 w-4" aria-hidden />
+              Prev
             </Button>
-          ) : (
-            <>
-              <span>Round {session.round}</span>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  runAction(
-                    (prev) => (prev ? applyResetRound(prev) : prev),
-                    () => resetRound(campaignId)
-                  )
-                }
-              >
-                Reset round
-              </Button>
-            </>
-          )}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="-ml-px rounded-l-none"
+              onClick={() =>
+                runAction(
+                  (prev) => (prev ? applyAdvanceTurn(prev) : prev),
+                  () => advanceTurn(campaignId)
+                )
+              }
+            >
+              Next
+              <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
+            </Button>
+          </div>
+        )}
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() =>
+            runAction(
+              (prev) => (prev ? applySortByInitiative(prev) : prev),
+              () => sortByInitiative(campaignId)
+            )
+          }
+        >
+          <ArrowDownUp className="mr-1.5 h-4 w-4" aria-hidden />
+          Sort
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {session.round === 0 ? (
           <Button
             type="button"
             variant="primary"
             size="sm"
-            onClick={onAddCombatant}
+            onClick={() =>
+              runAction(
+                (prev) => (prev ? applySetRound(prev, 1) : prev),
+                () => setRound({ campaignId, round: 1 })
+              )
+            }
           >
-            Add combatant
+            <Play className="mr-1.5 h-4 w-4" aria-hidden />
+            Start round
           </Button>
-        </div>
-      ) : (
-        <span>Round {session.round}</span>
-      )}
+        ) : (
+          <>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200">
+              Round {session.round}
+            </span>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                runAction(
+                  (prev) => (prev ? applyResetRound(prev) : prev),
+                  () => resetRound(campaignId)
+                )
+              }
+            >
+              <RotateCcw className="mr-1.5 h-4 w-4" aria-hidden />
+              Reset
+            </Button>
+          </>
+        )}
+        <Button type="button" variant="primary" size="sm" onClick={onAddCombatant}>
+          <Plus className="mr-1.5 h-4 w-4" aria-hidden />
+          Add combatant
+        </Button>
+      </div>
     </div>
   );
 }

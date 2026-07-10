@@ -8,6 +8,7 @@ import { useCombatTracker } from "@/components/combat/CombatTrackerContext";
 import { Button, TextField, Typography } from "@/components/ui";
 import { ConditionChip } from "@/components/combat/ConditionChip";
 import { CombatNestedDialog } from "@/components/combat/dialogs/CombatNestedDialog";
+import { cn } from "@/lib/cn";
 
 export function AddConditionDialog({
   open,
@@ -70,9 +71,10 @@ export function AddConditionDialog({
           value={previewName}
           onChange={(e) => setPreviewName(e.target.value)}
         />
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500"
             checked={indefinite}
             onChange={() => setIndefinite(!indefinite)}
           />
@@ -96,19 +98,22 @@ export function AddConditionDialog({
               <button
                 key={preset.name}
                 type="button"
-                className="h-8 w-8 rounded-full border-2"
-                style={{
-                  backgroundColor: preset.color,
-                  borderColor: color === preset.color ? "#333" : "transparent",
-                }}
-                aria-label={preset.name}
+                className={cn(
+                  "h-8 w-8 rounded-full border-2 border-white shadow-sm ring-1 ring-gray-200 transition hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500",
+                  color === preset.color && "ring-2 ring-accent-600"
+                )}
+                style={{ backgroundColor: preset.color }}
+                aria-label={`Use ${preset.name}`}
+                aria-pressed={color === preset.color}
                 onClick={() => setColor(preset.color)}
               />
             ))}
           </div>
         </div>
-        <div>
-          <p className="mb-1 text-sm text-gray-600">Preview</p>
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            Preview
+          </p>
           <ConditionChip
             conditionId="preview"
             title={previewName || "Condition"}
@@ -122,11 +127,11 @@ export function AddConditionDialog({
             {error}
           </Typography>
         )}
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
+        <div className="flex justify-end gap-2 pt-1">
+          <Button type="button" variant="secondary" size="sm" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" disabled={pending}>
+          <Button type="submit" variant="primary" size="sm" disabled={pending}>
             Add
           </Button>
         </div>

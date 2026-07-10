@@ -21,10 +21,14 @@ export function ConditionChip({
   const indefinite = duration === -1;
 
   return (
-    <div className="chip" style={{ backgroundColor: color }}>
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-gray-900 ring-1 ring-inset ring-black/10"
+      style={{ backgroundColor: color }}
+    >
       {isDm && (
-        <span
-          className="closeButton"
+        <button
+          type="button"
+          className="-ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-black/10 transition hover:bg-black/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-700"
           onClick={() => {
             void runAction(
               (prev) => {
@@ -40,15 +44,17 @@ export function ConditionChip({
               () => removeCondition({ campaignId, conditionId })
             );
           }}
-          role="button"
-          tabIndex={0}
           aria-label={`Remove ${title}`}
         >
-          <X size={12} aria-hidden />
+          <X className="h-3 w-3" aria-hidden />
+        </button>
+      )}
+      <span>{title}</span>
+      {!indefinite && (
+        <span className="rounded-full bg-black/10 px-1 font-semibold tabular-nums">
+          {duration}
         </span>
       )}
-      <span className="title">{title}</span>
-      {!indefinite && <span className="number">{duration}</span>}
-    </div>
+    </span>
   );
 }

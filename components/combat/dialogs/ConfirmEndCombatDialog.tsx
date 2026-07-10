@@ -49,13 +49,14 @@ export function ConfirmEndCombatDialog({
             {error}
           </Typography>
         )}
-        <div className="flex justify-center gap-4">
-          <Button type="button" variant="secondary" onClick={onClose}>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="secondary" size="sm" onClick={onClose}>
             Cancel
           </Button>
           <Button
             type="button"
             variant="danger"
+            size="sm"
             disabled={pending}
             onClick={() => setKeepPlayersOpen(true)}
           >
@@ -72,10 +73,11 @@ export function ConfirmEndCombatDialog({
         <Typography variant="body" className="mb-4">
           Keep player characters in the tracker for the next encounter?
         </Typography>
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button
             type="button"
             variant="secondary"
+            size="sm"
             onClick={() => setKeepPlayersOpen(false)}
           >
             Cancel
@@ -83,6 +85,7 @@ export function ConfirmEndCombatDialog({
           <Button
             type="button"
             variant="secondary"
+            size="sm"
             disabled={pending}
             onClick={() => finish(false)}
           >
@@ -91,6 +94,7 @@ export function ConfirmEndCombatDialog({
           <Button
             type="button"
             variant="primary"
+            size="sm"
             disabled={pending}
             onClick={() => finish(true)}
           >

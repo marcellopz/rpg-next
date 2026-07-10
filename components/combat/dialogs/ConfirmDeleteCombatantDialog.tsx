@@ -42,7 +42,7 @@ export function ConfirmDeleteCombatantDialog({
 
   return (
     <CombatNestedDialog open={open} onClose={onClose} title="Delete combatant">
-      <Typography variant="body" className="mb-4">
+      <Typography variant="body" className="mb-5 leading-6">
         Delete <strong>{combatant.name}</strong> from combat?
       </Typography>
       {error && (
@@ -51,12 +51,13 @@ export function ConfirmDeleteCombatantDialog({
         </Typography>
       )}
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="secondary" onClick={onClose}>
+        <Button type="button" variant="secondary" size="sm" onClick={onClose}>
           Cancel
         </Button>
         <Button
           type="button"
           variant="danger"
+          size="sm"
           disabled={pending}
           onClick={handleDelete}
         >

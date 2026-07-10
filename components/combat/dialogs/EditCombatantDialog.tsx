@@ -68,9 +68,10 @@ export function EditCombatantDialog({
           defaultValue={combatant.name}
           required
         />
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500"
             checked={nameHidden}
             onChange={() => setNameHidden(!nameHidden)}
           />
@@ -83,7 +84,7 @@ export function EditCombatantDialog({
           defaultValue={combatant.alias ?? ""}
           disabled={!nameHidden}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField
             id="edit-combat-initiative"
             name="initiative"
@@ -101,7 +102,7 @@ export function EditCombatantDialog({
             required
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <TextField
               id="edit-combat-max-hp"
@@ -111,9 +112,10 @@ export function EditCombatantDialog({
               defaultValue={String(combatant.maxHp)}
               required
             />
-            <label className="mt-2 flex items-center gap-2 text-sm">
+            <label className="mt-2 flex items-center gap-2 text-sm text-gray-600">
               <input
                 type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500"
                 checked={fullHp}
                 onChange={() => setFullHp(!fullHp)}
               />
@@ -129,19 +131,26 @@ export function EditCombatantDialog({
             disabled={fullHp}
           />
         </div>
-        <select
-          name="type"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          defaultValue={combatant.combatantType}
-        >
-          <option value="player">Player</option>
-          <option value="enemy">Enemy</option>
-          <option value="undead">Undead</option>
-          <option value="ally">Ally</option>
-        </select>
-        <label className="flex items-center gap-2 text-sm">
+        <div className="space-y-1">
+          <label htmlFor="edit-combat-type" className="block text-sm font-medium text-gray-700">
+            Type
+          </label>
+          <select
+            id="edit-combat-type"
+            name="type"
+            className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-accent-500 focus:outline-none"
+            defaultValue={combatant.combatantType}
+          >
+            <option value="player">Player</option>
+            <option value="enemy">Enemy</option>
+            <option value="undead">Undead</option>
+            <option value="ally">Ally</option>
+          </select>
+        </div>
+        <label className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500"
             checked={visible}
             onChange={() => setVisible(!visible)}
           />
@@ -152,11 +161,11 @@ export function EditCombatantDialog({
             {error}
           </Typography>
         )}
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
+        <div className="flex justify-end gap-2 pt-1">
+          <Button type="button" variant="secondary" size="sm" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" disabled={pending}>
+          <Button type="submit" variant="primary" size="sm" disabled={pending}>
             Save
           </Button>
         </div>

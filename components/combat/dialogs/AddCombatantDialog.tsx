@@ -77,9 +77,10 @@ export function AddCombatantDialog({
     <CombatNestedDialog open={open} onClose={onClose} title="Add combatant">
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField id="combat-name" name="name" label="Name" required />
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500"
             checked={nameHidden}
             onChange={() => setNameHidden(!nameHidden)}
           />
@@ -91,7 +92,7 @@ export function AddCombatantDialog({
           label="Visible name (alias)"
           disabled={!nameHidden}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField
             id="combat-initiative"
             name="initiative"
@@ -101,7 +102,7 @@ export function AddCombatantDialog({
           />
           <TextField id="combat-ac" name="ac" label="AC" type="number" required />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <TextField
               id="combat-max-hp"
@@ -110,9 +111,10 @@ export function AddCombatantDialog({
               type="number"
               required
             />
-            <label className="mt-2 flex items-center gap-2 text-sm">
+            <label className="mt-2 flex items-center gap-2 text-sm text-gray-600">
               <input
                 type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500"
                 checked={fullHp}
                 onChange={() => setFullHp(!fullHp)}
               />
@@ -127,20 +129,26 @@ export function AddCombatantDialog({
             disabled={fullHp}
           />
         </div>
-        <label className="block text-sm font-medium text-gray-700">Type</label>
-        <select
-          name="type"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          defaultValue="enemy"
-        >
-          <option value="player">Player</option>
-          <option value="enemy">Enemy</option>
-          <option value="undead">Undead</option>
-          <option value="ally">Ally</option>
-        </select>
-        <label className="flex items-center gap-2 text-sm">
+        <div className="space-y-1">
+          <label htmlFor="combat-type" className="block text-sm font-medium text-gray-700">
+            Type
+          </label>
+          <select
+            id="combat-type"
+            name="type"
+            className="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-accent-500 focus:outline-none"
+            defaultValue="enemy"
+          >
+            <option value="player">Player</option>
+            <option value="enemy">Enemy</option>
+            <option value="undead">Undead</option>
+            <option value="ally">Ally</option>
+          </select>
+        </div>
+        <label className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500"
             checked={visible}
             onChange={() => setVisible(!visible)}
           />
@@ -151,11 +159,11 @@ export function AddCombatantDialog({
             {error}
           </Typography>
         )}
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
+        <div className="flex justify-end gap-2 pt-1">
+          <Button type="button" variant="secondary" size="sm" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" disabled={pending}>
+          <Button type="submit" variant="primary" size="sm" disabled={pending}>
             Add
           </Button>
         </div>

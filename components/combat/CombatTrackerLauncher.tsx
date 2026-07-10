@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Swords } from "lucide-react";
 import type { CombatState } from "@/lib/combat/types";
 import { CombatTrackerModal } from "@/components/combat/CombatTrackerModal";
 import { Button } from "@/components/ui";
@@ -21,10 +22,11 @@ export function CombatTrackerLauncher({
       <Button
         type="button"
         variant="white"
-        size="md"
-        className="font-semibold shadow-lg shadow-black/10"
+        size="sm"
+        className="font-semibold shadow-sm"
         onClick={() => setOpen(true)}
       >
+        <Swords className="mr-1.5 h-4 w-4" aria-hidden />
         Combat tracker
       </Button>
       <CombatTrackerModal

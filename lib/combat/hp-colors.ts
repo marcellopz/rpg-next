@@ -1,16 +1,21 @@
 import type { CombatCombatant } from "@/lib/combat/types";
 
-export type HpColorClass = "verde" | "amarelo" | "vermelho" | "preto" | "undead";
+export type HpColorClass =
+  | "hp-healthy"
+  | "hp-hurt"
+  | "hp-bloodied"
+  | "hp-critical"
+  | "hp-undead";
 
 export function getHpColorClass(combatant: Pick<CombatCombatant, "hp" | "maxHp" | "combatantType">): HpColorClass {
   if (combatant.combatantType === "undead") {
-    return "undead";
+    return "hp-undead";
   }
   const pct = combatant.maxHp > 0 ? (combatant.hp / combatant.maxHp) * 100 : 0;
-  if (pct > 75) return "verde";
-  if (pct > 50) return "amarelo";
-  if (pct > 25) return "vermelho";
-  return "preto";
+  if (pct > 75) return "hp-healthy";
+  if (pct > 50) return "hp-hurt";
+  if (pct > 25) return "hp-bloodied";
+  return "hp-critical";
 }
 
 export function getDisplayName(
