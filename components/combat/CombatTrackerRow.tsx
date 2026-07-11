@@ -1,7 +1,7 @@
 "use client";
 
 import { GripVertical, Minus, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { setReactionUsed, updateCombatantHp } from "@/app/actions/combat";
 import { getDisplayName, getHpColorClass } from "@/lib/combat/hp-colors";
 import {
@@ -53,10 +53,41 @@ export function CombatTrackerRow({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [conditionOpen, setConditionOpen] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressStart = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     setHp(combatant.hp);
   }, [combatant.hp]);
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    };
+  }, []);
+
+  function clearLongPressTimer() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    const touch = e.touches[0];
+    longPressStart.current = { x: touch.clientX, y: touch.clientY };
+    clearLongPressTimer();
+    longPressTimer.current = setTimeout(() => {
+      setContextMenu({ x: touch.clientX, y: touch.clientY });
+    }, 500);
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    const touch = e.touches[0];
+    const dx = touch.clientX - longPressStart.current.x;
+    const dy = touch.clientY - longPressStart.current.y;
+    if (Math.hypot(dx, dy) > 10) clearLongPressTimer();
+  }
 
   if (!isDm && combatant.visible === false) return null;
 
@@ -120,6 +151,10 @@ export function CombatTrackerRow({
           e.preventDefault();
           setContextMenu({ x: e.clientX, y: e.clientY });
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={clearLongPressTimer}
+        onTouchCancel={clearLongPressTimer}
         className={cn(
           "tracker-table-body-row",
           showHpColumns ? "with-hp" : "without-hp",
