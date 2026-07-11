@@ -10,10 +10,10 @@ import {
 } from "@/lib/combat/turn-engine";
 import type { CombatCombatant } from "@/lib/combat/types";
 import { cn } from "@/lib/cn";
-import { CombatantStatusIcons } from "@/components/combat/CombatantStatusIcons";
+import { CombatantStatusIcons } from "@/components/combat/table/CombatantStatusIcons";
 import { useCombatTracker } from "@/components/combat/CombatTrackerContext";
 import { ConditionChip } from "@/components/combat/ConditionChip";
-import { CombatRowContextMenu } from "@/components/combat/CombatRowContextMenu";
+import { CombatRowContextMenu } from "@/components/combat/table/CombatRowContextMenu";
 import { AddConditionDialog } from "@/components/combat/dialogs/AddConditionDialog";
 import { ConfirmDeleteCombatantDialog } from "@/components/combat/dialogs/ConfirmDeleteCombatantDialog";
 import { EditCombatantDialog } from "@/components/combat/dialogs/EditCombatantDialog";

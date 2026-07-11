@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
 import type { JSONContent } from "@tiptap/core";
 import { editorExtensions } from "@/lib/editor/extensions";
+import { Button, Typography } from "@/components/ui";
 import { EditorToolbar } from "./EditorToolbar";
 import "./editor.css";
 
@@ -14,6 +16,10 @@ export function PageEditor({
   onSave,
   saveDisabled,
   saving,
+  autosaveIn,
+  presenceLabel,
+  remoteBanner,
+  onOpenHistory,
 }: {
   initialContent?: JSONContent;
   /** When false the document is rendered read-only, without the toolbar. */
@@ -24,7 +30,30 @@ export function PageEditor({
   onSave?: () => void;
   saveDisabled?: boolean;
   saving?: boolean;
+  /** Seconds until autosave fires; null when idle / not dirty. */
+  autosaveIn?: number | null;
+  presenceLabel?: string | null;
+  remoteBanner?: {
+    message: string;
+    onReload: () => void;
+    onDismiss: () => void;
+  } | null;
+  onOpenHistory?: () => void;
 }) {
+  useEffect(() => {
+    if (!editable || !onSave) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        if (!saveDisabled && !saving) onSave?.();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [editable, onSave, saveDisabled, saving]);
+
   const editor = useEditor({
     extensions: [
       ...editorExtensions,
@@ -64,7 +93,57 @@ export function PageEditor({
           onSave={onSave}
           saveDisabled={saveDisabled}
           saving={saving}
+          autosaveIn={autosaveIn}
+          presenceLabel={presenceLabel}
+          onOpenHistory={onOpenHistory}
         />
+      )}
+      {!editable && (
+        <div className="flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 bg-gray-50 px-3 py-2">
+          {presenceLabel && (
+            <span id="campaign-editor-presence" className="mr-auto text-xs text-accent-700">
+              {presenceLabel}
+            </span>
+          )}
+          {onOpenHistory && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="xs"
+              onClick={onOpenHistory}
+            >
+              History
+            </Button>
+          )}
+        </div>
+      )}
+      {remoteBanner && (
+        <div
+          id="campaign-editor-remote-banner"
+          className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2"
+        >
+          <Typography variant="small" className="text-amber-900">
+            {remoteBanner.message}
+          </Typography>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="xs"
+              onClick={remoteBanner.onDismiss}
+            >
+              Keep editing
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="xs"
+              onClick={remoteBanner.onReload}
+            >
+              Reload
+            </Button>
+          </div>
+        </div>
       )}
       <div
         className="flex-1 cursor-text px-5 py-4"

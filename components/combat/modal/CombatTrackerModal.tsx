@@ -3,18 +3,18 @@
 import { useEffect, useState } from "react";
 import { startCombat } from "@/app/actions/combat";
 import type { CombatState } from "@/lib/combat/types";
-import { CombatColorLegend } from "@/components/combat/CombatColorLegend";
+import { CombatColorLegend } from "@/components/combat/modal/CombatColorLegend";
 import {
   CombatTrackerProvider,
   useCombatTracker,
 } from "@/components/combat/CombatTrackerContext";
-import { CombatDmNotes } from "@/components/combat/CombatDmNotes";
-import { CombatShowHpToggle } from "@/components/combat/CombatShowHpToggle";
-import { CombatTrackerFooter } from "@/components/combat/CombatTrackerFooter";
-import { CombatTrackerTable } from "@/components/combat/CombatTrackerTable";
+import { CombatDmNotes } from "@/components/combat/modal/CombatDmNotes";
+import { CombatShowHpToggle } from "@/components/combat/modal/CombatShowHpToggle";
+import { CombatTrackerFooter } from "@/components/combat/modal/CombatTrackerFooter";
+import { CombatTrackerTable } from "@/components/combat/table/CombatTrackerTable";
 import { AddCombatantDialog } from "@/components/combat/dialogs/AddCombatantDialog";
 import { Button, IconButton, Typography } from "@/components/ui";
-import "./combat.css";
+import "../combat.css";
 import { Swords, X } from "lucide-react";
 
 function CombatTrackerBody() {

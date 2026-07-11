@@ -5,7 +5,7 @@ import { reorderCombatants } from "@/app/actions/combat";
 import { resolveTurnForViewer } from "@/lib/combat/hp-colors";
 import { applyReorderCombatants } from "@/lib/combat/turn-engine";
 import { useCombatTracker } from "@/components/combat/CombatTrackerContext";
-import { CombatTrackerRow } from "@/components/combat/CombatTrackerRow";
+import { CombatTrackerRow } from "@/components/combat/table/CombatTrackerRow";
 
 function CombatTableHeader({ showHpColumns }: { showHpColumns: boolean }) {
   return (

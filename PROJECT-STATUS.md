@@ -53,7 +53,7 @@ The app has the **authentication flow, campaign CRUD, in-app campaign invites, a
   - Authorization: shared campaign notes/categories are collaborative (any campaign member can create/edit/delete); private "My notes" pages/categories remain owner-only.
 - **Notes navigator** (`components/notes-navigator/`): `NotesSidebar.tsx` (Campaign notes / My notes tabs, collapsible category groups with folder/file icons, root pages, active highlight, native HTML5 drag-and-drop ordering), `NewItemForm.tsx` (inline create forms). Item action dropdowns (add page / rename / move / delete) use the shared `Menu` ui component. Selection is URL-driven: `?tab=my` + `?page=<id>` — server-rendered and linkable.
 - **Ordering** (`reorderCategories` / `reorderPages` actions): drag a category onto another to reorder; drag a page between rows, onto a category header (drops in at the end), or onto the "Move to top level" zone. `reorderPages` writes both `category_id` and `sort_order`, so a cross-category drop is one call. Structural moves on shared pages are allowed for any member; private pages stay owner-only.
-- **Editor save flow** (`components/notes-editor/PageEditorPanel.tsx`): tracks document JSON + dirty state, Save button enabled when dirty ("Saving…" while pending), wipe-guard confirm branch. Pages the viewer doesn't own render read-only (no toolbar). History button is still a disabled placeholder (snapshot browsing comes later).
+- **Editor save flow** (`components/notes-editor/PageEditorPanel.tsx`): tracks document JSON + dirty state, Save button enabled when dirty ("Saving…" while pending), wipe-guard confirm branch. Pages the viewer can't edit render read-only (History still available). History opens `PageHistoryPanel` — lists up to 10 `page_recovery_snapshots` (who/when/preview) and restores via `restorePageSnapshot` when the viewer can edit.
 
 ### Text editor
 - **Shared extensions** (`lib/editor/extensions.ts`): `editorExtensions` (StarterKit, headings 1–3) — the single schema source reused by the editor, `generateText` (search/wipe-guard), and `generateHTML` (TV notes). Editor-only plugins (e.g. Placeholder) stay out of this list.
@@ -116,7 +116,7 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 ## Next recommended steps
 
 1. ~~**Campaigns + memberships**~~ — done (`createCampaign`/`updateCampaign`/`deleteCampaign` + list/detail UI). Next: member management within a campaign.
-2. ~~**Wiki backend**~~ — done (`0005_wiki.sql`, category/page CRUD, hardened `savePage`, sidebar + editor wiring). Next: snapshot browsing behind the History button.
+2. ~~**Wiki backend**~~ — done (`0005_wiki.sql`, category/page CRUD, hardened `savePage`, sidebar + editor wiring, History snapshot browse/restore).
 3. ~~**Campaign invites**~~ — done (in-app email-addressed invites, `/account` accept/decline, navbar badge, settings member/invite status). Later: optional email delivery if wanted.
 4. ~~**Characters + inventory**~~ — done (`0008_inventory.sql`, party characters with stats/coins, item CRUD with inline edits, transfers, change log). Character sheets remain a separate future feature.
 5. **Combat log (realtime)** — rebuild `CombatLog` / `TvCombatLog`

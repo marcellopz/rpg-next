@@ -18,7 +18,7 @@ import {
   Strikethrough,
   Undo,
 } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Button, Chip } from "@/components/ui";
 import { ToolbarButton, ToolbarDivider } from "./ToolbarButton";
 
 export function EditorToolbar({
@@ -26,12 +26,26 @@ export function EditorToolbar({
   onSave,
   saveDisabled,
   saving,
+  autosaveIn,
+  presenceLabel,
+  onOpenHistory,
 }: {
   editor: Editor;
   onSave?: () => void;
   saveDisabled?: boolean;
   saving?: boolean;
+  autosaveIn?: number | null;
+  presenceLabel?: string | null;
+  onOpenHistory?: () => void;
 }) {
+  const saveLabel = saving
+    ? "Saving…"
+    : autosaveIn != null
+      ? `Autosave ${autosaveIn}s`
+      : saveDisabled
+        ? "Saved"
+        : "Save now";
+
   return (
     <div
       id="campaign-editor-formatting"
@@ -124,9 +138,22 @@ export function EditorToolbar({
         onClick={() => editor.chain().focus().setHorizontalRule().run()}
       />
 
-      {/* Right side: document actions. History is still a placeholder. */}
-      <div id="campaign-editor-actions" className="ml-auto flex items-center gap-1">
-        <Button variant="secondary" size="xs" disabled>
+      {/* Right side: presence + document actions. */}
+      <div id="campaign-editor-actions" className="ml-auto flex items-center gap-2">
+        {presenceLabel && (
+          <span id="campaign-editor-presence">
+            <Chip variant="accent" className="max-w-[14rem] truncate">
+              {presenceLabel}
+            </Chip>
+          </span>
+        )}
+        <Button
+          type="button"
+          variant="secondary"
+          size="xs"
+          disabled={!onOpenHistory}
+          onClick={onOpenHistory}
+        >
           <History className="h-3.5 w-3.5" />
           History
         </Button>
@@ -134,9 +161,14 @@ export function EditorToolbar({
           size="xs"
           disabled={!onSave || saveDisabled || saving}
           onClick={onSave}
+          title={
+            autosaveIn != null
+              ? "Saves automatically after 5 seconds idle — click to save now"
+              : undefined
+          }
         >
           <Save className="h-3.5 w-3.5" />
-          {saving ? "Saving…" : "Save"}
+          {saveLabel}
         </Button>
       </div>
     </div>

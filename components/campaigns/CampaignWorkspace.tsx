@@ -7,6 +7,9 @@ import {
   type CampaignToolId,
 } from "@/components/campaigns/campaign-tools";
 import { ToolPlaceholder } from "@/components/campaigns/ToolPlaceholder";
+import { HandoutBroadcastModal } from "@/components/handouts/HandoutBroadcastModal";
+import { HandoutBroadcastProvider } from "@/components/handouts/HandoutBroadcastContext";
+import { HandoutsTool } from "@/components/handouts/HandoutsTool";
 import { InventoryTool } from "@/components/inventory/InventoryTool";
 import { ResourcesTool } from "@/components/resources/ResourcesTool";
 import type { NoteScope } from "@/app/actions/categories";
@@ -67,8 +70,10 @@ export function CampaignWorkspace({
   const toolMeta = CAMPAIGN_TOOLS.find((t) => t.id === activeTool)!;
 
   return (
-    <div id="campaign-workspace" className="app-container py-6">
-      <header id="campaign-header" className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+    <HandoutBroadcastProvider campaignId={campaignId}>
+      <div id="campaign-workspace" className="app-container py-6">
+        <HandoutBroadcastModal />
+        <header id="campaign-header" className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
         <div className="bg-gradient-to-br from-accent-700 via-accent-600 to-accent-500 px-6 py-8 text-white md:px-8">
           <div className="flex flex-wrap items-start gap-5">
             <div className="min-w-0 flex-1 basis-[32rem]">
@@ -198,6 +203,8 @@ export function CampaignWorkspace({
             dashboard={resources}
             inventoryCharacters={inventoryCharacterOptions}
           />
+        ) : activeTool === "handouts" ? (
+          <HandoutsTool campaignId={campaignId} isAdmin={isAdmin} />
         ) : (
           <ToolPlaceholder
             title={toolMeta.label}
@@ -206,5 +213,6 @@ export function CampaignWorkspace({
         )}
       </section>
     </div>
+    </HandoutBroadcastProvider>
   );
 }

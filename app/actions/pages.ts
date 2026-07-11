@@ -22,7 +22,7 @@ const WIPE_SHRINK_RATIO = 0.1; // new text < 10% of old text = suspicious
 const SNAPSHOTS_KEPT = 10;
 
 export type SaveOutcome =
-  | { status: "saved" }
+  | { status: "saved"; updatedAt: string }
   | { status: "needs_confirmation"; oldLength: number; newLength: number };
 
 function validateTitle(title: string): string | null {
@@ -362,19 +362,20 @@ export async function savePage(
   }
 
   // Layer 1 + the actual write: keep the prior good copy alongside the new one.
+  const updatedAt = new Date().toISOString();
   const { error } = await admin
     .from("pages")
     .update({
       content_json: newContentJson,
       content_text: newText,
       previous_content_json: page.content_json,
-      updated_at: new Date().toISOString(),
+      updated_at: updatedAt,
     })
     .eq("id", pageId);
   if (error)
     return { ok: false, error: "Could not save the page. Please try again." };
 
-  return { ok: true, data: { status: "saved" } };
+  return { ok: true, data: { status: "saved", updatedAt } };
 }
 
 // Soft delete: the row (and its snapshots) stay recoverable.
@@ -431,4 +432,157 @@ export async function restorePreviousContent(
 
   await revalidateCampaignWorkspace(page.campaign_id);
   return { ok: true, data: undefined };
+}
+
+export type PageSnapshotSummary = {
+  id: string;
+  createdAt: string;
+  savedByName: string;
+  preview: string;
+  charCount: number;
+};
+
+async function getReadablePage(
+  pageId: string,
+  userId: string
+): Promise<{ page: PageRow } | { error: string }> {
+  const admin = createAdminClient();
+  const { data: page } = await admin
+    .from("pages")
+    .select(
+      "id, campaign_id, owner_id, visibility, content_json, content_text, deleted_at"
+    )
+    .eq("id", pageId)
+    .maybeSingle<PageRow>();
+  if (!page || page.deleted_at) return { error: "Page not found." };
+
+  if (!(await isCampaignMember(userId, page.campaign_id)))
+    return { error: "You don't have access to this campaign." };
+  if (page.visibility === "private" && page.owner_id !== userId)
+    return { error: "Only the page's creator can view its history." };
+
+  return { page };
+}
+
+/** List rolling recovery snapshots for a page (newest first). */
+export async function listPageSnapshots(
+  pageId: string
+): Promise<ActionResult<PageSnapshotSummary[]>> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: "You must be signed in." };
+
+  const readable = await getReadablePage(pageId, userId);
+  if ("error" in readable) return { ok: false, error: readable.error };
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("page_recovery_snapshots")
+    .select("id, content_text, saved_by, created_at")
+    .eq("page_id", pageId)
+    .order("created_at", { ascending: false })
+    .limit(SNAPSHOTS_KEPT);
+
+  if (error) return { ok: false, error: error.message };
+
+  const { resolveUserDisplayNames } = await import("@/lib/users/display-name");
+  const names = await resolveUserDisplayNames(
+    (data ?? []).map((row) => row.saved_by as string | null)
+  );
+
+  const snapshots: PageSnapshotSummary[] = (data ?? []).map((row) => {
+    const text = (row.content_text ?? "").trim();
+    const preview =
+      text.length === 0
+        ? "(empty)"
+        : text.length > 140
+          ? `${text.slice(0, 140)}…`
+          : text;
+    return {
+      id: row.id,
+      createdAt: row.created_at,
+      savedByName: names.get(row.saved_by as string) ?? "Unknown",
+      preview,
+      charCount: text.length,
+    };
+  });
+
+  return { ok: true, data: snapshots };
+}
+
+/** Restore a page to a snapshot by saving that content through savePage. */
+export async function restorePageSnapshot(
+  snapshotId: string
+): Promise<ActionResult<{ contentJson: JSONContent }>> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: "You must be signed in." };
+
+  const admin = createAdminClient();
+  const { data: snapshot } = await admin
+    .from("page_recovery_snapshots")
+    .select("id, page_id, content_json")
+    .eq("id", snapshotId)
+    .maybeSingle();
+
+  if (!snapshot) return { ok: false, error: "Snapshot not found." };
+
+  const editable = await getEditablePage(snapshot.page_id, userId);
+  if ("error" in editable) return { ok: false, error: editable.error };
+
+  const content = snapshot.content_json as JSONContent;
+  const result = await savePage(snapshot.page_id, content, true);
+  if (!result.ok) return result;
+  if (result.data.status !== "saved") {
+    return { ok: false, error: "Could not restore the page. Please try again." };
+  }
+
+  await revalidateCampaignWorkspace(editable.page.campaign_id);
+  return { ok: true, data: { contentJson: content } };
+}
+
+export type PageLiveState = {
+  contentJson: JSONContent | null;
+  updatedAt: string;
+  lastSavedByName: string;
+};
+
+/** Live state for collaborative sync after a peer saves. */
+export async function getPageLiveState(
+  pageId: string
+): Promise<ActionResult<PageLiveState>> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: "You must be signed in." };
+
+  const readable = await getReadablePage(pageId, userId);
+  if ("error" in readable) return { ok: false, error: readable.error };
+
+  const admin = createAdminClient();
+  const { data: page, error } = await admin
+    .from("pages")
+    .select("content_json, updated_at")
+    .eq("id", pageId)
+    .maybeSingle();
+
+  if (error || !page) return { ok: false, error: "Page not found." };
+
+  const { data: latestSnapshot } = await admin
+    .from("page_recovery_snapshots")
+    .select("saved_by")
+    .eq("page_id", pageId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { resolveUserDisplayName } = await import("@/lib/users/display-name");
+  const lastSavedByName = latestSnapshot?.saved_by
+    ? await resolveUserDisplayName(latestSnapshot.saved_by as string)
+    : "Someone";
+
+  return {
+    ok: true,
+    data: {
+      contentJson: (page.content_json as JSONContent | null) ?? null,
+      updatedAt: page.updated_at as string,
+      lastSavedByName,
+    },
+  };
 }

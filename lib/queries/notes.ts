@@ -125,6 +125,7 @@ export type NotePage = {
   contentJson: JSONContent | null;
   visibility: "public" | "private";
   ownerId: string;
+  updatedAt: string;
 };
 
 // A single page with its content, for the editor. Returns null when the page
@@ -135,7 +136,9 @@ export async function getPageForCurrentUser(
   const supabase = createServerClient();
   const { data: page } = await supabase
     .from("pages")
-    .select("id, campaign_id, category_id, title, content_json, visibility, owner_id")
+    .select(
+      "id, campaign_id, category_id, title, content_json, visibility, owner_id, updated_at"
+    )
     .eq("id", pageId)
     .maybeSingle();
   if (!page) return null;
@@ -148,5 +151,6 @@ export async function getPageForCurrentUser(
     contentJson: (page.content_json as JSONContent | null) ?? null,
     visibility: page.visibility as "public" | "private",
     ownerId: page.owner_id,
+    updatedAt: page.updated_at,
   };
 }

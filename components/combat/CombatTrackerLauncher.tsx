@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Swords } from "lucide-react";
 import type { CombatState } from "@/lib/combat/types";
-import { CombatTrackerModal } from "@/components/combat/CombatTrackerModal";
+import { CombatTrackerModal } from "@/components/combat/modal/CombatTrackerModal";
 import { Button } from "@/components/ui";
 
 export function CombatTrackerLauncher({
