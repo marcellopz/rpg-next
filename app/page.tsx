@@ -45,16 +45,6 @@ function IconUsers() {
     </svg>
   );
 }
-function IconTv() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-      <rect x="2" y="3" width="20" height="14" rx="2" />
-      <path d="M8 21h8" />
-      <path d="M12 17v4" />
-    </svg>
-  );
-}
-
 type Feature = {
   title: string;
   text: string;
@@ -86,11 +76,6 @@ const FEATURES: Feature[] = [
     title: "Member invites",
     text: "Invite players with a link and manage their roles.",
     icon: <IconUsers />,
-  },
-  {
-    title: "TV display",
-    text: "A read-only surface that broadcasts the action to your living-room TV.",
-    icon: <IconTv />,
   },
 ];
 
@@ -124,8 +109,7 @@ export default function HomePage() {
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-white/85">
             A campaign wiki with rich-text pages, character sheets and
-            inventories, a live combat log, member invites, and a read-only TV
-            display surface.
+            inventories, a live combat log, and member invites.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
@@ -136,12 +120,6 @@ export default function HomePage() {
               )}
             >
               Go to campaigns
-            </Link>
-            <Link
-              href="/library"
-              className="rounded-md border border-white/40 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
-            >
-              Personal library
             </Link>
           </div>
         </div>
@@ -169,7 +147,7 @@ export default function HomePage() {
           </div>
 
           {/* Standard cards */}
-          {FEATURES.slice(1, 5).map((f) => (
+          {FEATURES.slice(1).map((f) => (
             <div
               key={f.title}
               className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
@@ -181,17 +159,6 @@ export default function HomePage() {
               <p className="mt-1 text-sm text-gray-600">{f.text}</p>
             </div>
           ))}
-
-          {/* Wide card */}
-          <div className="flex items-center gap-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:col-span-2 lg:col-span-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
-              {FEATURES[5].icon}
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">{FEATURES[5].title}</h3>
-              <p className="mt-1 text-sm text-gray-600">{FEATURES[5].text}</p>
-            </div>
-          </div>
         </div>
       </section>
 

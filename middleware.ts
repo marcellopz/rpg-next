@@ -3,7 +3,7 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 // Paths that never require authentication. Everything else redirects to
 // /login when there's no signed-in user.
-const PUBLIC_PATHS = ["/login", "/auth", "/tv", "/join", "/campaigns", "/library"];
+const PUBLIC_PATHS = ["/login", "/auth", "/join", "/campaigns"];
 
 function isPublic(pathname: string) {
   if (pathname === "/") return true;
@@ -13,22 +13,12 @@ function isPublic(pathname: string) {
 }
 
 export async function middleware(req: NextRequest) {
-  // 1. Route old engines (the living-room webOS TV) to the read-only /tv
-  //    surface. The webOS UA is distinctive and includes the Chromium version
-  //    (e.g. "Web0S ... Chrome/53...").
-  const ua = req.headers.get("user-agent") ?? "";
-  const isLegacyTv =
-    /Web0S|webOS/i.test(ua) || /Chrome\/(3\d|4\d|5[0-3])\./.test(ua);
-  if (isLegacyTv && !req.nextUrl.pathname.startsWith("/tv")) {
-    return NextResponse.redirect(new URL("/tv", req.url));
-  }
-
-  // 2. Refresh the Supabase session cookie on every request.
+  // 1. Refresh the Supabase session cookie on every request.
   const { user, response } = await updateSession(req);
 
   const { pathname } = req.nextUrl;
 
-  // 3. Signed-in users shouldn't see the login page — honor `next` when present.
+  // 2. Signed-in users shouldn't see the login page — honor `next` when present.
   if (user && pathname === "/login") {
     const next = req.nextUrl.searchParams.get("next");
     const destination =
@@ -36,7 +26,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL(destination, req.url));
   }
 
-  // 4. Unauthenticated users hitting a protected route go to /login, with a
+  // 3. Unauthenticated users hitting a protected route go to /login, with a
   //    `next` param so we can send them back after they sign in.
   if (!user && !isPublic(pathname)) {
     const returnPath = pathname + req.nextUrl.search;

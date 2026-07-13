@@ -1,6 +1,6 @@
 # RPG Campaign Manager — Claude Context
 
-A tabletop RPG campaign manager: OneNote-style wiki with categories and rich-text pages, character sheets, inventories, a live combat log, member invites, and file uploads. Also includes a cross-campaign personal library and a read-only TV display surface for broadcasting on a living-room webOS TV.
+A tabletop RPG campaign manager: OneNote-style wiki with categories and rich-text pages, character sheets, inventories, a live combat log, and member invites. File uploads, personal library, and TV display are deferred.
 
 Full design spec and code patterns: `rpg-manager-reference.md`.
 
@@ -11,7 +11,7 @@ Full design spec and code patterns: `rpg-manager-reference.md`.
 | Layer | Choice | Constraint |
 |-------|--------|-----------|
 | Framework | Next.js 14 App Router + TypeScript | Server actions for trusted logic |
-| Styling | **Tailwind CSS v3** | **Pinned to v3, never upgrade to v4** — v3 CSS runs on webOS TV (Chromium 38+); v4 does not |
+| Styling | **Tailwind CSS v3** | Utility-first styling |
 | Database + Auth + Realtime + Storage | Supabase | One vendor for everything |
 | Editor | Tiptap 2 | Stores structured JSON (`content_json`), not Markdown |
 
@@ -47,8 +47,6 @@ The proposal must include: the exact SQL, which migration file it belongs to (ne
 app/actions/          # Server actions (writes): campaigns.ts, categories.ts, pages.ts, invites.ts, inventory.ts
 app/campaigns/        # Campaign list + [campaignCode] workspace (?tool= picks the tool; ?tab= & ?page= the note; ?character= the inventory)
 app/join/[token]/     # Invite acceptance flow
-app/library/          # Personal library (cross-campaign, user-owned)
-app/tv/               # Read-only TV display surface (webOS-safe)
 components/campaigns/ # CampaignCard, CampaignWorkspace, settings, new-campaign modal
 components/ui/        # Shared primitives: Button, IconButton, Menu, TextField, Typography, Chip, Tooltip
 components/notes-navigator/ # NotesSidebar, NotesTabs, NoteCategoryGroup, NotePageRow, drag/drop hook
@@ -58,7 +56,7 @@ lib/queries/          # Read-side data access: campaigns.ts, notes.ts, invites.t
 lib/supabase/         # client.ts (browser, anon key) | server.ts (server, service-role key)
 lib/editor/extensions.ts  # SHARED Tiptap extensions — used by editor, generateText, generateHTML
 supabase/migrations/  # 0001 init | 0002 RLS + is_member | 0003 grants | 0004 public_code | 0005 wiki | 0007 invites | 0008 inventory | 0009 inventory realtime
-middleware.ts         # Routes webOS user-agents to /tv automatically
+middleware.ts         # Session refresh + auth redirects
 ```
 
 ---
@@ -73,14 +71,13 @@ middleware.ts         # Routes webOS user-agents to /tv automatically
 ```typescript
 import { editorExtensions } from '@/lib/editor/extensions'
 import { generateText } from '@tiptap/core'   // for server: wipe-guard, search
-import { generateHTML } from '@tiptap/html'   // for server: TV note render
 ```
 
 **RLS helper (in SQL)**
 ```sql
 is_member(campaign_id)  -- true if auth.uid() is in memberships for that campaign
 ```
-Every table with a `campaign_id` uses this. Personal library tables use `owner_id = auth.uid()`.
+Every table with a `campaign_id` uses this.
 
 **Page save hardening** (`app/actions/pages.ts → savePage`)
 - Shared campaign notes are collaborative: any campaign member may create/edit/delete shared pages and categories. Personal "My notes" content remains owner-only.
@@ -93,10 +90,6 @@ Every table with a `campaign_id` uses this. Personal library tables use `owner_i
 - No outbound email is sent. Invites are addressed to `invitee_email` and shown in-app on `/account` when the signed-in user's email matches.
 - Campaign settings show members and invite status. Create/revoke require campaign admin; accept/decline require the invitee email to match the current user.
 - Invites are player-only for now.
-
-**Personal library** (`app/actions/library-transfer.ts`)
-- Envelope + typed body pattern: `library_items` (common fields) + per-kind body tables
-- Transfer actions copy data, never link — each space stays self-contained
 
 ## UI components — never style raw HTML for common elements
 
@@ -135,7 +128,7 @@ Use kebab-case with scope prefixes: `{scope}-{section}[-{element}]`
 | Scope | Examples | Purpose |
 |-------|----------|---------|
 | `site-*` | `site-header`, `site-main`, `site-footer` | Global landmarks |
-| `{page}-*` | `campaigns-list`, `library-grid` | Page sections |
+| `{page}-*` | `campaigns-list`, `campaigns-grid` | Page sections |
 | `campaign-*` | `campaign-workspace`, `campaign-editor` | Campaign workspace |
 | `{feature}-modal` | `new-campaign-modal` | Dialog overlays |
 
@@ -143,21 +136,6 @@ Use kebab-case with scope prefixes: `{scope}-{section}[-{element}]`
 - IDs on semantic landmarks and interactive regions, not every styled div
 - Keep form field IDs for label association (`htmlFor`)
 - Use stable data IDs for list items (`campaign-card-{publicCode}`)
-- Reserve `tv-*` namespace for webOS display surface
-
----
-
-## TV / webOS constraints (scoped to `/tv` routes only)
-
-The main app is unrestricted. Only `/tv` must follow these rules:
-- **Layout:** flexbox only (no CSS Grid — absent in Chromium 38)
-- **Color:** plain `hex`/`rgb` only (no `oklch`, `lab`, etc.)
-- **Avoid:** `:has()`, container queries, cascade layers
-- **Navigation:** focusable links with strong `:focus` styles (TV remote = arrow keys + enter)
-- **No editor code** ships to `/tv` — notes are rendered server-side via `generateHTML`
-- Scoped styles live in `app/tv/tv.css`
-
-`browserslist` in `package.json` is set to `chrome >= 38` — the bundler transpiles JS to this floor.
 
 ---
 

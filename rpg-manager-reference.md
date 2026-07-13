@@ -1,6 +1,6 @@
 # RPG Campaign Manager — Rebuild Reference
 
-A single document to build against for a tabletop RPG campaign manager: a OneNote-style campaign wiki with categories and rich-text pages, character sheets, inventories, a live combat log, member invites, and file uploads. It covers the stack, the full data model, and the key code patterns for the features that touch the backend: **campaigns & invites**, **realtime combat log**, **wiki/sheet/inventory CRUD**, **hardened page saving with content recovery**, **file uploads**, a **cross-campaign personal library**, and a **read-only TV display surface** for broadcasting on a living-room TV.
+A single document to build against for a tabletop RPG campaign manager: a OneNote-style campaign wiki with categories and rich-text pages, character sheets, inventories, a live combat log, member invites, and file uploads. It covers the stack, the full data model, and the key code patterns for the features that touch the backend: **campaigns & invites**, **realtime combat log**, **wiki/sheet/inventory CRUD**, and **hardened page saving with content recovery**. (**Deferred:** personal library and read-only TV display surface.)
 
 The design goal is to keep the backend approachable for a frontend developer: one vendor (Supabase) for the database, auth, realtime, and file storage, plus a thin layer of Next.js server-side logic only where a request involves real decisions about who's allowed to do what. Page content is edited with Tiptap and stored as structured JSON, and the save path is hardened so a user's extensive work can't be lost to a mistaken save, deletion, or app error.
 
@@ -659,14 +659,16 @@ export async function getPrivateFileUrl(fileId: string) {
 5. **Characters + inventory** — the `jsonb` sheet and item list.
 6. **Combat log** — the realtime subscription. Satisfying to build because it visibly "just works" live.
 7. **File uploads** — buckets, simple client upload, then the gated/private path.
-8. **Personal library** — the envelope + typed body tables, folders/tags, and the two transfer actions. Build it after campaigns exist, since transfer copies to/from them.
-9. **TV / read-only display surface** — the `/tv` routes (server-rendered note HTML, live combat reuse, remote-focus navigation), the conservative `browserslist`, and the UA-detection middleware. Build after the data and combat log exist, since it just renders them.
 
-Each step is independently shippable, and none of it requires a WebSocket server or CRDT/conflict-resolution layer.
+**Deferred:**
+- **Personal library** — the envelope + typed body tables, folders/tags, and the two transfer actions. Build it after campaigns exist, since transfer copies to/from them.
+- **TV / read-only display surface** — the `/tv` routes (server-rendered note HTML, live combat reuse, remote-focus navigation), the conservative `browserslist`, and the UA-detection middleware. Build after the data and combat log exist, since it just renders them.
+
+Each completed step is independently shippable, and none of it requires a WebSocket server or CRDT/conflict-resolution layer.
 
 ---
 
-## The Personal Library (cross-campaign, user-owned)
+## The Personal Library (cross-campaign, user-owned) — DEFERRED
 
 A space owned by the **user**, not any campaign, holding mixed content — characters, images, text notes, spell/rule references, and loose ideas — that can be **copied into a campaign** or **imported from a campaign**, in either direction, while each space keeps its own copy.
 
@@ -854,7 +856,7 @@ export async function importPageToLibrary(pageId: string, folderId?: string) {
 
 ---
 
-## The TV / legacy-browser display surface
+## The TV / legacy-browser display surface — DEFERRED
 
 The GM broadcasts the combat log and notes on a living-room **LG webOS TV (2015–2018)**. Those run old engines — webOS 3.x (2016–17) is Chromium 38, webOS 4.x (2018) is Chromium 53 — which can't parse modern CSS (e.g. `oklch`, cascade layers, `:has()`) or run modern JS syntax untranspiled. The goal is **display and navigation only** on the TV; all editing happens on the GM's and players' real computers.
 

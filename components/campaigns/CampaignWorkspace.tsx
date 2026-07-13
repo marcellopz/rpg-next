@@ -21,8 +21,8 @@ import type {
 } from "@/lib/queries/resources";
 import { CombatTrackerLauncher } from "@/components/combat/CombatTrackerLauncher";
 import type { CombatState } from "@/lib/combat/types";
+import { CampaignSearchButton } from "@/components/campaigns/CampaignSearchButton";
 import { Chip, Typography, buttonVariants } from "@/components/ui";
-import { cn } from "@/lib/cn";
 
 export function CampaignWorkspace({
   campaignId,
@@ -100,16 +100,10 @@ export function CampaignWorkspace({
                     isDm={isDm}
                     combat={combat}
                   />
-                  <button
-                    type="button"
-                    disabled
-                    className={cn(
-                      buttonVariants({ variant: "white", size: "sm" }),
-                      "opacity-80"
-                    )}
-                  >
-                    Search
-                  </button>
+                  <CampaignSearchButton
+                    campaignId={campaignId}
+                    publicCode={publicCode}
+                  />
                   {isAdmin && (
                     <NavLink
                       href={`/campaigns/${publicCode}/settings#campaign-settings-members`}
@@ -118,12 +112,6 @@ export function CampaignWorkspace({
                       Invite
                     </NavLink>
                   )}
-                  <NavLink
-                    href={`/tv/${publicCode}`}
-                    className={buttonVariants({ variant: "white", size: "sm" })}
-                  >
-                    TV display
-                  </NavLink>
                   {isAdmin && (
                     <NavLink
                       href={`/campaigns/${publicCode}/settings`}
@@ -171,7 +159,14 @@ export function CampaignWorkspace({
             <main id="campaign-editor" className="flex min-h-[42rem] flex-col bg-white">
               <div id="campaign-editor-content" className="flex min-h-0 flex-1 flex-col">
                 {selectedPage ? (
-                  <PageEditorPanel page={selectedPage} canEdit={canEditSelected} />
+                  // Keyed by page id so the panel remounts with fresh state on
+                  // page switch — reusing the instance leaks the previous
+                  // page's document into the new page's editor.
+                  <PageEditorPanel
+                    key={selectedPage.id}
+                    page={selectedPage}
+                    canEdit={canEditSelected}
+                  />
                 ) : (
                   <div className="flex flex-1 items-center justify-center p-8 text-center">
                     <div className="max-w-sm">

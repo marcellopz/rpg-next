@@ -14,7 +14,6 @@ import { buttonVariants } from "@/components/ui";
 
 const NAV_LINKS = [
   { href: "/campaigns", label: "Campaigns" },
-  { href: "/library", label: "Library" },
 ];
 
 function getDisplayName(user: User | null): string | null {

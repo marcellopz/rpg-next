@@ -1,8 +1,8 @@
 # RPG Campaign Manager — Project Status
 
-> Last updated: 2026-07-04
+> Last updated: 2026-07-12
 
-The app has the **authentication flow, campaign CRUD, in-app campaign invites, and the wiki notes backend** (categories + pages with a persisted rich-text editor, Campaign notes / My notes trees, and hardened saves). Remaining feature routes are still placeholders. Other feature logic (combat log, personal library, TV rendering) will be rebuilt on top of this foundation. The database schema (`supabase/migrations/`) and the design spec (`rpg-manager-reference.md`) are kept for reference.
+The app has the **authentication flow, campaign CRUD, in-app campaign invites, and the wiki notes backend** (categories + pages with a persisted rich-text editor, Campaign notes / My notes trees, and hardened saves). Remaining feature routes are still placeholders. Other feature logic (combat log) will be rebuilt on top of this foundation. **Deferred features:** personal library and TV display surface. The database schema (`supabase/migrations/`) and the design spec (`rpg-manager-reference.md`) are kept for reference.
 
 ---
 
@@ -13,7 +13,7 @@ The app has the **authentication flow, campaign CRUD, in-app campaign invites, a
 - **Auth callback** (`app/auth/callback/route.ts`): exchanges the OAuth `code` for a session and verifies the email-confirmation OTP (`token_hash` + `type`)
 - **Session middleware** (`lib/supabase/middleware.ts` + `middleware.ts`):
   - Refreshes the Supabase session cookie on every request
-  - Redirects unauthenticated users to `/login` (public paths: `/`, `/login`, `/auth`, `/tv`, `/join`, `/campaigns`, `/library`)
+  - Redirects unauthenticated users to `/login` (public paths: `/`, `/login`, `/auth`, `/join`, `/campaigns`)
   - Redirects signed-in users away from `/login`
   - Still routes legacy webOS TV user-agents to `/tv`
 - **Navbar auth state** (`components/Navbar.tsx`): left-aligned links; right-aligned "Sign in" button when logged out, or profile (avatar/name/email) + pending invite badge + "Sign out" when logged in. On mobile the nav links collapse behind a hamburger toggle (lucide `Menu`/`X` icons); the drawer auto-closes on route change.
@@ -100,8 +100,6 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 
 - `app/campaigns/[campaignCode]/pages/[pageId]/page.tsx` — wiki page editor
 - `app/join/[token]/page.tsx` — invite acceptance
-- `app/library/page.tsx` — personal library
-- `app/tv/page.tsx`, `app/tv/[campaignId]/page.tsx`, `app/tv/[campaignId]/combat/page.tsx`, `app/tv/notes/[pageId]/page.tsx` — read-only TV surface (`app/tv/layout.tsx` + `tv.css` retained)
 
 ---
 
@@ -119,10 +117,8 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 2. ~~**Wiki backend**~~ — done (`0005_wiki.sql`, category/page CRUD, hardened `savePage`, sidebar + editor wiring, History snapshot browse/restore).
 3. ~~**Campaign invites**~~ — done (in-app email-addressed invites, `/account` accept/decline, navbar badge, settings member/invite status). Later: optional email delivery if wanted.
 4. ~~**Characters + inventory**~~ — done (`0008_inventory.sql`, party characters with stats/coins, item CRUD with inline edits, transfers, change log). Character sheets remain a separate future feature.
-5. **Combat log (realtime)** — rebuild `CombatLog` / `TvCombatLog`
+5. **Combat log (realtime)** — rebuild `CombatLog`
 6. **File uploads**
-7. **Personal library**
-8. **TV / read-only display** — rebuild server-rendered notes + TV combat log
 
 ---
 
@@ -132,7 +128,6 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 |---|---|
 | `0010_combat_log.sql` | Combat log entries + realtime publication |
 | `0011_files.sql` | Files metadata |
-| `0012_library.sql` | Personal library tables |
 
 ---
 

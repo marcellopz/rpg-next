@@ -20,6 +20,11 @@ const AUTOSAVE_MS = 5000;
 // Client wrapper that owns the save flow for the selected page: tracks the
 // latest document JSON and dirty state, and runs the wipe-guard confirmation
 // branch when the server blocks a suspicious save.
+//
+// MUST be rendered with key={page.id}: all state initializers assume the page
+// never changes within an instance. Without the key, a page switch renders
+// the new page with the previous page's document still in state, and an
+// autosave can then write that document into the new page.
 export function PageEditorPanel({
   page,
   canEdit,
@@ -51,25 +56,6 @@ export function PageEditorPanel({
   const presenceLabel = formatPresenceLabel(presenceOthers);
 
   dirtyRef.current = dirty;
-
-  useEffect(() => {
-    contentRef.current = null;
-    savingRef.current = false;
-    lastLocalSaveAtRef.current = null;
-    appliedUpdatedAtRef.current = page.updatedAt;
-    dirtyRef.current = false;
-    setDirty(false);
-    setDirtyEpoch(0);
-    setSaving(false);
-    setAutosaveIn(null);
-    setAutosavePaused(false);
-    setHistoryOpen(false);
-    setRemoteUpdate(null);
-    setEditorContent(page.contentJson ?? undefined);
-    setEditorKey(0);
-    // Only reset when navigating to a different page — not on every server refresh.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: page.id only
-  }, [page.id]);
 
   const applyRemoteContent = useCallback((update: RemotePageUpdate) => {
     contentRef.current = update.contentJson;
@@ -190,8 +176,9 @@ export function PageEditorPanel({
   return (
     <>
       <PageEditor
-        // Remount when switching pages or after a history restore / remote sync.
-        key={`${page.id}-${editorKey}`}
+        // Remount after a history restore / remote sync (page switches remount
+        // the whole panel via its own key).
+        key={editorKey}
         initialContent={editorContent}
         editable={canEdit}
         onChange={handleChange}
