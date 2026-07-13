@@ -141,6 +141,53 @@ export async function updateCampaign(
   return { ok: true, data: undefined };
 }
 
+// Set or clear the campaign's cover image (admin only). The path must point
+// into this campaign's cover folder in the public-assets bucket (the client
+// uploads there first). The replaced storage object is deleted best-effort.
+export async function updateCampaignImage(
+  id: string,
+  imagePath: string | null
+): Promise<ActionResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: "You must be signed in." };
+
+  if (!(await isCampaignOwner(userId, id))) {
+    return {
+      ok: false,
+      error: "You don't have permission to edit this campaign.",
+    };
+  }
+
+  if (imagePath !== null && !imagePath.startsWith(`${id}/cover/`))
+    return { ok: false, error: "Invalid image path." };
+
+  const admin = createAdminClient();
+  const { data: current } = await admin
+    .from("campaigns")
+    .select("public_code, image_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (!current) return { ok: false, error: "Campaign not found." };
+  if (current.image_path === imagePath) return { ok: true, data: undefined };
+
+  const { error } = await admin
+    .from("campaigns")
+    .update({ image_path: imagePath })
+    .eq("id", id);
+  if (error)
+    return {
+      ok: false,
+      error: "Could not update the campaign image. Please try again.",
+    };
+
+  if (current.image_path) {
+    await admin.storage.from("public-assets").remove([current.image_path]);
+  }
+
+  await revalidateCampaign(current.public_code);
+  return { ok: true, data: undefined };
+}
+
 export async function deleteCampaign(id: string): Promise<ActionResult> {
   const userId = await getCurrentUserId();
   if (!userId) return { ok: false, error: "You must be signed in." };

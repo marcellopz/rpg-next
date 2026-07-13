@@ -123,6 +123,7 @@ export default async function CampaignPage({
       isAdmin={campaign.isAdmin}
       isDm={campaign.isDm}
       publicCode={campaign.publicCode}
+      imageUrl={campaign.imageUrl}
       activeTool={activeTool}
       tree={tree}
       activeTab={activeTab}

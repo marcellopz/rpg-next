@@ -54,6 +54,7 @@ export function InventoryTool({
       <main id="inventory-main" className="flex min-h-[42rem] flex-col bg-white">
         {selected ? (
           <CharacterPanel
+            campaignId={campaignId}
             character={selected}
             allCharacters={characters}
             onViewLog={() => setLogOpen(true)}

@@ -89,6 +89,7 @@ type CharacterRow = {
   gold: number;
   silver: number;
   copper: number;
+  image_path: string | null;
 };
 
 // Load a character and verify the caller is a member of its campaign.
@@ -99,7 +100,9 @@ async function getEditableCharacter(
   const admin = createAdminClient();
   const { data: character } = await admin
     .from("characters")
-    .select("id, campaign_id, name, strength, platinum, gold, silver, copper")
+    .select(
+      "id, campaign_id, name, strength, platinum, gold, silver, copper, image_path"
+    )
     .eq("id", characterId)
     .maybeSingle<CharacterRow>();
   if (!character) return { error: "Character not found." };
@@ -326,6 +329,51 @@ export async function updateCharacterStat(
     actor,
     changeType: `update_${field}`,
     description: `Changed ${character.name}'s ${STAT_LABELS[field]} from ${previous} to ${amount}`,
+  });
+  await revalidateCampaignWorkspace(character.campaign_id);
+  return { ok: true, data: undefined };
+}
+
+// Set or clear a character's photo. The path must point into this campaign's
+// portraits folder in the public-assets bucket (the client uploads there
+// first). The replaced storage object is deleted best-effort.
+export async function updateCharacterImage(
+  characterId: string,
+  imagePath: string | null
+): Promise<ActionResult> {
+  const actor = await getActor();
+  if (!actor) return { ok: false, error: "You must be signed in." };
+
+  const result = await getEditableCharacter(characterId, actor.id);
+  if ("error" in result) return { ok: false, error: result.error };
+  const { character } = result;
+
+  if (
+    imagePath !== null &&
+    !imagePath.startsWith(`${character.campaign_id}/portraits/`)
+  )
+    return { ok: false, error: "Invalid image path." };
+  if (character.image_path === imagePath) return { ok: true, data: undefined };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("characters")
+    .update({ image_path: imagePath })
+    .eq("id", characterId);
+  if (error)
+    return { ok: false, error: "Could not update the photo. Please try again." };
+
+  if (character.image_path) {
+    await admin.storage.from("public-assets").remove([character.image_path]);
+  }
+
+  await writeLog({
+    campaignId: character.campaign_id,
+    actor,
+    changeType: "update_photo",
+    description: imagePath
+      ? `Updated ${character.name}'s photo`
+      : `Removed ${character.name}'s photo`,
   });
   await revalidateCampaignWorkspace(character.campaign_id);
   return { ok: true, data: undefined };

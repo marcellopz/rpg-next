@@ -17,6 +17,8 @@ export type Campaign = {
   isOwner?: boolean;
   // Sample campaign shown for illustration; not part of the user's account.
   demo?: boolean;
+  /** Public URL of the cover image; null/undefined falls back to the gradient. */
+  imageUrl?: string | null;
 };
 
 const MAX_AVATARS = 4;
@@ -27,7 +29,7 @@ function emblemFor(name: string): string {
 }
 
 export function CampaignCard({ campaign }: { campaign: Campaign }) {
-  const { id, name, description, members = [], memberCount, memberLabels, role, isOwner, demo } =
+  const { id, name, description, members = [], memberCount, memberLabels, role, isOwner, demo, imageUrl } =
     campaign;
   const count = memberCount ?? members.length;
   const shown = members.slice(0, MAX_AVATARS);
@@ -38,10 +40,19 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
       href={`/campaigns/${id}`}
       className="group flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm"
     >
-      <div className="relative flex h-28 items-center justify-center rounded-t-2xl bg-gradient-to-br from-accent-600 to-accent-800">
-        <span className="text-4xl font-bold text-white/90">
-          {emblemFor(name)}
-        </span>
+      <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-t-2xl bg-gradient-to-br from-accent-600 to-accent-800">
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <span className="text-4xl font-bold text-white/90">
+            {emblemFor(name)}
+          </span>
+        )}
         {demo && (
           <Chip
             variant="onDarkSolid"

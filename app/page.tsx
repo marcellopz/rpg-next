@@ -11,11 +11,46 @@ function IconBook() {
     </svg>
   );
 }
-function IconUser() {
+function IconGauge() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
+      <path d="M12 15l3.5-3.5" />
+      <path d="M20.3 18a10 10 0 1 0-16.6 0" />
+    </svg>
+  );
+}
+function IconFile() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M8 13h8" />
+      <path d="M8 17h5" />
+    </svg>
+  );
+}
+function IconPhone() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <rect x="7" y="2" width="10" height="20" rx="2" />
+      <path d="M11 18h2" />
+    </svg>
+  );
+}
+function IconTablet() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <path d="M11 18h2" />
+    </svg>
+  );
+}
+function IconTv() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <rect x="2" y="4" width="20" height="13" rx="2" />
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
     </svg>
   );
 }
@@ -35,16 +70,6 @@ function IconBolt() {
     </svg>
   );
 }
-function IconUsers() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
 type Feature = {
   title: string;
   text: string;
@@ -53,42 +78,42 @@ type Feature = {
 
 const FEATURES: Feature[] = [
   {
-    title: "Wiki pages",
-    text: "OneNote-style rich-text pages organized into categories so your lore never gets lost.",
+    title: "Wiki notes",
+    text: "Rich-text pages organized into categories. Campaign notes for the table, private notes for you, with search and edit history.",
     icon: <IconBook />,
   },
   {
-    title: "Character sheets",
-    text: "Flexible sheets for every player and NPC in your party.",
-    icon: <IconUser />,
-  },
-  {
     title: "Party inventory",
-    text: "Track shared loot, currency, and who is carrying what.",
+    text: "Track each character's gear, coins, and carry weight.",
     icon: <IconBox />,
   },
   {
-    title: "Live combat log",
-    text: "A realtime, append-only log of attacks, rolls, and notes.",
+    title: "Combat tracker",
+    text: "Initiative, HP, and conditions, synced live to every player.",
     icon: <IconBolt />,
   },
   {
-    title: "Member invites",
-    text: "Invite players with a link and manage their roles.",
-    icon: <IconUsers />,
+    title: "Resource tracking",
+    text: "Spell slots, abilities, and anything else that runs out.",
+    icon: <IconGauge />,
+  },
+  {
+    title: "Handouts & files",
+    text: "Upload maps and handouts, and show them to the whole table.",
+    icon: <IconFile />,
   },
 ];
 
 const INVENTORY_POINTS = [
   "Add, edit, and move items between characters.",
-  "Track quantities, currency, and a shared party stash.",
-  "Keep an audit log of every change.",
+  "Track coins and carry weight.",
+  "Every change goes into a shared log.",
 ];
 
 const COMBAT_POINTS = [
-  "Append rolls and attacks in realtime as the round unfolds.",
-  "Everyone at the table sees the same log instantly.",
-  "Mirror it to the TV for a shared battle view.",
+  "Track rounds, turns, HP, and AC.",
+  "Tag combatants with conditions that tick down each round.",
+  "The DM decides what players can see.",
 ];
 
 export default function HomePage() {
@@ -108,8 +133,11 @@ export default function HomePage() {
             Run unforgettable campaigns without the chaos
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-white/85">
-            A campaign wiki with rich-text pages, character sheets and
-            inventories, a live combat log, and member invites.
+            <span className="font-semibold text-white">
+              This is not a virtual tabletop.
+            </span>{" "}
+            You play at the table with real dice. The app keeps track of the
+            rest.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
@@ -146,7 +174,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Standard cards */}
+          {/* Standard cards — a 2×2 block beside the 2×2 featured card */}
           {FEATURES.slice(1).map((f) => (
             <div
               key={f.title}
@@ -206,7 +234,7 @@ export default function HomePage() {
               </span>
               <h2 className="mt-2 text-3xl font-bold">Run combat in realtime</h2>
               <p className="mt-3 text-gray-600">
-                A shared, live battle log that keeps everyone on the same beat.
+                A shared initiative tracker for the whole table.
               </p>
               <ul className="mt-5 space-y-3">
                 {COMBAT_POINTS.map((p) => (
@@ -233,13 +261,52 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Platforms — it's a browser app, so it goes wherever the table is */}
+      <section id="home-platforms" className="app-container py-20">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <h2 className="text-3xl font-bold">Use it on any screen</h2>
+          <p className="mt-3 text-gray-600">
+            It runs in the browser, so there is nothing to install.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+              <IconPhone />
+            </div>
+            <h3 className="mt-4 text-lg font-semibold">On your phone</h3>
+            <p className="mt-1 text-sm text-gray-600">
+              Check notes and update loot from anywhere.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+              <IconTablet />
+            </div>
+            <h3 className="mt-4 text-lg font-semibold">At the table</h3>
+            <p className="mt-1 text-sm text-gray-600">
+              Keep a tablet or laptop open as the shared tracker.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+              <IconTv />
+            </div>
+            <h3 className="mt-4 text-lg font-semibold">On the big screen</h3>
+            <p className="mt-1 text-sm text-gray-600">
+              Put combat on the TV so everyone can follow it.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA band — full-bleed accent */}
       <section id="home-cta" className="bg-accent-600">
         <div className="app-container flex flex-col items-center gap-6 py-16 text-center text-white">
           <h2 className="text-3xl font-bold">Ready to roll initiative?</h2>
           <p className="max-w-xl text-white/85">
-            Spin up a campaign and bring your whole table along — players, lore,
-            loot, and all.
+            Create a campaign and bring your whole table along.
           </p>
           <Link
             href="/campaigns"

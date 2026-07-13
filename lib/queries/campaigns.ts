@@ -22,8 +22,19 @@ type MembershipWithCampaign = {
     description: string | null;
     owner_id: string;
     created_at: string;
+    image_path: string | null;
   } | null;
 };
+
+// Public URL for an object in the public-assets bucket (null path = no image).
+function publicAssetUrl(
+  supabase: ReturnType<typeof createServerClient>,
+  path: string | null
+): string | null {
+  if (!path) return null;
+  return supabase.storage.from("public-assets").getPublicUrl(path).data
+    .publicUrl;
+}
 
 export type CampaignsForCurrentUser = {
   isSignedIn: boolean;
@@ -48,7 +59,7 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
   const { data: membershipRows } = await supabase
     .from("memberships")
     .select(
-      "role, campaigns(id, public_code, name, description, owner_id, created_at)"
+      "role, campaigns(id, public_code, name, description, owner_id, created_at, image_path)"
     )
     .eq("user_id", user.id)
     .returns<MembershipWithCampaign[]>();
@@ -104,6 +115,7 @@ export async function getCampaignsForCurrentUser(): Promise<CampaignsForCurrentU
         memberLabels: labelMap,
         role: r.role,
         isOwner: r.campaigns.owner_id === user.id,
+        imageUrl: publicAssetUrl(supabase, r.campaigns.image_path),
       };
     });
 
@@ -120,6 +132,8 @@ export type CampaignDetail = {
   isAdmin: boolean;
   /** Membership DM role. Will gate combat editing when that tool ships. */
   isDm: boolean;
+  /** Public URL of the cover image, or null to fall back to the gradient. */
+  imageUrl: string | null;
 };
 
 // A single campaign for the current viewer, plus their role and permissions.
@@ -132,7 +146,9 @@ export async function getCampaignDetailForCurrentUser(
     getCurrentUser(),
     supabase
       .from("campaigns")
-      .select("id, public_code, name, description, owner_id, created_at")
+      .select(
+        "id, public_code, name, description, owner_id, created_at, image_path"
+      )
       .eq("public_code", campaignCode)
       .maybeSingle(),
   ]);
@@ -160,5 +176,6 @@ export async function getCampaignDetailForCurrentUser(
     role,
     isAdmin,
     isDm,
+    imageUrl: publicAssetUrl(supabase, campaign.image_path),
   };
 }

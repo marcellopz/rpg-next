@@ -2,10 +2,10 @@
 
 import { NavLink } from "@/components/navigation/NavLink";
 import type { DragEvent } from "react";
-import { PictoAvatar } from "@/components/PictoAvatar";
 import { Menu, type MenuEntry } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import type { Character } from "@/lib/queries/inventory";
+import { CharacterAvatar } from "./CharacterAvatar";
 
 export function CharacterRow({
   character,
@@ -59,8 +59,9 @@ export function CharacterRow({
             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
         )}
       >
-        <PictoAvatar
-          seed={character.name}
+        <CharacterAvatar
+          name={character.name}
+          imageUrl={character.imageUrl}
           size={28}
           className="border border-gray-200"
         />

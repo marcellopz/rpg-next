@@ -32,6 +32,7 @@ export function CampaignWorkspace({
   isAdmin,
   isDm,
   publicCode,
+  imageUrl,
   activeTool,
   tree,
   activeTab,
@@ -51,6 +52,7 @@ export function CampaignWorkspace({
   isAdmin: boolean;
   isDm: boolean;
   publicCode: string;
+  imageUrl: string | null;
   activeTool: CampaignToolId;
   tree: NoteTree;
   activeTab: NoteScope;
@@ -74,8 +76,23 @@ export function CampaignWorkspace({
       <div id="campaign-workspace" className="app-container py-6">
         <HandoutBroadcastModal />
         <header id="campaign-header" className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-        <div className="bg-gradient-to-br from-accent-700 via-accent-600 to-accent-500 px-6 py-8 text-white md:px-8">
-          <div className="flex flex-wrap items-start gap-5">
+        <div className="relative bg-gradient-to-br from-accent-700 via-accent-600 to-accent-500 px-6 py-8 text-white md:px-8">
+          {imageUrl && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              {/* Darkening overlay keeps the white header text legible. */}
+              <div
+                className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"
+                aria-hidden="true"
+              />
+            </>
+          )}
+          <div className="relative flex flex-wrap items-start gap-5">
             <div className="min-w-0 flex-1 basis-[32rem]">
               <div className="flex flex-wrap items-center gap-2">
                 {isAdmin && (

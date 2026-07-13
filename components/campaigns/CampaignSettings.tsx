@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateCampaign, deleteCampaign } from "@/app/actions/campaigns";
 import type { CampaignPeopleForAdmin } from "@/lib/queries/invites";
+import { CampaignImageSettings } from "@/components/campaigns/CampaignImageSettings";
 import { CampaignMembersSettings } from "@/components/campaigns/CampaignMembersSettings";
 import { Button, TextField, TextArea, Typography } from "@/components/ui";
 
@@ -11,11 +12,13 @@ export function CampaignSettings({
   campaignId,
   initialName,
   initialDescription,
+  imageUrl,
   people,
 }: {
   campaignId: string;
   initialName: string;
   initialDescription: string;
+  imageUrl: string | null;
   people: CampaignPeopleForAdmin;
 }) {
   const router = useRouter();
@@ -113,6 +116,8 @@ export function CampaignSettings({
           </div>
         </form>
       </section>
+
+      <CampaignImageSettings campaignId={campaignId} imageUrl={imageUrl} />
 
       <CampaignMembersSettings campaignId={campaignId} people={people} />
 

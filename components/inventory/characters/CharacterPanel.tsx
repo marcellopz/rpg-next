@@ -1,18 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { History } from "lucide-react";
-import { PictoAvatar } from "@/components/PictoAvatar";
+import { Camera, History } from "lucide-react";
 import {
+  updateCharacterImage,
   updateCharacterStat,
   type CharacterStatField,
 } from "@/app/actions/inventory";
+import { ImageCropDialog } from "@/components/images/ImageCropDialog";
 import { IconButton, Tooltip } from "@/components/ui";
+import { useFileUpload } from "@/hooks/useFileUpload";
 import type { Character } from "@/lib/queries/inventory";
 import { carryWeight } from "../encumbrance";
 import { InlineEdit } from "../InlineEdit";
 import { ItemsTable } from "../items/ItemsTable";
 import { cn } from "@/lib/cn";
+import { CharacterAvatar } from "./CharacterAvatar";
 import { EncumbranceBar } from "./EncumbranceBar";
 
 const COIN_FIELDS: {
@@ -32,16 +36,20 @@ const COMPACT_EDIT =
 // One character's full inventory: compact profile header with encumbrance
 // bar, STR and coins inline beside the log button, and items below.
 export function CharacterPanel({
+  campaignId,
   character,
   allCharacters,
   onViewLog,
 }: {
+  campaignId: string;
   character: Character;
   allCharacters: Character[];
   onViewLog: () => void;
 }) {
   const router = useRouter();
   const weight = carryWeight(character);
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const { upload } = useFileUpload("public");
 
   async function commitStat(field: CharacterStatField, raw: string) {
     const result = await updateCharacterStat(character.id, field, Number(raw));
@@ -49,15 +57,45 @@ export function CharacterPanel({
     router.refresh();
   }
 
+  async function savePhoto(blob: Blob): Promise<string | null> {
+    const file = new File([blob], "portrait.jpg", { type: "image/jpeg" });
+    const uploaded = await upload(file, { campaignId, folder: "portraits" });
+    if (!uploaded) return "Could not upload the image. Please try again.";
+    const result = await updateCharacterImage(character.id, uploaded.path);
+    if (!result.ok) return result.error;
+    router.refresh();
+    return null;
+  }
+
+  async function removePhoto(): Promise<string | null> {
+    const result = await updateCharacterImage(character.id, null);
+    if (!result.ok) return result.error;
+    router.refresh();
+    return null;
+  }
+
   return (
     <div id="inventory-character-panel" className="flex flex-1 flex-col">
       <header className="flex gap-3 border-b border-gray-200 px-4 py-3">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <PictoAvatar
-            seed={character.name}
-            size={50}
-            className="border border-gray-200"
-          />
+          <Tooltip label={`Change ${character.name}'s photo`}>
+            <button
+              type="button"
+              aria-label={`Change ${character.name}'s photo`}
+              onClick={() => setPhotoOpen(true)}
+              className="group relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            >
+              <CharacterAvatar
+                name={character.name}
+                imageUrl={character.imageUrl}
+                size={50}
+                className="border border-gray-200"
+              />
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                <Camera className="h-4 w-4 text-white" aria-hidden="true" />
+              </span>
+            </button>
+          </Tooltip>
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -115,6 +153,20 @@ export function CharacterPanel({
       </header>
 
       <ItemsTable character={character} allCharacters={allCharacters} />
+
+      {photoOpen && (
+        <ImageCropDialog
+          title={`${character.name}'s photo`}
+          description="Pick an image, then drag and zoom to choose the part to keep."
+          aspect={1}
+          cropShape="round"
+          outputWidth={512}
+          outputHeight={512}
+          onSave={savePhoto}
+          onRemove={character.imageUrl ? removePhoto : undefined}
+          onClose={() => setPhotoOpen(false)}
+        />
+      )}
     </div>
   );
 }

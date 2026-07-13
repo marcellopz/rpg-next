@@ -27,6 +27,7 @@
     "pictoguys": "0.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-easy-crop": "^6.2.2",
     "react-grid-layout": "^1.5.2",
     "react-resize-detector": "^12.3.0"
   },

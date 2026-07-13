@@ -51,6 +51,7 @@ export default async function CampaignSettingsPage({
           campaignId={campaign.id}
           initialName={campaign.name}
           initialDescription={campaign.description}
+          imageUrl={campaign.imageUrl}
           people={people ?? { members: [], invites: [] }}
         />
       </div>

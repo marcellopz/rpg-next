@@ -23,6 +23,8 @@ export type Character = {
   gold: number;
   silver: number;
   copper: number;
+  /** Public URL of the portrait, or null to fall back to the generated avatar. */
+  imageUrl: string | null;
   items: InventoryItem[];
 };
 
@@ -34,6 +36,7 @@ type CharacterRow = {
   gold: number;
   silver: number;
   copper: number;
+  image_path: string | null;
 };
 
 type ItemRow = {
@@ -54,7 +57,7 @@ export async function getInventoryForCampaign(
   const [{ data: characterRows }, { data: itemRows }] = await Promise.all([
     supabase
       .from("characters")
-      .select("id, name, strength, platinum, gold, silver, copper")
+      .select("id, name, strength, platinum, gold, silver, copper, image_path")
       .eq("campaign_id", campaignId)
       .order("sort_order")
       .order("created_at")
@@ -90,6 +93,10 @@ export async function getInventoryForCampaign(
     gold: c.gold,
     silver: c.silver,
     copper: c.copper,
+    imageUrl: c.image_path
+      ? supabase.storage.from("public-assets").getPublicUrl(c.image_path).data
+          .publicUrl
+      : null,
     items: itemsByCharacter.get(c.id) ?? [],
   }));
 }
