@@ -133,11 +133,8 @@ export default function HomePage() {
             Run unforgettable campaigns without the chaos
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-white/85">
-            <span className="font-semibold text-white">
-              This is not a virtual tabletop.
-            </span>{" "}
-            You play at the table with real dice. The app keeps track of the
-            rest.
+            Roll your dice at the table. The app keeps track of the notes,
+            inventory, initiative, and lore.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
