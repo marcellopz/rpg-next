@@ -4,7 +4,11 @@
 // action verifies campaign membership and then uses the service-role admin
 // client. Every mutation (except reorders) also appends a human-readable
 // entry to inventory_log_entries — the append-only change history.
-import { revalidatePath } from "next/cache";
+//
+// No revalidatePath here: the workspace page is fully dynamic, every caller
+// follows up with router.refresh(), and other members are refreshed by the
+// inventory realtime channel — server-side revalidation would only re-render
+// the page a second time inside the action response.
 import { createAdminClient, createServerClient } from "@/lib/supabase/server";
 import { isCampaignMember } from "@/lib/queries/campaigns";
 import type { ActionResult } from "@/app/actions/campaigns";
@@ -49,17 +53,6 @@ function validateName(name: string, label: string): string | null {
   if (name.length > NAME_MAX)
     return `${label} must be ${NAME_MAX} characters or fewer.`;
   return null;
-}
-
-async function revalidateCampaignWorkspace(campaignId: string) {
-  const admin = createAdminClient();
-  const { data: campaign } = await admin
-    .from("campaigns")
-    .select("public_code")
-    .eq("id", campaignId)
-    .maybeSingle();
-  if (campaign?.public_code)
-    revalidatePath(`/campaigns/${campaign.public_code}`);
 }
 
 async function writeLog(entry: {
@@ -185,19 +178,22 @@ export async function createCharacter(input: {
   if (!Number.isFinite(gold) || gold < 0 || gold > STAT_MAX)
     return { ok: false, error: "Gold must be a non-negative number." };
 
-  if (!(await isCampaignMember(actor.id, input.campaignId)))
-    return { ok: false, error: "You don't have access to this campaign." };
-
   const admin = createAdminClient();
 
-  // Append at the end of the character list.
-  const { data: lastRow } = await admin
-    .from("characters")
-    .select("sort_order")
-    .eq("campaign_id", input.campaignId)
-    .order("sort_order", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // The membership check and the append-position lookup are independent —
+  // run them in one round trip. sort_order = end of the character list.
+  const [isMember, { data: lastRow }] = await Promise.all([
+    isCampaignMember(actor.id, input.campaignId),
+    admin
+      .from("characters")
+      .select("sort_order")
+      .eq("campaign_id", input.campaignId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if (!isMember)
+    return { ok: false, error: "You don't have access to this campaign." };
   const sortOrder = (lastRow?.sort_order ?? 0) + 1;
 
   const { data, error } = await admin
@@ -221,7 +217,6 @@ export async function createCharacter(input: {
     changeType: "create_character",
     description: `Added ${name} to the party`,
   });
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: { id: data.id } };
 }
 
@@ -255,7 +250,6 @@ export async function renameCharacter(
     changeType: "rename_character",
     description: `Renamed ${character.name} to ${trimmed}`,
   });
-  await revalidateCampaignWorkspace(character.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -284,7 +278,6 @@ export async function deleteCharacter(
     changeType: "delete_character",
     description: `Removed ${character.name} from the party`,
   });
-  await revalidateCampaignWorkspace(character.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -330,7 +323,6 @@ export async function updateCharacterStat(
     changeType: `update_${field}`,
     description: `Changed ${character.name}'s ${STAT_LABELS[field]} from ${previous} to ${amount}`,
   });
-  await revalidateCampaignWorkspace(character.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -375,7 +367,6 @@ export async function updateCharacterImage(
       ? `Updated ${character.name}'s photo`
       : `Removed ${character.name}'s photo`,
   });
-  await revalidateCampaignWorkspace(character.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -408,7 +399,6 @@ export async function reorderCharacters(input: {
   if (results.some((r) => r.error))
     return { ok: false, error: "Could not reorder the characters. Please try again." };
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -449,20 +439,23 @@ export async function addItem(input: {
   if (!isInventoryItemType(input.itemType))
     return { ok: false, error: "Unknown item type." };
 
-  const result = await getEditableCharacter(input.characterId, actor.id);
-  if ("error" in result) return { ok: false, error: result.error };
-  const { character } = result;
-
   const admin = createAdminClient();
 
-  // Append at the end of the character's item list.
-  const { data: lastRow } = await admin
-    .from("inventory_items")
-    .select("sort_order")
-    .eq("character_id", input.characterId)
-    .order("sort_order", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // The character/membership check and the append-position lookup are
+  // independent — run them in one round trip. sort_order = end of the
+  // character's item list.
+  const [result, { data: lastRow }] = await Promise.all([
+    getEditableCharacter(input.characterId, actor.id),
+    admin
+      .from("inventory_items")
+      .select("sort_order")
+      .eq("character_id", input.characterId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if ("error" in result) return { ok: false, error: result.error };
+  const { character } = result;
   const sortOrder = (lastRow?.sort_order ?? 0) + 1;
 
   const { data, error } = await admin
@@ -493,7 +486,6 @@ export async function addItem(input: {
       quantity: input.quantity,
     },
   });
-  await revalidateCampaignWorkspace(character.campaign_id);
   return { ok: true, data: { id: data.id } };
 }
 
@@ -520,7 +512,6 @@ export async function deleteItem(itemId: string): Promise<ActionResult> {
     description: `Removed ${item.quantity} × "${item.name}" from ${characterName}'s inventory`,
     itemSnapshot: itemSnapshot(item),
   });
-  await revalidateCampaignWorkspace(item.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -590,7 +581,6 @@ export async function updateItem(
     changeType,
     description,
   });
-  await revalidateCampaignWorkspace(item.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -643,7 +633,6 @@ export async function transferItem(
     description: `Moved ${item.quantity} × "${item.name}" from ${characterName} to ${target.name}`,
     itemSnapshot: itemSnapshot(item),
   });
-  await revalidateCampaignWorkspace(item.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -677,6 +666,5 @@ export async function reorderItems(input: {
   if (results.some((r) => r.error))
     return { ok: false, error: "Could not reorder the items. Please try again." };
 
-  await revalidateCampaignWorkspace(character.campaign_id);
   return { ok: true, data: undefined };
 }

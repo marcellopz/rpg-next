@@ -94,8 +94,12 @@ export function PageEditorPanel({
   });
 
   async function handleSave() {
-    const content = contentRef.current;
-    if (!content || savingRef.current) return;
+    if (!contentRef.current || savingRef.current) return;
+    // Tiptap's getJSON() copies node attrs by reference, and attrs parsed
+    // from pasted HTML can be null-prototype objects, which React refuses to
+    // serialize into a server action. Round-trip through JSON so the payload
+    // is guaranteed to be plain objects.
+    const content: JSONContent = JSON.parse(JSON.stringify(contentRef.current));
     savingRef.current = true;
     setSaving(true);
     setAutosaveIn(null);

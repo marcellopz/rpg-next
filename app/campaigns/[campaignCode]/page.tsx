@@ -73,9 +73,12 @@ export default async function CampaignPage({
   let selectedCharacterId: string | null = null;
   let resources: ResourcesDashboard = { cards: [], layouts: EMPTY_LAYOUTS };
   let inventoryCharacterOptions: InventoryCharacterOption[] = [];
-  let combat: CombatState | null = null;
 
-  combat = await getCombatForCampaign(campaign.id);
+  // Kick off the combat fetch now and await it after the tool-specific
+  // queries so it doesn't add a round trip to every render.
+  const combatPromise: Promise<CombatState | null> = getCombatForCampaign(
+    campaign.id
+  );
 
   if (activeTool === "notes") {
     activeTab = searchParams.tab === "my" ? "personal" : "campaign";
@@ -113,6 +116,8 @@ export default async function CampaignPage({
       getInventoryCharacterOptions(campaign.id),
     ]);
   }
+
+  const combat = await combatPromise;
 
   return (
     <CampaignWorkspace

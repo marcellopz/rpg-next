@@ -60,8 +60,8 @@ export function AddCharacterDialog({
       }
       setOpen(false);
       reset();
+      // No refresh needed: pushing the new character's URL fetches a fresh render.
       router.push(characterHref(result.data.id));
-      router.refresh();
     });
   }
 

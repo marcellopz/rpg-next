@@ -3,7 +3,10 @@
 // Category writes are trusted logic: RLS denies client writes, so every
 // action verifies the caller (membership; ownership for personal-tree
 // categories) and then uses the service-role admin client.
-import { revalidatePath } from "next/cache";
+//
+// No revalidatePath here: the workspace page is fully dynamic and every
+// caller follows up with router.refresh(), so server-side revalidation would
+// only re-render the page a second time inside the action response.
 import { createAdminClient } from "@/lib/supabase/server";
 import { getCurrentUserId, isCampaignMember } from "@/lib/queries/campaigns";
 import type { ActionResult } from "@/app/actions/campaigns";
@@ -17,17 +20,6 @@ function validateName(name: string): string | null {
   if (name.length > NAME_MAX)
     return `Name must be ${NAME_MAX} characters or fewer.`;
   return null;
-}
-
-// Revalidate the campaign workspace this category belongs to.
-async function revalidateCampaignWorkspace(campaignId: string) {
-  const admin = createAdminClient();
-  const { data: campaign } = await admin
-    .from("campaigns")
-    .select("public_code")
-    .eq("id", campaignId)
-    .maybeSingle();
-  if (campaign?.public_code) revalidatePath(`/campaigns/${campaign.public_code}`);
 }
 
 type CategoryRow = {
@@ -70,12 +62,10 @@ export async function createCategory(input: {
   const invalid = validateName(name);
   if (invalid) return { ok: false, error: invalid };
 
-  if (!(await isCampaignMember(userId, input.campaignId)))
-    return { ok: false, error: "You don't have access to this campaign." };
-
   const admin = createAdminClient();
 
-  // Append at the end of the tree's category list.
+  // Append at the end of the tree's category list. The membership check and
+  // the append-position lookup are independent — run them in one round trip.
   const ownerFilter = input.scope === "personal" ? userId : null;
   let last = admin
     .from("categories")
@@ -85,7 +75,13 @@ export async function createCategory(input: {
     .limit(1);
   last =
     ownerFilter === null ? last.is("owner_id", null) : last.eq("owner_id", ownerFilter);
-  const { data: lastRow } = await last.maybeSingle();
+
+  const [isMember, { data: lastRow }] = await Promise.all([
+    isCampaignMember(userId, input.campaignId),
+    last.maybeSingle(),
+  ]);
+  if (!isMember)
+    return { ok: false, error: "You don't have access to this campaign." };
   const sortOrder = (lastRow?.sort_order ?? 0) + 1;
 
   const { data, error } = await admin
@@ -101,7 +97,6 @@ export async function createCategory(input: {
   if (error || !data)
     return { ok: false, error: "Could not create the category. Please try again." };
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: { id: data.id } };
 }
 
@@ -127,7 +122,6 @@ export async function renameCategory(
   if (error)
     return { ok: false, error: "Could not rename the category. Please try again." };
 
-  await revalidateCampaignWorkspace(result.category.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -164,7 +158,6 @@ export async function reorderCategories(input: {
   if (results.some((r) => r.error))
     return { ok: false, error: "Could not reorder the categories. Please try again." };
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -182,6 +175,5 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   if (error)
     return { ok: false, error: "Could not delete the category. Please try again." };
 
-  await revalidateCampaignWorkspace(result.category.campaign_id);
   return { ok: true, data: undefined };
 }

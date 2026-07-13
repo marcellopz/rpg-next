@@ -8,7 +8,11 @@
 //   Layer 1: previous_content_json (last-known-good) + soft delete
 //   Layer 2: server-side wipe guard (blocks suspicious shrink until confirmed)
 //   Layer 3: capped rolling snapshots in page_recovery_snapshots
-import { revalidatePath } from "next/cache";
+//
+// No revalidatePath here: the workspace page is fully dynamic and mutation
+// callers follow up with router.refresh() (or apply the action result
+// locally), so server-side revalidation would only re-render the page a
+// second time inside the action response.
 import { generateText, type JSONContent } from "@tiptap/core";
 import { editorExtensions } from "@/lib/editor/extensions";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -30,16 +34,6 @@ function validateTitle(title: string): string | null {
   if (title.length > TITLE_MAX)
     return `Title must be ${TITLE_MAX} characters or fewer.`;
   return null;
-}
-
-async function revalidateCampaignWorkspace(campaignId: string) {
-  const admin = createAdminClient();
-  const { data: campaign } = await admin
-    .from("campaigns")
-    .select("public_code")
-    .eq("id", campaignId)
-    .maybeSingle();
-  if (campaign?.public_code) revalidatePath(`/campaigns/${campaign.public_code}`);
 }
 
 type PageRow = {
@@ -90,27 +84,9 @@ export async function createPage(input: {
   const invalid = validateTitle(title);
   if (invalid) return { ok: false, error: invalid };
 
-  if (!(await isCampaignMember(userId, input.campaignId)))
-    return { ok: false, error: "You don't have access to this campaign." };
-
   const admin = createAdminClient();
 
-  // A page's category must belong to the same campaign and the same tree
-  // (shared category for campaign notes, own category for personal notes).
   const categoryId = input.categoryId ?? null;
-  if (categoryId) {
-    const { data: category } = await admin
-      .from("categories")
-      .select("campaign_id, owner_id")
-      .eq("id", categoryId)
-      .maybeSingle();
-    const expectedOwner = input.scope === "personal" ? userId : null;
-    if (!category || category.campaign_id !== input.campaignId)
-      return { ok: false, error: "Category not found." };
-    if (category.owner_id !== expectedOwner)
-      return { ok: false, error: "Category belongs to a different notes tab." };
-  }
-
   const visibility = input.scope === "personal" ? "private" : "public";
 
   // Append at the end of the target container (category or tree root).
@@ -122,7 +98,35 @@ export async function createPage(input: {
     .order("sort_order", { ascending: false })
     .limit(1);
   last = categoryId === null ? last.is("category_id", null) : last.eq("category_id", categoryId);
-  const { data: lastRow } = await last.maybeSingle();
+
+  // Membership, category validation, and the append-position lookup are
+  // independent — run them in one round trip instead of three.
+  const [isMember, categoryResult, { data: lastRow }] = await Promise.all([
+    isCampaignMember(userId, input.campaignId),
+    categoryId
+      ? admin
+          .from("categories")
+          .select("campaign_id, owner_id")
+          .eq("id", categoryId)
+          .maybeSingle()
+      : Promise.resolve(null),
+    last.maybeSingle(),
+  ]);
+
+  if (!isMember)
+    return { ok: false, error: "You don't have access to this campaign." };
+
+  // A page's category must belong to the same campaign and the same tree
+  // (shared category for campaign notes, own category for personal notes).
+  if (categoryId) {
+    const category = categoryResult?.data ?? null;
+    const expectedOwner = input.scope === "personal" ? userId : null;
+    if (!category || category.campaign_id !== input.campaignId)
+      return { ok: false, error: "Category not found." };
+    if (category.owner_id !== expectedOwner)
+      return { ok: false, error: "Category belongs to a different notes tab." };
+  }
+
   const sortOrder = (lastRow?.sort_order ?? 0) + 1;
 
   const { data, error } = await admin
@@ -140,7 +144,6 @@ export async function createPage(input: {
   if (error || !data)
     return { ok: false, error: "Could not create the page. Please try again." };
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: { id: data.id } };
 }
 
@@ -166,7 +169,6 @@ export async function renamePage(
   if (error)
     return { ok: false, error: "Could not rename the page. Please try again." };
 
-  await revalidateCampaignWorkspace(result.page.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -228,7 +230,6 @@ export async function movePage(
   if (error)
     return { ok: false, error: "Could not move the page. Please try again." };
 
-  await revalidateCampaignWorkspace(page.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -295,7 +296,6 @@ export async function reorderPages(input: {
   if (results.some((r) => r.error))
     return { ok: false, error: "Could not reorder the pages. Please try again." };
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -394,7 +394,6 @@ export async function deletePage(id: string): Promise<ActionResult> {
   if (error)
     return { ok: false, error: "Could not delete the page. Please try again." };
 
-  await revalidateCampaignWorkspace(result.page.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -430,7 +429,6 @@ export async function restorePreviousContent(
   if (error)
     return { ok: false, error: "Could not restore the page. Please try again." };
 
-  await revalidateCampaignWorkspace(page.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -535,7 +533,6 @@ export async function restorePageSnapshot(
     return { ok: false, error: "Could not restore the page. Please try again." };
   }
 
-  await revalidateCampaignWorkspace(editable.page.campaign_id);
   return { ok: true, data: { contentJson: content } };
 }
 

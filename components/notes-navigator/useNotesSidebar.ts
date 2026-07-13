@@ -204,8 +204,8 @@ export function useNotesSidebar({
       return;
     }
     expandCategory(category.id);
+    // No refresh needed: pushing the new page's URL fetches a fresh render.
     router.push(pageHref(result.data.id));
-    router.refresh();
   }
 
   async function handleRenamePage(page: NotePageSummary) {
@@ -291,8 +291,8 @@ export function useNotesSidebar({
       scope: activeTab,
     });
     if (!result.ok) return result.error;
+    // No refresh needed: pushing the new page's URL fetches a fresh render.
     router.push(pageHref(result.data.id));
-    router.refresh();
     return null;
   }
 
