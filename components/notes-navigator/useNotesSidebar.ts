@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type DragEvent } from "react";
+import { useEffect, useState, type DragEvent } from "react";
 import {
   createCategory,
   deleteCategory,
@@ -56,12 +56,26 @@ export function useNotesSidebar({
   const router = useRouter();
   const basePath = `/campaigns/${publicCode}`;
   const tabQuery = activeTab === "personal" ? "?tab=my" : "";
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const selectedCategoryId =
+    tree.categories.find((c) => c.pages.some((p) => p.id === selectedPageId))
+      ?.id ?? null;
+
+  // Categories start closed; only the selected page's category opens.
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    () => new Set(selectedCategoryId ? [selectedCategoryId] : [])
+  );
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
+  // When the selection moves into another category (search result, new page,
+  // default page), open that category so the selected row is visible.
+  useEffect(() => {
+    if (selectedCategoryId) expandCategory(selectedCategoryId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategoryId]);
+
   function toggleCategory(id: string) {
-    setCollapsedIds((prev) => {
+    setExpandedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -163,9 +177,10 @@ export function useNotesSidebar({
   }
 
   function expandCategory(id: string) {
-    setCollapsedIds((prev) => {
+    setExpandedIds((prev) => {
+      if (prev.has(id)) return prev;
       const next = new Set(prev);
-      next.delete(id);
+      next.add(id);
       return next;
     });
   }
@@ -299,7 +314,7 @@ export function useNotesSidebar({
   return {
     activeTab,
     basePath,
-    collapsedIds,
+    expandedIds,
     dragItem,
     dropTarget,
     pageHref,

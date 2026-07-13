@@ -18,7 +18,7 @@ export function NoteCategoryGroup({
   selectedPageId: string | null;
   controller: NotesSidebarController;
 }) {
-  const isCollapsed = controller.collapsedIds.has(category.id);
+  const isCollapsed = !controller.expandedIds.has(category.id);
   const target: DropTarget = { type: "category", id: category.id };
   const isDropTarget = sameTarget(controller.dropTarget, target);
 

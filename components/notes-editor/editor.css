@@ -45,19 +45,38 @@
   padding-left: 1.5rem;
 }
 
+/* Nested topics: a distinct marker per depth so the hierarchy is visible. */
 .page-editor-content ul {
   list-style-type: disc;
+}
+
+.page-editor-content ul ul {
+  list-style-type: circle;
+}
+
+.page-editor-content ul ul ul {
+  list-style-type: square;
 }
 
 .page-editor-content ol {
   list-style-type: decimal;
 }
 
+.page-editor-content ol ol {
+  list-style-type: lower-alpha;
+}
+
+.page-editor-content ol ol ol {
+  list-style-type: lower-roman;
+}
+
 .page-editor-content li > p {
   margin: 0;
 }
 
-.page-editor-content li + li {
+.page-editor-content li + li,
+.page-editor-content li > ul,
+.page-editor-content li > ol {
   margin-top: 0.25em;
 }
 

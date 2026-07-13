@@ -8,6 +8,8 @@ import {
   Heading2,
   Heading3,
   History,
+  IndentDecrease,
+  IndentIncrease,
   Italic,
   List,
   ListOrdered,
@@ -125,6 +127,18 @@ export function EditorToolbar({
         label="Numbered list"
         active={editor.isActive("orderedList")}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
+      />
+      <ToolbarButton
+        icon={IndentIncrease}
+        label="Indent (Tab)"
+        disabled={!editor.can().sinkListItem("listItem")}
+        onClick={() => editor.chain().focus().sinkListItem("listItem").run()}
+      />
+      <ToolbarButton
+        icon={IndentDecrease}
+        label="Outdent (Shift+Tab)"
+        disabled={!editor.can().liftListItem("listItem")}
+        onClick={() => editor.chain().focus().liftListItem("listItem").run()}
       />
       <ToolbarButton
         icon={Quote}
