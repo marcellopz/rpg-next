@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createResourceCard } from "@/app/actions/resources";
+import { useI18n } from "@/lib/i18n/context";
 import type { InventoryCharacterOption } from "@/lib/resources/types";
 import { Button, TextField, Typography } from "@/components/ui";
 
@@ -15,6 +16,7 @@ export function AddCardDialog({
   inventoryCharacters: InventoryCharacterOption[];
   linkedCharacterIds: Set<string>;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"standalone" | "character">("standalone");
@@ -61,13 +63,13 @@ export function AddCardDialog({
             : { campaignId, name }
         );
         if (!result?.ok) {
-          setError(result?.error ?? "Could not create card. Please try again.");
+          setError(result?.error ?? t("errors.create"));
           return;
         }
         close();
         router.refresh();
       } catch {
-        setError("Could not create card. Please try again.");
+        setError(t("errors.create"));
       }
     });
   }
@@ -75,7 +77,7 @@ export function AddCardDialog({
   return (
     <>
       <Button type="button" size="sm" onClick={() => setOpen(true)}>
-        Add card
+        {t("resources.add")}
       </Button>
 
       {open && (
@@ -95,7 +97,7 @@ export function AddCardDialog({
             className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
           >
             <Typography variant="h3" as="h2" id="add-resource-card-title">
-              Add character card
+              {t("resources.newCard")}
             </Typography>
             <Typography variant="muted" className="mt-1">
               Track spell slots, abilities, and other resources per character.
@@ -130,12 +132,12 @@ export function AddCardDialog({
               {mode === "standalone" ? (
                 <TextField
                   id="resource-card-name"
-                  label="Character name"
+                  label={t("resources.cardName")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoFocus
                   maxLength={80}
-                  placeholder="Bella the Wizard"
+                  placeholder={t("resources.cardNamePlaceholder")}
                 />
               ) : availableCharacters.length > 0 ? (
                 <div>
@@ -177,7 +179,7 @@ export function AddCardDialog({
                   onClick={close}
                   disabled={isPending}
                 >
-                  Cancel
+                  {t("buttons.cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -188,7 +190,7 @@ export function AddCardDialog({
                       : !characterId || availableCharacters.length === 0)
                   }
                 >
-                  {isPending ? "Adding…" : "Add card"}
+                  {isPending ? t("campaignSettings.saving") : t("resources.add")}
                 </Button>
               </div>
             </form>

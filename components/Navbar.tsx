@@ -10,11 +10,15 @@ import { PictoAvatar } from "@/components/PictoAvatar";
 import { NavLink } from "@/components/navigation/NavLink";
 import { SignInLink } from "@/components/SignInLink";
 import { SignOutButton } from "@/components/SignOutButton";
-import { buttonVariants } from "@/components/ui";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { buttonVariants, type MenuEntry } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 
-const NAV_LINKS = [
-  { href: "/campaigns", label: "Campaigns" },
-];
+function NavLinksContent({ i18n }: { i18n: { t: (key: string) => string } }) {
+  return [
+    { href: "/campaigns", label: i18n.t("navbar.campaigns") },
+  ];
+}
 
 function getDisplayName(user: User | null): string | null {
   return (
@@ -33,10 +37,12 @@ export function Navbar({
   user: User | null;
   pendingInviteCount?: number;
 }) {
+  const { t } = useI18n();
   const displayName = getDisplayName(user);
   const avatarSeed = user?.email ?? user?.id ?? "";
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const navLinks = NavLinksContent({ i18n: { t } });
 
   // Close the mobile menu whenever the user navigates to a new route.
   useEffect(() => {
@@ -50,12 +56,12 @@ export function Navbar({
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <Image src="/logo.svg" alt="" width={36} height={36} priority />
             <span className="text-lg font-semibold text-gray-900">
-              RPG Manager
+              {t("navbar.logo")}
             </span>
           </Link>
 
           <div id="site-nav-desktop" className="hidden items-center gap-6 sm:flex">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <NavLink
                 key={link.href}
                 href={link.href}
@@ -68,12 +74,15 @@ export function Navbar({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <LanguageSwitcher />
+
           <div id="site-auth" className="flex shrink-0 items-center gap-3">
             {user ? (
               <>
                 <NavLink
                   href="/account"
                   className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
+                  title={t("navbar.account")}
                 >
                   <span className="relative inline-flex">
                     <PictoAvatar
@@ -97,7 +106,7 @@ export function Navbar({
               <Suspense
                 fallback={
                   <Link href="/login" className={buttonVariants({ size: "sm" })}>
-                    Sign in
+                    {t("navbar.signIn")}
                   </Link>
                 }
               >
@@ -131,7 +140,7 @@ export function Navbar({
           className="border-t border-gray-100 bg-white sm:hidden"
         >
           <div className="app-container flex flex-col py-3">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <NavLink
                 key={link.href}
                 href={link.href}

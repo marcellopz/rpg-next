@@ -3,6 +3,7 @@
 import type { NoteScope } from "@/app/actions/categories";
 import type { NoteTree } from "@/lib/queries/notes";
 import { Typography } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 import { NewItemForm } from "./NewItemForm";
 import { NoteCategoryGroup } from "./NoteCategoryGroup";
 import { NotePageRow } from "./NotePageRow";
@@ -30,6 +31,7 @@ export function NotesSidebar({
   activeTab: NoteScope;
   selectedPageId: string | null;
 }) {
+  const { t } = useI18n();
   const sidebar = useNotesSidebar({
     campaignId,
     publicCode,
@@ -47,8 +49,8 @@ export function NotesSidebar({
         {isEmpty && (
           <Typography variant="muted" className="px-3 py-2">
             {activeTab === "campaign"
-              ? "No notes yet. Create the first category or page below."
-              : "Your private notes live here. Only you can see them."}
+              ? t("notes.noCampaignNotes")
+              : t("notes.personalDesc")}
           </Typography>
         )}
 
@@ -79,13 +81,13 @@ export function NotesSidebar({
 
       <div id="campaign-sidebar-actions" className="mt-5 grid gap-2">
         <NewItemForm
-          label="New category"
+          label={t("notes.newCategory")}
           placeholder="Category name"
           maxLength={CATEGORY_NAME_MAX}
           onSubmit={sidebar.createRootCategory}
         />
         <NewItemForm
-          label="New page"
+          label={t("notes.newPage")}
           placeholder="Page title"
           maxLength={PAGE_TITLE_MAX}
           onSubmit={sidebar.createRootPage}

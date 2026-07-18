@@ -2,6 +2,7 @@
 
 import type { DragEvent } from "react";
 import { Menu, type MenuEntry } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 import {
   isInventoryItemType,
@@ -44,6 +45,7 @@ export function ItemRow({
     value: string
   ) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const textClass = itemTypeTextClass(item.itemType);
 
   return (
@@ -68,7 +70,7 @@ export function ItemRow({
       <div className="text-gray-600">
         <InlineEdit
           value={String(item.quantity)}
-          ariaLabel={`Quantity of ${item.name}`}
+          ariaLabel={t("inventory.tool")}
           type="number"
           onCommit={(v) => onEdit("quantity", v)}
         />
@@ -77,14 +79,14 @@ export function ItemRow({
       <div className={cn("min-w-0 truncate", textClass)}>
         <InlineEdit
           value={item.name}
-          ariaLabel={`Name of ${item.name}`}
+          ariaLabel={item.name}
           displayClassName={textClass}
           onCommit={(v) => onEdit("name", v)}
         />
       </div>
 
       <select
-        aria-label={`Type of ${item.name}`}
+        aria-label={t("inventory.tool")}
         value={item.itemType}
         onChange={(e) => void onEdit("itemType", e.target.value)}
         className={cn(
@@ -102,7 +104,7 @@ export function ItemRow({
       <div className="text-gray-600">
         <InlineEdit
           value={formatWeight(item.weight)}
-          ariaLabel={`Weight of ${item.name}`}
+          ariaLabel={item.name}
           type="number"
           onCommit={(v) => onEdit("weight", v)}
         />

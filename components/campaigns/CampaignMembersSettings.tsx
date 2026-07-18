@@ -9,23 +9,25 @@ import {
 } from "@/app/actions/invites";
 import type { CampaignMemberRow, CampaignPeopleForAdmin } from "@/lib/queries/invites";
 import { Button, Chip, Menu, TextField, Typography } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 
-function statusLabel(status: string) {
+function statusLabel(status: string, t: (key: string) => string) {
+  if (status === "pending") return t("campaignMembers.pending");
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-function MemberRoleBadges({ member }: { member: CampaignMemberRow }) {
+function MemberRoleBadges({ member, t }: { member: CampaignMemberRow; t: (key: string) => string }) {
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
-      {member.isOwner && <Chip variant="accent">Admin</Chip>}
+      {member.isOwner && <Chip variant="accent">{t("campaignMembers.admin")}</Chip>}
       {!member.isOwner && member.role === "dm" && (
-        <Chip variant="accent">DM</Chip>
+        <Chip variant="accent">{t("campaignMembers.dm")}</Chip>
       )}
       {!member.isOwner && member.role === "player" && (
-        <Chip variant="neutral">Player</Chip>
+        <Chip variant="neutral">{t("campaignMembers.player")}</Chip>
       )}
       {member.isOwner && member.role === "dm" && (
-        <Chip variant="accent">DM</Chip>
+        <Chip variant="accent">{t("campaignMembers.dm")}</Chip>
       )}
     </div>
   );
@@ -34,9 +36,11 @@ function MemberRoleBadges({ member }: { member: CampaignMemberRow }) {
 function MemberRoleMenu({
   campaignId,
   member,
+  t,
 }: {
   campaignId: string;
   member: CampaignMemberRow;
+  t: (key: string) => string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -56,13 +60,13 @@ function MemberRoleMenu({
   const entries = [];
   if (member.role !== "dm") {
     entries.push({
-      label: "Make DM",
+      label: t("campaignMembers.setDm"),
       onSelect: () => changeRole("dm"),
     });
   }
   if (member.role !== "player") {
     entries.push({
-      label: "Make player",
+      label: t("campaignMembers.setPlayer"),
       onSelect: () => changeRole("player"),
     });
   }
@@ -84,6 +88,7 @@ export function CampaignMembersSettings({
   campaignId: string;
   people: CampaignPeopleForAdmin;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +103,7 @@ export function CampaignMembersSettings({
     startTransition(async () => {
       const result = await createCampaignInvite({ campaignId, email });
       if (!result?.ok) {
-        setError(result?.error ?? "Could not create invite.");
+        setError(result?.error ?? t("errors.create"));
         return;
       }
       setEmail("");
@@ -113,7 +118,7 @@ export function CampaignMembersSettings({
     setActiveInviteId(inviteId);
     startTransition(async () => {
       const result = await revokeCampaignInvite(inviteId);
-      if (!result?.ok) setError(result?.error ?? "Could not revoke invite.");
+      if (!result?.ok) setError(result?.error ?? t("errors.delete"));
       setActiveInviteId(null);
       router.refresh();
     });
@@ -125,17 +130,17 @@ export function CampaignMembersSettings({
       className="rounded-2xl border border-gray-200 bg-white p-6"
     >
       <Typography variant="h3" as="h2">
-        Members and invites
+        {t("campaignMembers.title")}
       </Typography>
       <Typography variant="muted" className="mt-1">
-        Invite players by email, assign DMs, and track who has joined.
+        {t("campaignMembers.role")}
       </Typography>
 
       <form onSubmit={sendInvite} className="mt-5 flex flex-col gap-3 sm:flex-row">
         <TextField
           id="settings-invite-email"
           type="email"
-          placeholder="player@example.com"
+          placeholder={t("campaignMembers.invitePlaceholder")}
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -145,19 +150,19 @@ export function CampaignMembersSettings({
           className="sm:min-w-72"
         />
         <Button type="submit" disabled={isPending || !email.trim()}>
-          {isPending && !activeInviteId ? "Inviting…" : "Invite player"}
+          {isPending && !activeInviteId ? t("campaignSettings.saving") : t("campaignMembers.inviteBtn")}
         </Button>
       </form>
       {saved && (
         <Typography variant="small" as="p" className="mt-2 text-gray-500">
-          Invite created. It will appear on the player&apos;s account page.
+          {t("invites.section")}
         </Typography>
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div>
           <Typography variant="body" className="font-semibold text-gray-900">
-            Members
+            {t("campaignMembers.title")}
           </Typography>
           <div className="mt-3 space-y-2">
             {people.members.map((member) => (
@@ -177,13 +182,13 @@ export function CampaignMembersSettings({
                     )}
                     {member.isOwner && (
                       <Typography variant="small" as="p" className="mt-1 text-gray-500">
-                        Campaign admin
+                        {t("campaignMembers.admin")}
                       </Typography>
                     )}
                   </div>
                   <div className="flex items-center gap-1">
-                    <MemberRoleBadges member={member} />
-                    <MemberRoleMenu campaignId={campaignId} member={member} />
+                    <MemberRoleBadges member={member} t={t} />
+                    <MemberRoleMenu campaignId={campaignId} member={member} t={t} />
                   </div>
                 </div>
               </div>
@@ -193,11 +198,11 @@ export function CampaignMembersSettings({
 
         <div>
           <Typography variant="body" className="font-semibold text-gray-900">
-            Invites
+            {t("campaignMembers.invites")}
           </Typography>
           {people.invites.length === 0 ? (
             <Typography variant="muted" className="mt-3">
-              No invites yet.
+              {t("campaignMembers.noPending")}
             </Typography>
           ) : (
             <div className="mt-3 space-y-2">
@@ -221,7 +226,7 @@ export function CampaignMembersSettings({
                       <Chip
                         variant={invite.status === "pending" ? "accent" : "neutral"}
                       >
-                        {statusLabel(invite.status)}
+                        {statusLabel(invite.status, t)}
                       </Chip>
                     </div>
                     {pending && (
@@ -232,7 +237,7 @@ export function CampaignMembersSettings({
                         onClick={() => revokeInvite(invite.id)}
                         disabled={isPending}
                       >
-                        {busy ? "Revoking…" : "Revoke invite"}
+                        {busy ? t("campaignSettings.saving") : t("campaignMembers.invites")}
                       </Button>
                     )}
                     {invite.acceptedByName && (

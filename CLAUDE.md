@@ -14,6 +14,7 @@ Full design spec and code patterns: `rpg-manager-reference.md`.
 | Styling | **Tailwind CSS v3** | Utility-first styling |
 | Database + Auth + Realtime + Storage | Supabase | One vendor for everything |
 | Editor | Tiptap 2 | Stores structured JSON (`content_json`), not Markdown |
+| Internationalization | Client-side React Context + JSON messages | English (en) and Portuguese (pt) supported |
 
 ---
 
@@ -90,6 +91,18 @@ Every table with a `campaign_id` uses this.
 - No outbound email is sent. Invites are addressed to `invitee_email` and shown in-app on `/account` when the signed-in user's email matches.
 - Campaign settings show members and invite status. Create/revoke require campaign admin; accept/decline require the invitee email to match the current user.
 - Invites are player-only for now.
+
+**Internationalization (i18n)**
+- **Client-side** (`lib/i18n/context.tsx`): React Context provider with `useI18n()` hook for all client components
+  - Supports variable interpolation: `t("key", { count: 5 })`
+  - Supports ICU plural syntax: `{count, plural, =1 {singular} other {plural}}`
+  - Persists locale preference to localStorage + detects browser language on first visit
+  - `setLocale(locale)` to switch languages dynamically (en | pt)
+- **Server-side** (`lib/i18n/server.ts`): `getServerTranslations(locale)` for server actions and error messages
+- **Translation files** (`messages/en.json`, `messages/pt.json`): 400+ keys organized hierarchically by feature (campaigns, notes, inventory, combat, resources, etc.)
+- **Language switcher** (`components/LanguageSwitcher.tsx`): globe icon in navbar with dropdown menu for English / Português
+- **All components translated**: pages, modals, forms, buttons, labels, placeholders, error messages, validation messages
+- To add a string: add key to both `messages/en.json` and `messages/pt.json`, then use `t("key")` or `t("key", { params })`
 
 ## UI components — never style raw HTML for common elements
 

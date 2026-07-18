@@ -20,6 +20,7 @@ import {
   Strikethrough,
   Undo,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 import { Button, Chip } from "@/components/ui";
 import { ToolbarButton, ToolbarDivider } from "./ToolbarButton";
 
@@ -40,13 +41,14 @@ export function EditorToolbar({
   presenceLabel?: string | null;
   onOpenHistory?: () => void;
 }) {
+  const { t } = useI18n();
   const saveLabel = saving
-    ? "Saving…"
+    ? t("pageEditor.saving")
     : autosaveIn != null
-      ? `Autosave ${autosaveIn}s`
+      ? t("pageEditor.autosave", { seconds: autosaveIn })
       : saveDisabled
-        ? "Saved"
-        : "Save now";
+        ? t("pageEditor.saved")
+        : t("pageEditor.saveNow");
 
   return (
     <div
@@ -169,7 +171,7 @@ export function EditorToolbar({
           onClick={onOpenHistory}
         >
           <History className="h-3.5 w-3.5" />
-          History
+          {t("notes.history")}
         </Button>
         <Button
           size="xs"

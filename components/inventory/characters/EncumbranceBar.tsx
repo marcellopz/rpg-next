@@ -1,10 +1,14 @@
+"use client";
+
 import {
-  encumbranceColors,
+  encumbranceColorsI18n,
   encumbrancePercent,
-  encumbranceZoneSegments,
+  encumbranceZoneSegmentsI18n,
   formatWeight,
+  getEncumbranceZones,
   maxCarryWeight,
 } from "../encumbrance";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 
 // Multi-zone carry bar: green → yellow → orange → red segments are always
@@ -17,9 +21,11 @@ export function EncumbranceBar({
   strength: number;
   weight: number;
 }) {
+  const { t } = useI18n();
+  const zones = getEncumbranceZones(t);
   const max = maxCarryWeight(strength);
-  const chip = encumbranceColors(strength, weight);
-  const segments = encumbranceZoneSegments(strength, weight);
+  const chip = encumbranceColorsI18n(strength, weight, zones);
+  const segments = encumbranceZoneSegmentsI18n(strength, weight, zones);
   const tipLeft = encumbrancePercent(strength, weight);
 
   return (

@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n/context";
 import { Chip, Typography } from "@/components/ui";
 
 export function ToolPlaceholder({
@@ -7,13 +8,14 @@ export function ToolPlaceholder({
   title: string;
   description: string;
 }) {
+  const { t } = useI18n();
   return (
     <div
       id="campaign-tool-placeholder"
       className="flex min-h-[42rem] flex-1 items-center justify-center bg-gradient-to-b from-gray-50 to-white p-8"
     >
       <div className="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-        <Chip variant="accent">Coming soon</Chip>
+        <Chip variant="accent">{t("common.comingSoon")}</Chip>
         <Typography variant="h3" as="h2" className="mt-4">
           {title}
         </Typography>
@@ -21,7 +23,11 @@ export function ToolPlaceholder({
           {description}
         </Typography>
         <div className="mt-8 grid gap-3 text-left sm:grid-cols-3">
-          {["Overview", "Session tools", "TV display"].map((label) => (
+          {[
+            t("tools.placeholder.overview"),
+            t("tools.placeholder.sessionTools"),
+            t("tools.placeholder.tvDisplay"),
+          ].map((label) => (
             <div
               key={label}
               className="rounded-xl border border-gray-200 bg-gray-50 p-4"

@@ -1,7 +1,10 @@
+"use client";
+
 import { NavLink } from "@/components/navigation/NavLink";
 import { FileText } from "lucide-react";
 import type { NotePageSummary } from "@/lib/queries/notes";
 import { Menu } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 import {
   sameTarget,

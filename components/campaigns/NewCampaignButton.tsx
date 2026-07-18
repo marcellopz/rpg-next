@@ -4,9 +4,11 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCampaign } from "@/app/actions/campaigns";
 import { Button, TextField, TextArea, Typography } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 
 export function NewCampaignButton() {
   const router = useRouter();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -54,7 +56,7 @@ export function NewCampaignButton() {
   return (
     <>
       <Button type="button" onClick={() => setOpen(true)}>
-        New campaign
+        {t("campaigns.new")}
       </Button>
 
       {open && (
@@ -71,37 +73,37 @@ export function NewCampaignButton() {
             className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
           >
             <Typography variant="h3" as="h2" id="new-campaign-title">
-              New campaign
+              {t("newCampaign.title")}
             </Typography>
             <Typography variant="muted" className="mt-1">
-              Give your campaign a name. You can change it later.
+              {t("newCampaign.subtitle")}
             </Typography>
 
             <form id="new-campaign-form" onSubmit={handleSubmit} className="mt-4 space-y-4">
               <TextField
                 id="campaign-name"
-                label="Name"
+                label={t("newCampaign.name")}
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoFocus
                 maxLength={120}
-                placeholder="Curse of the Hollow Crown"
+                placeholder={t("newCampaign.namePlaceholder")}
               />
 
               <TextArea
                 id="campaign-description"
                 label={
                   <>
-                    Description{" "}
-                    <span className="font-normal text-gray-400">(optional)</span>
+                    {t("newCampaign.description")}{" "}
+                    <span className="font-normal text-gray-400">{t("campaignSettings.descriptionHint")}</span>
                   </>
                 }
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 maxLength={2000}
-                placeholder="A short pitch for your players."
+                placeholder={t("newCampaign.descriptionPlaceholder")}
               />
 
               {error && <p id="new-campaign-error" className="text-sm text-red-600">{error}</p>}
@@ -113,10 +115,10 @@ export function NewCampaignButton() {
                   onClick={close}
                   disabled={isPending}
                 >
-                  Cancel
+                  {t("buttons.cancel")}
                 </Button>
                 <Button type="submit" disabled={isPending || !name.trim()}>
-                  {isPending ? "Creating…" : "Create"}
+                  {isPending ? `${t("buttons.loading")}` : t("newCampaign.create")}
                 </Button>
               </div>
             </form>

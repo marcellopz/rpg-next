@@ -1,8 +1,8 @@
 # RPG Campaign Manager — Project Status
 
-> Last updated: 2026-07-12
+> Last updated: 2026-07-18
 
-The app has the **authentication flow, campaign CRUD, in-app campaign invites, and the wiki notes backend** (categories + pages with a persisted rich-text editor, Campaign notes / My notes trees, and hardened saves). Remaining feature routes are still placeholders. Other feature logic (combat log) will be rebuilt on top of this foundation. **Deferred features:** personal library and TV display surface. The database schema (`supabase/migrations/`) and the design spec (`rpg-manager-reference.md`) are kept for reference.
+The app has the **authentication flow, campaign CRUD, in-app campaign invites, wiki notes backend, inventory with realtime sync, and full internationalization support** (English + Portuguese). All user-facing text is translatable with a client-side i18n context + server-side utilities. Remaining feature routes are still placeholders. Other feature logic (combat log) will be rebuilt on top of this foundation. **Deferred features:** personal library and TV display surface. The database schema (`supabase/migrations/`) and the design spec (`rpg-manager-reference.md`) are kept for reference.
 
 ---
 
@@ -60,6 +60,24 @@ The app has the **authentication flow, campaign CRUD, in-app campaign invites, a
 - **Editor component** (`components/notes-editor/PageEditor.tsx`): Tiptap 2 with a formatting toolbar (undo/redo, H1–H3, bold/italic/strike/inline code, bullet/numbered lists, blockquote, horizontal rule), active-state highlighting, `editable` prop for read-only rendering, and an `onChange` callback emitting the document JSON. `immediatelyRender: false` for SSR safety.
 - **Document styles** (`components/notes-editor/editor.css`): scoped typography under `.page-editor-content` + empty-doc placeholder styling.
 
+### Internationalization (i18n)
+- **Client-side context** (`lib/i18n/context.tsx`): React Context provider with `useI18n()` hook available in all client components
+  - Tracks current locale (`en` | `pt`) in state, persists to localStorage
+  - `setLocale(locale)` to switch languages dynamically; triggers immediate UI re-render
+  - Detects browser language on first visit; falls back to English
+  - `t(key, params?)` function supports variable interpolation and ICU plural syntax
+- **Server-side utility** (`lib/i18n/server.ts`): `getServerTranslations(locale)` for server actions to return localized error/validation messages
+- **Translation files** (`messages/en.json`, `messages/pt.json`): 400+ hierarchically-organized keys covering:
+  - Pages and layouts (home, campaigns, account)
+  - Campaign workspace (settings, members, invites)
+  - Wiki notes (campaign notes, my notes, editor, history)
+  - Inventory (party, characters, items, encumbrance)
+  - Combat, resources, handouts
+  - Buttons, validation, errors, common UI text
+- **Language switcher** (`components/LanguageSwitcher.tsx`): globe icon in navbar with English/Português dropdown
+- **Component updates** (30+ files): all pages, modals, forms, buttons, labels, placeholders, error messages use `t()` for translation
+- **Pattern**: client components import `useI18n` and call `const { t } = useI18n()`; add `"use client"` directive for client-only components that need i18n
+
 ### UI component library (`components/ui/`)
 - Shared primitives: `Button` (+ `buttonVariants` for links), `IconButton`, `Menu`, `TextField`/`TextArea`, `Typography`, `Chip`, `Tooltip` — all exported from `components/ui/index.ts`
 - **Convention: never hand-style raw HTML for buttons, form fields, text, badges, or menus — use these primitives.** Missing primitives get added to `components/ui/`, not styled inline. (See CLAUDE.md for the full table.)
@@ -113,12 +131,13 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 
 ## Next recommended steps
 
-1. ~~**Campaigns + memberships**~~ — done (`createCampaign`/`updateCampaign`/`deleteCampaign` + list/detail UI). Next: member management within a campaign.
+1. ~~**Campaigns + memberships**~~ — done (`createCampaign`/`updateCampaign`/`deleteCampaign` + list/detail UI).
 2. ~~**Wiki backend**~~ — done (`0005_wiki.sql`, category/page CRUD, hardened `savePage`, sidebar + editor wiring, History snapshot browse/restore).
-3. ~~**Campaign invites**~~ — done (in-app email-addressed invites, `/account` accept/decline, navbar badge, settings member/invite status). Later: optional email delivery if wanted.
-4. ~~**Characters + inventory**~~ — done (`0008_inventory.sql`, party characters with stats/coins, item CRUD with inline edits, transfers, change log). Character sheets remain a separate future feature.
-5. **Combat log (realtime)** — rebuild `CombatLog`
-6. **File uploads**
+3. ~~**Campaign invites**~~ — done (in-app email-addressed invites, `/account` accept/decline, navbar badge, settings member/invite status).
+4. ~~**Characters + inventory**~~ — done (`0008_inventory.sql`, party characters with stats/coins, item CRUD with inline edits, transfers, change log, realtime sync).
+5. ~~**Internationalization**~~ — done (client i18n context + server utility, 400+ translation keys, English + Portuguese, language switcher, all UI translated).
+6. **Combat log (realtime)** — rebuild `CombatLog`
+7. **File uploads**
 
 ---
 

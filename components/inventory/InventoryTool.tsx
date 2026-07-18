@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Typography } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 import type { Character, InventoryLogEntry } from "@/lib/queries/inventory";
 import { CharacterPanel } from "./characters/CharacterPanel";
 import { CharacterSidebar } from "./characters/CharacterSidebar";
@@ -23,6 +24,7 @@ export function InventoryTool({
   selectedCharacterId: string | null;
   log: InventoryLogEntry[];
 }) {
+  const { t } = useI18n();
   const [logOpen, setLogOpen] = useState(false);
 
   // Refresh this view whenever another user changes the campaign's inventory.
@@ -63,12 +65,14 @@ export function InventoryTool({
           <div className="flex flex-1 items-center justify-center p-8 text-center">
             <div className="max-w-sm">
               <Typography variant="h3" as="h2">
-                {characters.length > 0 ? "Select a character" : "No party yet"}
+                {characters.length > 0
+                  ? t("inventory.selectCharacter")
+                  : t("inventory.noParty")}
               </Typography>
               <Typography variant="muted" className="mt-2 leading-6">
                 {characters.length > 0
-                  ? "Pick a party member to see their backpack."
-                  : "Add the first character to start tracking the party's gear."}
+                  ? t("character.viewInventory")
+                  : t("inventory.addCharacter")}
               </Typography>
               <Button
                 type="button"
@@ -77,7 +81,7 @@ export function InventoryTool({
                 className="mt-4"
                 onClick={() => setLogOpen(true)}
               >
-                View log
+                {t("inventory.viewLog")}
               </Button>
             </div>
           </div>

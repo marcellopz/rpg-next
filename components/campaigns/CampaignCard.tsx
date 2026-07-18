@@ -1,6 +1,9 @@
+"use client";
+
 import { NavLink } from "@/components/navigation/NavLink";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { Tooltip, Chip } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 
 export type Campaign = {
   id: string;
@@ -29,6 +32,7 @@ function emblemFor(name: string): string {
 }
 
 export function CampaignCard({ campaign }: { campaign: Campaign }) {
+  const { t } = useI18n();
   const { id, name, description, members = [], memberCount, memberLabels, role, isOwner, demo, imageUrl } =
     campaign;
   const count = memberCount ?? members.length;
@@ -58,7 +62,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
             variant="onDarkSolid"
             className="absolute left-3 top-3 uppercase tracking-wide"
           >
-            Demo
+            {t("campaigns.demo")}
           </Chip>
         )}
         {isOwner && (
@@ -66,12 +70,12 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
             variant="onDarkSolid"
             className="absolute left-3 top-3 uppercase tracking-wide"
           >
-            Admin
+            {t("campaignMembers.admin")}
           </Chip>
         )}
         {role === "dm" && (
           <Chip variant="onDark" className="absolute right-3 top-3">
-            DM
+            {t("campaignMembers.dm")}
           </Chip>
         )}
       </div>
@@ -81,7 +85,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
           {name}
         </h2>
         <p className="mt-2 line-clamp-3 flex-1 text-sm text-gray-600">
-          {description || "No description yet."}
+          {description || t("campaigns.noDescription")}
         </p>
 
         <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
@@ -104,7 +108,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
             )}
           </div>
           <span className="text-xs text-gray-500">
-            {count} {count === 1 ? "member" : "members"}
+            {t(count === 1 ? "campaignMembers.memberCountSingular" : "campaignMembers.memberCountPlural", { count })}
           </span>
         </div>
       </div>

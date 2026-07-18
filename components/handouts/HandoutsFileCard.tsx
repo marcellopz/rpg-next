@@ -14,6 +14,7 @@ import {
   deleteCampaignFile,
   getPrivateHandoutUrl,
 } from "@/app/actions/files";
+import { useI18n } from "@/lib/i18n/context";
 import {
   formatBytes,
   isImageContentType,
@@ -34,6 +35,7 @@ export function HandoutsFileCard({
   canDelete: boolean;
   onDeleted?: () => void;
 }) {
+  const { t } = useI18n();
   const { showToTable } = useHandoutBroadcast();
   const [opening, setOpening] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -76,7 +78,7 @@ export function HandoutsFileCard({
 
   async function handleDelete() {
     const confirmed = window.confirm(
-      `Delete "${file.filename}"? This cannot be undone.`
+      t("handouts.deleteConfirm", { name: file.filename })
     );
     if (!confirmed) return;
 
@@ -143,12 +145,12 @@ export function HandoutsFileCard({
             {isShared ? (
               <span className="inline-flex items-center gap-1">
                 <Eye className="h-3 w-3" aria-hidden />
-                Shared
+                {t("handouts.filter.shared")}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1">
                 <EyeOff className="h-3 w-3" aria-hidden />
-                Personal
+                {t("handouts.filter.personal")}
               </span>
             )}
           </Chip>
@@ -168,7 +170,7 @@ export function HandoutsFileCard({
             disabled={opening}
             onClick={() => void handleOpen()}
           >
-            {opening ? "Opening…" : isImage || isPdf ? "Open" : "Download"}
+            {opening ? t("campaignSettings.saving") : isImage || isPdf ? "Open" : "Download"}
           </Button>
           {isShared && (
             <Button
@@ -179,7 +181,7 @@ export function HandoutsFileCard({
               onClick={() => void handleShowToTable()}
             >
               <Presentation className="mr-1.5 h-4 w-4" aria-hidden />
-              {sharing ? "Sharing…" : "Show to table"}
+              {sharing ? t("campaignSettings.saving") : t("handouts.show")}
             </Button>
           )}
           {canDelete && (
@@ -191,7 +193,7 @@ export function HandoutsFileCard({
               onClick={() => void handleDelete()}
             >
               <Trash2 className="mr-1.5 h-4 w-4" aria-hidden />
-              {deleting ? "Deleting…" : "Delete"}
+              {deleting ? t("campaignSettings.deleting") : t("handouts.delete")}
             </Button>
           )}
         </div>

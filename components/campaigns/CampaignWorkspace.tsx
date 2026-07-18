@@ -1,4 +1,7 @@
+"use client";
+
 import { NavLink } from "@/components/navigation/NavLink";
+import { useI18n } from "@/lib/i18n/context";
 import { NotesSidebar } from "@/components/notes-navigator/NotesSidebar";
 import { PageEditorPanel } from "@/components/notes-editor/PageEditorPanel";
 import { CampaignToolTabs } from "@/components/campaigns/CampaignToolTabs";
@@ -65,11 +68,22 @@ export function CampaignWorkspace({
   inventoryCharacterOptions: InventoryCharacterOption[];
   combat: CombatState | null;
 }) {
+  const { t } = useI18n();
   const treeHasPages =
     tree.rootPages.length > 0 ||
     tree.categories.some((c) => c.pages.length > 0);
 
   const toolMeta = CAMPAIGN_TOOLS.find((t) => t.id === activeTool)!;
+
+  function getToolPlaceholderLabel(toolId: CampaignToolId): string {
+    const labels: Record<CampaignToolId, string> = {
+      notes: t("tools.notes"),
+      inventory: t("tools.inventory"),
+      resources: t("tools.resources"),
+      handouts: t("tools.handouts"),
+    };
+    return labels[toolId];
+  }
 
   return (
     <HandoutBroadcastProvider campaignId={campaignId}>
@@ -97,20 +111,20 @@ export function CampaignWorkspace({
               <div className="flex flex-wrap items-center gap-2">
                 {isAdmin && (
                   <Chip variant="onDarkSolid" className="uppercase tracking-wide">
-                    Admin
+                    {t("campaign.admin")}
                   </Chip>
                 )}
                 {isDm && (
                   <Chip variant="onDark" className="uppercase tracking-wide">
-                    DM
+                    {t("campaign.dm")}
                   </Chip>
                 )}
                 {!isAdmin && !isDm && role === "player" && (
                   <Chip variant="onDark" className="uppercase tracking-wide">
-                    Player
+                    {t("campaign.player")}
                   </Chip>
                 )}
-                <Chip variant="onDarkSolid">Campaign workspace</Chip>
+                <Chip variant="onDarkSolid">{t("campaign.workspace")}</Chip>
                 <div id="campaign-actions" className="ml-auto flex flex-wrap gap-2">
                   <CombatTrackerLauncher
                     campaignId={campaignId}
@@ -126,7 +140,7 @@ export function CampaignWorkspace({
                       href={`/campaigns/${publicCode}/settings#campaign-settings-members`}
                       className={buttonVariants({ variant: "white", size: "sm" })}
                     >
-                      Invite
+                      {t("campaign.invite")}
                     </NavLink>
                   )}
                   {isAdmin && (
@@ -134,7 +148,7 @@ export function CampaignWorkspace({
                       href={`/campaigns/${publicCode}/settings`}
                       className={buttonVariants({ variant: "white", size: "sm" })}
                     >
-                      Settings
+                      {t("campaign.settings")}
                     </NavLink>
                   )}
                 </div>
@@ -143,7 +157,7 @@ export function CampaignWorkspace({
                 {name}
               </h1>
               <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-6 line-clamp-2 text-white/80 md:text-base">
-                {description || "No description yet."}
+                {description || t("campaign.noDescription")}
               </p>
             </div>
           </div>
@@ -188,12 +202,12 @@ export function CampaignWorkspace({
                   <div className="flex flex-1 items-center justify-center p-8 text-center">
                     <div className="max-w-sm">
                       <Typography variant="h3" as="h2">
-                        {treeHasPages ? "Select a page" : "No pages yet"}
+                        {treeHasPages ? t("notes.selectPage") : t("notes.empty")}
                       </Typography>
                       <Typography variant="muted" className="mt-2 leading-6">
                         {treeHasPages
-                          ? "Pick a page from the navigator to start reading or writing."
-                          : "Create your first page in the navigator to start taking notes."}
+                          ? t("notes.selectPageDesc")
+                          : t("notes.emptyDesc")}
                       </Typography>
                     </div>
                   </div>
@@ -219,7 +233,7 @@ export function CampaignWorkspace({
           <HandoutsTool campaignId={campaignId} isAdmin={isAdmin} />
         ) : (
           <ToolPlaceholder
-            title={toolMeta.label}
+            title={getToolPlaceholderLabel(activeTool)}
             description={toolMeta.placeholder}
           />
         )}

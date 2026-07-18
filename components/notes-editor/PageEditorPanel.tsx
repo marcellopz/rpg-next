@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { savePage } from "@/app/actions/pages";
+import { useI18n } from "@/lib/i18n/context";
 import type { NotePage } from "@/lib/queries/notes";
 import { PageEditor } from "./PageEditor";
 import { PageHistoryPanel } from "./PageHistoryPanel";
@@ -32,6 +33,7 @@ export function PageEditorPanel({
   page: NotePage;
   canEdit: boolean;
 }) {
+  const { t } = useI18n();
   const contentRef = useRef<JSONContent | null>(null);
   const savingRef = useRef(false);
   const lastLocalSaveAtRef = useRef<string | null>(null);
@@ -107,7 +109,10 @@ export function PageEditorPanel({
       let result = await savePage(page.id, content);
       if (result.ok && result.data.status === "needs_confirmation") {
         const confirmed = window.confirm(
-          `This will remove most of the page (from ${result.data.oldLength} to ${result.data.newLength} characters). Save anyway?`
+          t("pageEditor.wipeGuard", {
+            oldLength: result.data.oldLength,
+            newLength: result.data.newLength,
+          })
         );
         if (!confirmed) {
           setAutosavePaused(true);

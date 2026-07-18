@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Button, Typography } from "@/components/ui";
 import type { InventoryLogEntry } from "@/lib/queries/inventory";
+import { useI18n } from "@/lib/i18n/context";
 import { formatWeight } from "../encumbrance";
 
 function relativeTime(iso: string): string {
@@ -35,6 +36,8 @@ export function InventoryLogPanel({
   entries: InventoryLogEntry[];
   onClose: () => void;
 }) {
+  const { t } = useI18n();
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -58,18 +61,17 @@ export function InventoryLogPanel({
       >
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <Typography variant="h3" as="h2" id="inventory-log-title">
-            Inventory log
+            {t("inventory.logTitle")}
           </Typography>
           <Button type="button" variant="secondary" size="sm" onClick={onClose}>
-            Close
+            {t("buttons.close")}
           </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {entries.length === 0 && (
             <Typography variant="muted">
-              No changes recorded yet. Every add, edit, transfer, and delete
-              will show up here.
+              {t("inventory.logEmpty")}
             </Typography>
           )}
 

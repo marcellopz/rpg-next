@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { startCombat } from "@/app/actions/combat";
 import type { CombatState } from "@/lib/combat/types";
+import { useI18n } from "@/lib/i18n/context";
 import { CombatColorLegend } from "@/components/combat/modal/CombatColorLegend";
 import {
   CombatTrackerProvider,
@@ -18,6 +19,7 @@ import "../combat.css";
 import { Swords, X } from "lucide-react";
 
 function CombatTrackerBody() {
+  const { t } = useI18n();
   const { combat, isDm, campaignId, refreshCombat } = useCombatTracker();
   const [addOpen, setAddOpen] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -42,12 +44,12 @@ function CombatTrackerBody() {
           <Swords className="h-5 w-5" aria-hidden />
         </div>
         <Typography variant="h3" as="h3">
-          No active encounter
+          {t("combat.noEncounter")}
         </Typography>
         <Typography variant="muted" as="p" className="mt-1 max-w-sm leading-6">
           {isDm
-            ? "Start an encounter to add combatants and track initiative."
-            : "The DM can start combat when an encounter begins."}
+            ? t("combat.startEncounter")
+            : t("combat.join")}
         </Typography>
         {isDm ? (
           <>
@@ -58,7 +60,7 @@ function CombatTrackerBody() {
               disabled={starting}
               onClick={handleStartCombat}
             >
-              Start combat
+              {t("combat.start")}
             </Button>
             {startError && (
               <Typography variant="small" className="mt-2 text-red-600">
@@ -91,6 +93,32 @@ function CombatTrackerBody() {
         onClose={() => setAddOpen(false)}
       />
     </>
+  );
+}
+
+function CombatTrackerHeader({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n();
+  return (
+    <header className="flex flex-col gap-3 border-b border-gray-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div>
+        <Typography variant="h3" as="h2" id="combat-tracker-title">
+          {t("combat.tool")}
+        </Typography>
+        <Typography variant="small" as="p" className="mt-0.5">
+          Track initiative, health, and active conditions.
+        </Typography>
+      </div>
+      <div className="flex items-center justify-between gap-3 sm:justify-end">
+        <CombatColorLegend />
+        <IconButton
+          aria-label="Close combat tracker"
+          className="h-8 w-8 shrink-0 rounded-md"
+          onClick={onClose}
+        >
+          <X className="h-4 w-4" aria-hidden />
+        </IconButton>
+      </div>
+    </header>
   );
 }
 
@@ -146,26 +174,7 @@ export function CombatTrackerModal({
           className="combat-tracker relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <header className="flex flex-col gap-3 border-b border-gray-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div>
-              <Typography variant="h3" as="h2" id="combat-tracker-title">
-                Combat tracker
-              </Typography>
-              <Typography variant="small" as="p" className="mt-0.5">
-                Track initiative, health, and active conditions.
-              </Typography>
-            </div>
-            <div className="flex items-center justify-between gap-3 sm:justify-end">
-              <CombatColorLegend />
-              <IconButton
-                aria-label="Close combat tracker"
-                className="h-8 w-8 shrink-0 rounded-md"
-                onClick={onClose}
-              >
-                <X className="h-4 w-4" aria-hidden />
-              </IconButton>
-            </div>
-          </header>
+          <CombatTrackerHeader onClose={onClose} />
           <div className="min-h-0 flex-1 overflow-y-auto">
             <CombatTrackerBody />
           </div>

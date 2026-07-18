@@ -1,4 +1,5 @@
 import { NavLink } from "@/components/navigation/NavLink";
+import { useI18n } from "@/lib/i18n/context";
 import {
   CAMPAIGN_TOOL_TABS,
   type CampaignToolId,
@@ -19,7 +20,18 @@ export function CampaignToolTabs({
   notesTab: "campaign" | "personal";
   selectedPageId: string | null;
 }) {
+  const { t } = useI18n();
   const basePath = `/campaigns/${publicCode}`;
+
+  function getToolLabel(toolId: CampaignToolId): string {
+    const labels: Record<CampaignToolId, string> = {
+      notes: t("tools.notes"),
+      inventory: t("tools.inventory"),
+      resources: t("tools.resources"),
+      handouts: t("tools.handouts"),
+    };
+    return labels[toolId];
+  }
 
   function toolHref(toolId: CampaignToolId) {
     const params = new URLSearchParams();
@@ -56,7 +68,7 @@ export function CampaignToolTabs({
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-800"
               )}
             >
-              {tool.label}
+              {getToolLabel(tool.id)}
             </NavLink>
           );
         })}

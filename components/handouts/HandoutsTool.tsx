@@ -3,25 +3,13 @@
 import { FileUp, History, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { HandoutVisibility } from "@/lib/files/types";
+import { useI18n } from "@/lib/i18n/context";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Typography } from "@/components/ui";
 import { HandoutsFileCard } from "./HandoutsFileCard";
 import { HandoutsHistoryPanel } from "./HandoutsHistoryPanel";
 import { HandoutsUploadDialog } from "./HandoutsUploadDialog";
 import { useCampaignHandouts } from "./useCampaignHandouts";
-
-const VISIBILITY_FILTERS: { id: "all" | HandoutVisibility; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "public", label: "Shared" },
-  { id: "private", label: "Personal" },
-];
-
-const KIND_FILTERS = [
-  { id: "all" as const, label: "All types" },
-  { id: "images" as const, label: "Images" },
-  { id: "pdfs" as const, label: "PDFs" },
-  { id: "other" as const, label: "Other" },
-];
 
 export function HandoutsTool({
   campaignId,
@@ -30,11 +18,25 @@ export function HandoutsTool({
   campaignId: string;
   isAdmin: boolean;
 }) {
+  const { t } = useI18n();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const { files, allCount, loading, error, filter, setFilter, refresh } =
     useCampaignHandouts(campaignId);
+
+  const VISIBILITY_FILTERS: { id: "all" | HandoutVisibility; label: string }[] = [
+    { id: "all", label: t("handouts.filter.all") },
+    { id: "public", label: t("handouts.filter.shared") },
+    { id: "private", label: t("handouts.filter.personal") },
+  ];
+
+  const KIND_FILTERS = [
+    { id: "all" as const, label: t("handouts.filter.all") },
+    { id: "images" as const, label: t("handouts.filter.images") },
+    { id: "pdfs" as const, label: t("handouts.filter.pdfs") },
+    { id: "other" as const, label: "Other" },
+  ];
 
   useEffect(() => {
     const supabase = createClient();
@@ -102,7 +104,7 @@ export function HandoutsTool({
             onClick={() => setHistoryOpen(true)}
           >
             <History className="mr-1.5 h-4 w-4" aria-hidden />
-            History
+            {t("handouts.history")}
           </Button>
           <Button
             type="button"
@@ -111,7 +113,7 @@ export function HandoutsTool({
             onClick={() => setUploadOpen(true)}
           >
             <Upload className="mr-1.5 h-4 w-4" aria-hidden />
-            Upload
+            {t("handouts.upload")}
           </Button>
         </div>
       </div>
@@ -119,7 +121,7 @@ export function HandoutsTool({
       <div className="flex-1 p-4 md:p-6">
         {loading ? (
           <div className="flex min-h-[32rem] items-center justify-center">
-            <Typography variant="muted">Loading files…</Typography>
+            <Typography variant="muted">{t("buttons.loading")}</Typography>
           </div>
         ) : error ? (
           <div className="flex min-h-[32rem] flex-col items-center justify-center text-center">
@@ -145,7 +147,7 @@ export function HandoutsTool({
               <FileUp className="h-5 w-5" aria-hidden />
             </div>
             <Typography variant="h3" as="h2">
-              No handouts yet
+              {t("handouts.noFiles")}
             </Typography>
             <Typography variant="muted" className="mt-2 max-w-sm leading-6">
               Choose shared for the whole table, or personal for files only you
@@ -159,7 +161,7 @@ export function HandoutsTool({
               onClick={() => setUploadOpen(true)}
             >
               <Upload className="mr-1.5 h-4 w-4" aria-hidden />
-              Upload first file
+              {t("handouts.upload")}
             </Button>
           </div>
         ) : files.length === 0 ? (

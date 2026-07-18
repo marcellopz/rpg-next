@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
 import type { JSONContent } from "@tiptap/core";
+import { useI18n } from "@/lib/i18n/context";
 import { editorExtensions } from "@/lib/editor/extensions";
 import { Button, Typography } from "@/components/ui";
 import { EditorToolbar } from "./EditorToolbar";
@@ -40,6 +41,7 @@ export function PageEditor({
   } | null;
   onOpenHistory?: () => void;
 }) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!editable || !onSave) return;
 
@@ -58,7 +60,7 @@ export function PageEditor({
     extensions: [
       ...editorExtensions,
       Placeholder.configure({
-        placeholder: "Start writing your campaign notes…",
+        placeholder: t("pageEditor.placeholderText"),
       }),
     ],
     content: initialContent,
@@ -112,7 +114,7 @@ export function PageEditor({
               size="xs"
               onClick={onOpenHistory}
             >
-              History
+              {t("notes.history")}
             </Button>
           )}
         </div>
@@ -132,7 +134,7 @@ export function PageEditor({
               size="xs"
               onClick={remoteBanner.onDismiss}
             >
-              Keep editing
+              {t("pageEditor.keepEditing")}
             </Button>
             <Button
               type="button"
@@ -140,7 +142,7 @@ export function PageEditor({
               size="xs"
               onClick={remoteBanner.onReload}
             >
-              Reload
+              {t("pageEditor.reload")}
             </Button>
           </div>
         </div>

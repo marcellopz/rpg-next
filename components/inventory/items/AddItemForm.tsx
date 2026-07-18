@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addItem } from "@/app/actions/inventory";
 import { Button, TextField } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 import {
   INVENTORY_ITEM_TYPE_LIST,
@@ -13,6 +14,7 @@ import {
 
 // Collapsed "Add item" button that expands to an inline form.
 export function AddItemForm({ characterId }: { characterId: string }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -66,7 +68,7 @@ export function AddItemForm({ characterId }: { characterId: string }) {
           size="sm"
           onClick={() => setOpen(true)}
         >
-          Add item
+          {t("character.addItem")}
         </Button>
       </div>
     );
@@ -80,20 +82,20 @@ export function AddItemForm({ characterId }: { characterId: string }) {
     >
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem_6rem_6rem]">
         <TextField
-          label="Item name"
+          label={t("addItem.name")}
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoFocus
           maxLength={80}
-          placeholder="Rope (50 ft)"
+          placeholder={t("addItem.namePlaceholder")}
         />
         <div className="space-y-1">
           <label
             htmlFor="add-item-type"
             className="block text-sm font-medium text-gray-700"
           >
-            Type
+            {t("addItem.type")}
           </label>
           <select
             id="add-item-type"
@@ -112,7 +114,7 @@ export function AddItemForm({ characterId }: { characterId: string }) {
           </select>
         </div>
         <TextField
-          label="Weight (lb)"
+          label={t("addItem.weight")}
           type="number"
           min={0}
           step="any"
@@ -120,7 +122,7 @@ export function AddItemForm({ characterId }: { characterId: string }) {
           onChange={(e) => setWeight(e.target.value)}
         />
         <TextField
-          label="Quantity"
+          label={t("addItem.quantity")}
           type="number"
           min={1}
           value={quantity}
@@ -136,7 +138,7 @@ export function AddItemForm({ characterId }: { characterId: string }) {
 
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={isPending || !name.trim()}>
-          {isPending ? "Adding…" : "Add"}
+          {isPending ? t("addItem.adding") : t("addItem.add")}
         </Button>
         <Button
           type="button"
@@ -145,7 +147,7 @@ export function AddItemForm({ characterId }: { characterId: string }) {
           onClick={close}
           disabled={isPending}
         >
-          Cancel
+          {t("addItem.cancel")}
         </Button>
       </div>
     </form>

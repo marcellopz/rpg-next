@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/context";
 
 function IconBook() {
   return (
@@ -71,52 +74,60 @@ function IconBolt() {
   );
 }
 type Feature = {
-  title: string;
-  text: string;
+  titleKey: string;
+  textKey: string;
   icon: ReactNode;
 };
 
 const FEATURES: Feature[] = [
   {
-    title: "Wiki notes",
-    text: "Rich-text pages organized into categories. Campaign notes for the table, private notes for you, with search and edit history.",
+    titleKey: "home.features.wiki",
+    textKey: "home.features.wikiDesc",
     icon: <IconBook />,
   },
   {
-    title: "Party inventory",
-    text: "Track each character's gear, coins, and carry weight.",
+    titleKey: "home.features.inventory",
+    textKey: "home.features.inventoryDesc",
     icon: <IconBox />,
   },
   {
-    title: "Combat tracker",
-    text: "Initiative, HP, and conditions, synced live to every player.",
+    titleKey: "home.features.combat",
+    textKey: "home.features.combatDesc",
     icon: <IconBolt />,
   },
   {
-    title: "Resource tracking",
-    text: "Spell slots, abilities, and anything else that runs out.",
+    titleKey: "home.features.resources",
+    textKey: "home.features.resourcesDesc",
     icon: <IconGauge />,
   },
   {
-    title: "Handouts & files",
-    text: "Upload maps and handouts, and show them to the whole table.",
+    titleKey: "home.features.handouts",
+    textKey: "home.features.handoutsDesc",
     icon: <IconFile />,
   },
 ];
 
-const INVENTORY_POINTS = [
-  "Add, edit, and move items between characters.",
-  "Track coins and carry weight.",
-  "Every change goes into a shared log.",
+const INVENTORY_POINTS_KEYS = [
+  "home.inventoryPoint1",
+  "home.inventoryPoint2",
+  "home.inventoryPoint3",
 ];
 
-const COMBAT_POINTS = [
-  "Track rounds, turns, HP, and AC.",
-  "Tag combatants with conditions that tick down each round.",
-  "The DM decides what players can see.",
+const COMBAT_POINTS_KEYS = [
+  "home.combatPoint1",
+  "home.combatPoint2",
+  "home.combatPoint3",
 ];
 
 export default function HomePage() {
+  const { t } = useI18n();
+
+  const features = FEATURES.map(f => ({
+    ...f,
+    title: t(f.titleKey),
+    text: t(f.textKey),
+  }));
+
   return (
     <div className="bg-[#f0f0f0]">
       {/* Hero — accent-driven CSS gradient, no background image */}
@@ -127,14 +138,13 @@ export default function HomePage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-white.svg" alt="" className="mb-6 h-16 w-16" />
           <span className="mb-5 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-wide">
-            Your table, all in one place
+            {t("home.tagline")}
           </span>
           <h1 className="max-w-3xl text-4xl font-bold leading-tight sm:text-5xl">
-            Run unforgettable campaigns without the chaos
+            {t("home.headline")}
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-white/85">
-            Roll your dice at the table. The app keeps track of the notes,
-            inventory, initiative, and lore.
+            {t("home.description")}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
@@ -144,7 +154,7 @@ export default function HomePage() {
                 "font-semibold"
               )}
             >
-              Go to campaigns
+              {t("home.cta")}
             </Link>
           </div>
         </div>
@@ -153,9 +163,9 @@ export default function HomePage() {
       {/* Bento feature grid */}
       <section id="home-features" className="app-container py-20">
         <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold">Everything your table needs</h2>
+          <h2 className="text-3xl font-bold">{t("home.featureGridTitle")}</h2>
           <p className="mt-3 text-gray-600">
-            One tool for prep, play, and everything in between.
+            {t("home.featureGridSubtitle")}
           </p>
         </div>
 
@@ -163,18 +173,18 @@ export default function HomePage() {
           {/* Featured (accent) card */}
           <div className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-accent-600 to-accent-700 p-8 text-white shadow-sm md:col-span-2 lg:col-span-2 lg:row-span-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
-              {FEATURES[0].icon}
+              {features[0].icon}
             </div>
             <div className="mt-8">
-              <h3 className="text-2xl font-semibold">{FEATURES[0].title}</h3>
-              <p className="mt-2 max-w-md text-white/85">{FEATURES[0].text}</p>
+              <h3 className="text-2xl font-semibold">{features[0].title}</h3>
+              <p className="mt-2 max-w-md text-white/85">{features[0].text}</p>
             </div>
           </div>
 
           {/* Standard cards — a 2×2 block beside the 2×2 featured card */}
-          {FEATURES.slice(1).map((f) => (
+          {features.slice(1).map((f) => (
             <div
-              key={f.title}
+              key={f.titleKey}
               className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
@@ -194,21 +204,21 @@ export default function HomePage() {
           <div className="flex flex-col items-center gap-10 lg:flex-row">
             <div className="flex-1">
               <span className="text-sm font-semibold uppercase tracking-wide text-accent-600">
-                Inventory
+                {t("home.inventorySection")}
               </span>
-              <h2 className="mt-2 text-3xl font-bold">Manage party loot</h2>
+              <h2 className="mt-2 text-3xl font-bold">{t("home.inventoryTitle")}</h2>
               <p className="mt-3 text-gray-600">
-                Keep the whole party&apos;s gear in one place, always in sync.
+                {t("home.inventoryDesc")}
               </p>
               <ul className="mt-5 space-y-3">
-                {INVENTORY_POINTS.map((p) => (
-                  <li key={p} className="flex items-start gap-3 text-gray-700">
+                {INVENTORY_POINTS_KEYS.map((keyPath) => (
+                  <li key={keyPath} className="flex items-start gap-3 text-gray-700">
                     <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-100 text-accent-600">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
                         <path d="M20 6 9 17l-5-5" />
                       </svg>
                     </span>
-                    {p}
+                    {t(keyPath)}
                   </li>
                 ))}
               </ul>
@@ -227,21 +237,21 @@ export default function HomePage() {
           <div className="flex flex-col items-center gap-10 lg:flex-row-reverse">
             <div className="flex-1">
               <span className="text-sm font-semibold uppercase tracking-wide text-accent-600">
-                Combat
+                {t("home.combatSection")}
               </span>
-              <h2 className="mt-2 text-3xl font-bold">Run combat in realtime</h2>
+              <h2 className="mt-2 text-3xl font-bold">{t("home.combatTitle")}</h2>
               <p className="mt-3 text-gray-600">
-                A shared initiative tracker for the whole table.
+                {t("home.combatDesc")}
               </p>
               <ul className="mt-5 space-y-3">
-                {COMBAT_POINTS.map((p) => (
-                  <li key={p} className="flex items-start gap-3 text-gray-700">
+                {COMBAT_POINTS_KEYS.map((keyPath) => (
+                  <li key={keyPath} className="flex items-start gap-3 text-gray-700">
                     <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-100 text-accent-600">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
                         <path d="M20 6 9 17l-5-5" />
                       </svg>
                     </span>
-                    {p}
+                    {t(keyPath)}
                   </li>
                 ))}
               </ul>
@@ -261,9 +271,9 @@ export default function HomePage() {
       {/* Platforms — it's a browser app, so it goes wherever the table is */}
       <section id="home-platforms" className="app-container py-20">
         <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold">Use it on any screen</h2>
+          <h2 className="text-3xl font-bold">{t("home.features.platforms")}</h2>
           <p className="mt-3 text-gray-600">
-            It runs in the browser, so there is nothing to install.
+            {t("home.features.platformsDesc")}
           </p>
         </div>
 
@@ -272,27 +282,27 @@ export default function HomePage() {
             <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
               <IconPhone />
             </div>
-            <h3 className="mt-4 text-lg font-semibold">On your phone</h3>
+            <h3 className="mt-4 text-lg font-semibold">{t("home.features.phone")}</h3>
             <p className="mt-1 text-sm text-gray-600">
-              Check notes and update loot from anywhere.
+              {t("home.features.phoneDesc")}
             </p>
           </div>
           <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
             <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
               <IconTablet />
             </div>
-            <h3 className="mt-4 text-lg font-semibold">At the table</h3>
+            <h3 className="mt-4 text-lg font-semibold">{t("home.features.tablet")}</h3>
             <p className="mt-1 text-sm text-gray-600">
-              Keep a tablet or laptop open as the shared tracker.
+              {t("home.features.tabletDesc")}
             </p>
           </div>
           <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
             <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
               <IconTv />
             </div>
-            <h3 className="mt-4 text-lg font-semibold">On the big screen</h3>
+            <h3 className="mt-4 text-lg font-semibold">{t("home.features.screen")}</h3>
             <p className="mt-1 text-sm text-gray-600">
-              Put combat on the TV so everyone can follow it.
+              {t("home.features.screenDesc")}
             </p>
           </div>
         </div>
@@ -301,9 +311,9 @@ export default function HomePage() {
       {/* CTA band — full-bleed accent */}
       <section id="home-cta" className="bg-accent-600">
         <div className="app-container flex flex-col items-center gap-6 py-16 text-center text-white">
-          <h2 className="text-3xl font-bold">Ready to roll initiative?</h2>
+          <h2 className="text-3xl font-bold">{t("home.ready")}</h2>
           <p className="max-w-xl text-white/85">
-            Create a campaign and bring your whole table along.
+            {t("home.readyDescription")}
           </p>
           <Link
             href="/campaigns"
@@ -312,7 +322,7 @@ export default function HomePage() {
               "font-semibold"
             )}
           >
-            Go to campaigns
+            {t("home.cta")}
           </Link>
         </div>
       </section>

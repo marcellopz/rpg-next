@@ -8,8 +8,10 @@ import {
 } from "@/app/actions/invites";
 import type { AccountInvite } from "@/lib/queries/invites";
 import { Button, Typography } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 
 export function AccountInvites({ invites }: { invites: AccountInvite[] }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [activeInviteId, setActiveInviteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,17 +49,17 @@ export function AccountInvites({ invites }: { invites: AccountInvite[] }) {
       className="rounded-2xl border border-gray-200 bg-white p-5"
     >
       <Typography variant="h3" as="h2">
-        Campaign invites
+        {t("account.campaignInvites")}
       </Typography>
       <Typography variant="muted" className="mt-1">
-        Invitations sent to your email appear here.
+        {t("account.campaignInvitesDesc")}
       </Typography>
 
       {error && <Typography variant="body" className="mt-3 text-red-600">{error}</Typography>}
 
       {invites.length === 0 ? (
         <Typography variant="muted" className="mt-4">
-          You do not have any pending campaign invites.
+          {t("invites.noInvites")}
         </Typography>
       ) : (
         <div className="mt-4 space-y-3">
@@ -84,7 +86,7 @@ export function AccountInvites({ invites }: { invites: AccountInvite[] }) {
                       onClick={() => acceptInvite(invite.id)}
                       disabled={isPending}
                     >
-                      {busy ? "Working…" : "Accept"}
+                      {busy ? `${t("buttons.sending")}` : t("invites.accept")}
                     </Button>
                     <Button
                       size="xs"
@@ -92,7 +94,7 @@ export function AccountInvites({ invites }: { invites: AccountInvite[] }) {
                       onClick={() => declineInvite(invite.id)}
                       disabled={isPending}
                     >
-                      Decline
+                      {t("invites.decline")}
                     </Button>
                   </div>
                 </div>

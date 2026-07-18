@@ -7,6 +7,7 @@ import { updateCampaignImage } from "@/app/actions/campaigns";
 import { ImageCropDialog } from "@/components/images/ImageCropDialog";
 import { Button, Typography } from "@/components/ui";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { useI18n } from "@/lib/i18n/context";
 
 // Admin-only settings section for the campaign cover image, shown on the
 // campaign card and as the workspace hero background.
@@ -17,6 +18,7 @@ export function CampaignImageSettings({
   campaignId: string;
   imageUrl: string | null;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { upload } = useFileUpload("public");
@@ -24,7 +26,7 @@ export function CampaignImageSettings({
   async function saveImage(blob: Blob): Promise<string | null> {
     const file = new File([blob], "cover.jpg", { type: "image/jpeg" });
     const uploaded = await upload(file, { campaignId, folder: "cover" });
-    if (!uploaded) return "Could not upload the image. Please try again.";
+    if (!uploaded) return t("errors.save");
     const result = await updateCampaignImage(campaignId, uploaded.path);
     if (!result.ok) return result.error;
     router.refresh();
@@ -44,10 +46,10 @@ export function CampaignImageSettings({
       className="rounded-2xl border border-gray-200 bg-white p-6"
     >
       <Typography variant="h3" as="h2">
-        Campaign image
+        {t("campaignImage.title")}
       </Typography>
       <Typography variant="muted" className="mt-1">
-        Shown on the campaign card and as the workspace header background.
+        {t("campaignImage.description")}
       </Typography>
 
       <div className="mt-4 space-y-3">
@@ -73,14 +75,14 @@ export function CampaignImageSettings({
           size="sm"
           onClick={() => setDialogOpen(true)}
         >
-          {imageUrl ? "Change image" : "Add image"}
+          {imageUrl ? t("campaignImage.changeFile") : t("campaignImage.choose")}
         </Button>
       </div>
 
       {dialogOpen && (
         <ImageCropDialog
-          title="Campaign image"
-          description="Pick an image, then drag and zoom to choose the part to keep."
+          title={t("campaignImage.title")}
+          description={t("campaignImage.description")}
           aspect={3}
           outputWidth={1500}
           outputHeight={500}

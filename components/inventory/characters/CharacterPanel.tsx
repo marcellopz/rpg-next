@@ -11,6 +11,7 @@ import {
 import { ImageCropDialog } from "@/components/images/ImageCropDialog";
 import { IconButton, Tooltip } from "@/components/ui";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { useI18n } from "@/lib/i18n/context";
 import type { Character } from "@/lib/queries/inventory";
 import { carryWeight } from "../encumbrance";
 import { InlineEdit } from "../InlineEdit";
@@ -46,6 +47,7 @@ export function CharacterPanel({
   allCharacters: Character[];
   onViewLog: () => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const weight = carryWeight(character);
   const [photoOpen, setPhotoOpen] = useState(false);
@@ -60,7 +62,7 @@ export function CharacterPanel({
   async function savePhoto(blob: Blob): Promise<string | null> {
     const file = new File([blob], "portrait.jpg", { type: "image/jpeg" });
     const uploaded = await upload(file, { campaignId, folder: "portraits" });
-    if (!uploaded) return "Could not upload the image. Please try again.";
+    if (!uploaded) return t("errors.save");
     const result = await updateCharacterImage(character.id, uploaded.path);
     if (!result.ok) return result.error;
     router.refresh();
@@ -78,7 +80,7 @@ export function CharacterPanel({
     <div id="inventory-character-panel" className="flex flex-1 flex-col">
       <header className="flex gap-3 border-b border-gray-200 px-4 py-3">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <Tooltip label={`Change ${character.name}'s photo`}>
+          <Tooltip label={t("character.photo")}>
             <button
               type="button"
               aria-label={`Change ${character.name}'s photo`}
@@ -136,9 +138,9 @@ export function CharacterPanel({
                   </div>
                 ))}
               </div>
-              <Tooltip label="View inventory log">
+              <Tooltip label={t("character.viewLog")}>
                 <IconButton
-                  aria-label="View inventory log"
+                  aria-label={t("character.viewLog")}
                   onClick={onViewLog}
                   className="h-6 w-6 shrink-0"
                 >
@@ -156,8 +158,8 @@ export function CharacterPanel({
 
       {photoOpen && (
         <ImageCropDialog
-          title={`${character.name}'s photo`}
-          description="Pick an image, then drag and zoom to choose the part to keep."
+          title={t("characterPhoto.title")}
+          description={t("characterPhoto.description")}
           aspect={1}
           cropShape="round"
           outputWidth={512}

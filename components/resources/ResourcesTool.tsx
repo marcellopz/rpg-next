@@ -5,6 +5,7 @@ import type {
   InventoryCharacterOption,
   ResourcesDashboard,
 } from "@/lib/resources/types";
+import { useI18n } from "@/lib/i18n/context";
 import { Button, Typography } from "@/components/ui";
 import { AddCardDialog } from "./AddCardDialog";
 import { ResourcesDashboardGrid } from "./ResourcesDashboardGrid";
@@ -19,6 +20,7 @@ export function ResourcesTool({
   dashboard: ResourcesDashboard;
   inventoryCharacters: InventoryCharacterOption[];
 }) {
+  const { t } = useI18n();
   const [isEditing, setIsEditing] = useState(false);
   useResourcesRealtime(campaignId);
 
@@ -36,8 +38,8 @@ export function ResourcesTool({
       >
         <Typography variant="muted" className="text-sm">
           {isEditing
-            ? "Drag cards to rearrange, resize corners, and edit resources."
-            : "Use +/- to spend or restore resources during play."}
+            ? t("resources.editingHint")
+            : t("resources.usageHint")}
         </Typography>
         <div className="flex items-center gap-2">
           {isEditing && (
@@ -53,7 +55,7 @@ export function ResourcesTool({
             size="sm"
             onClick={() => setIsEditing((v) => !v)}
           >
-            {isEditing ? "Done editing" : "Edit"}
+            {isEditing ? t("resources.done") : t("resources.edit")}
           </Button>
         </div>
       </div>
@@ -62,11 +64,10 @@ export function ResourcesTool({
         {dashboard.cards.length === 0 ? (
           <div className="flex h-full min-h-[32rem] flex-col items-center justify-center text-center">
             <Typography variant="h3" as="h2">
-              No character cards yet
+              {t("resources.empty")}
             </Typography>
             <Typography variant="muted" className="mt-2 max-w-sm leading-6">
-              Add cards for each party member to track spell slots, abilities,
-              and other limited resources.
+              {t("resources.emptyDesc")}
             </Typography>
             <div className="mt-6">
               <AddCardDialog

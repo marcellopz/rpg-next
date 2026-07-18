@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCharacter } from "@/app/actions/inventory";
 import { Button, TextField, Typography } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 
 export function AddCharacterDialog({
   campaignId,
@@ -13,6 +14,7 @@ export function AddCharacterDialog({
   /** Builds the URL that selects a character, so we can jump to the new one. */
   characterHref: (characterId: string) => string;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -74,7 +76,7 @@ export function AddCharacterDialog({
         fullWidth
         onClick={() => setOpen(true)}
       >
-        Add character
+        {t("addCharacter.add")}
       </Button>
 
       {open && (
@@ -91,28 +93,28 @@ export function AddCharacterDialog({
             className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
           >
             <Typography variant="h3" as="h2" id="add-character-title">
-              Add character
+              {t("addCharacter.title")}
             </Typography>
             <Typography variant="muted" className="mt-1">
-              A new party member with their own inventory.
+              {t("addCharacter.description")}
             </Typography>
 
             <form id="add-character-form" onSubmit={handleSubmit} className="mt-4 space-y-4">
               <TextField
                 id="character-name"
-                label="Name"
+                label={t("addCharacter.name")}
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoFocus
                 maxLength={80}
-                placeholder="Fenwick the Bold"
+                placeholder={t("addCharacter.namePlaceholder")}
               />
 
               <div className="grid grid-cols-2 gap-3">
                 <TextField
                   id="character-strength"
-                  label="Strength"
+                  label={t("addCharacter.strength")}
                   type="number"
                   min={0}
                   value={strength}
@@ -120,7 +122,7 @@ export function AddCharacterDialog({
                 />
                 <TextField
                   id="character-gold"
-                  label="Gold"
+                  label={t("addCharacter.gold")}
                   type="number"
                   min={0}
                   value={gold}
@@ -141,10 +143,10 @@ export function AddCharacterDialog({
                   onClick={close}
                   disabled={isPending}
                 >
-                  Cancel
+                  {t("addCharacter.cancel")}
                 </Button>
                 <Button type="submit" disabled={isPending || !name.trim()}>
-                  {isPending ? "Adding…" : "Add character"}
+                  {isPending ? t("addCharacter.adding") : t("addCharacter.add")}
                 </Button>
               </div>
             </form>

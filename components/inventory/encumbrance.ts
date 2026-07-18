@@ -24,7 +24,8 @@ export type EncumbranceZone = {
 };
 
 /** Fixed zones on the bar — each always keeps its own color. */
-export const ENCUMBRANCE_ZONES: EncumbranceZone[] = [
+// Default zones with English labels (for backward compatibility)
+const DEFAULT_ENCUMBRANCE_ZONES: EncumbranceZone[] = [
   {
     label: "Unencumbered",
     startMult: 0,
@@ -34,7 +35,7 @@ export const ENCUMBRANCE_ZONES: EncumbranceZone[] = [
     fillClassName: "bg-green-600",
   },
   {
-    label: "Light load",
+    label: "Lightly encumbered",
     startMult: 5,
     endMult: 10,
     chipClassName: "bg-yellow-100 text-yellow-700",
@@ -42,7 +43,7 @@ export const ENCUMBRANCE_ZONES: EncumbranceZone[] = [
     fillClassName: "bg-yellow-600",
   },
   {
-    label: "Heavy load",
+    label: "Heavily encumbered",
     startMult: 10,
     endMult: 15,
     chipClassName: "bg-orange-100 text-orange-700",
@@ -58,6 +59,46 @@ export const ENCUMBRANCE_ZONES: EncumbranceZone[] = [
     fillClassName: "bg-red-600",
   },
 ];
+
+export const ENCUMBRANCE_ZONES: EncumbranceZone[] = DEFAULT_ENCUMBRANCE_ZONES;
+
+// Create zones with translated labels
+export function getEncumbranceZones(t: (key: string) => string): EncumbranceZone[] {
+  return [
+    {
+      label: t("encumbrance.unencumbered"),
+      startMult: 0,
+      endMult: 5,
+      chipClassName: "bg-green-100 text-green-700",
+      trackClassName: "bg-green-200",
+      fillClassName: "bg-green-600",
+    },
+    {
+      label: t("encumbrance.lightly"),
+      startMult: 5,
+      endMult: 10,
+      chipClassName: "bg-yellow-100 text-yellow-700",
+      trackClassName: "bg-yellow-200",
+      fillClassName: "bg-yellow-600",
+    },
+    {
+      label: t("encumbrance.heavily"),
+      startMult: 10,
+      endMult: 15,
+      chipClassName: "bg-orange-100 text-orange-700",
+      trackClassName: "bg-orange-200",
+      fillClassName: "bg-orange-600",
+    },
+    {
+      label: t("encumbrance.overCapacity"),
+      startMult: 15,
+      endMult: 30,
+      chipClassName: "bg-red-100 text-red-700",
+      trackClassName: "bg-red-200",
+      fillClassName: "bg-red-600",
+    },
+  ];
+}
 
 export type EncumbranceZoneSegment = {
   trackClassName: string;
@@ -99,6 +140,38 @@ export function encumbranceZoneSegments(
   });
 }
 
+export function encumbranceZoneSegmentsI18n(
+  strength: number,
+  weight: number,
+  zones: EncumbranceZone[]
+): EncumbranceZoneSegment[] {
+  const max = maxCarryWeight(strength);
+  if (max <= 0) {
+    return zones.map((zone) => ({
+      trackClassName: zone.trackClassName,
+      fillClassName: zone.fillClassName,
+      widthPercent: 0,
+      fillRatio: 0,
+    }));
+  }
+
+  return zones.map((zone) => {
+    const zoneStart = strength * zone.startMult;
+    const zoneEnd = strength * zone.endMult;
+    const zoneSize = zoneEnd - zoneStart;
+    const widthPercent = (zoneSize / max) * 100;
+    const filled = Math.max(0, Math.min(weight, zoneEnd) - zoneStart);
+    const fillRatio = zoneSize > 0 ? (filled / zoneSize) * 100 : 0;
+
+    return {
+      trackClassName: zone.trackClassName,
+      fillClassName: zone.fillClassName,
+      widthPercent,
+      fillRatio,
+    };
+  });
+}
+
 /** Chip label + colors for the current encumbrance step. */
 export function encumbranceColors(strength: number, weight: number) {
   if (weight > strength * 30) {
@@ -113,6 +186,27 @@ export function encumbranceColors(strength: number, weight: number) {
     }
   }
   const last = ENCUMBRANCE_ZONES[ENCUMBRANCE_ZONES.length - 1];
+  return { label: last.label, chipClassName: last.chipClassName };
+}
+
+/** Chip label + colors for the current encumbrance step (with translated labels). */
+export function encumbranceColorsI18n(
+  strength: number,
+  weight: number,
+  zones: EncumbranceZone[]
+) {
+  if (weight > strength * 30) {
+    return {
+      label: "Over capacity" as const,
+      chipClassName: "bg-red-600 text-white",
+    };
+  }
+  for (const zone of zones) {
+    if (weight <= strength * zone.endMult) {
+      return { label: zone.label, chipClassName: zone.chipClassName };
+    }
+  }
+  const last = zones[zones.length - 1];
   return { label: last.label, chipClassName: last.chipClassName };
 }
 

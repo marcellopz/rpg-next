@@ -1,6 +1,9 @@
+"use client";
+
 import { ChevronDown, ChevronRight, Folder } from "lucide-react";
 import type { NoteCategory } from "@/lib/queries/notes";
 import { Menu, Typography } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 import {
   sameTarget,
@@ -18,6 +21,7 @@ export function NoteCategoryGroup({
   selectedPageId: string | null;
   controller: NotesSidebarController;
 }) {
+  const { t } = useI18n();
   const isCollapsed = !controller.expandedIds.has(category.id);
   const target: DropTarget = { type: "category", id: category.id };
   const isDropTarget = sameTarget(controller.dropTarget, target);
@@ -88,7 +92,7 @@ export function NoteCategoryGroup({
               as="p"
               className="px-3 py-1.5 text-gray-400"
             >
-              No pages
+              {t("notes.noPages")}
             </Typography>
           )}
         </div>

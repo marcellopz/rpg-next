@@ -8,6 +8,7 @@ import {
   reorderCharacters,
 } from "@/app/actions/inventory";
 import { Typography, type MenuEntry } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 import type { Character } from "@/lib/queries/inventory";
 import { AddCharacterDialog } from "./AddCharacterDialog";
@@ -27,6 +28,7 @@ export function CharacterSidebar({
   selectedCharacterId: string | null;
   characterHref: (characterId: string) => string;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [dragId, setDragId] = useState<string | null>(null);
   // null = no target; "end" = append at the end of the list.
@@ -65,7 +67,7 @@ export function CharacterSidebar({
   }
 
   async function handleRename(character: Character) {
-    const name = window.prompt("Rename character", character.name)?.trim();
+    const name = window.prompt(t("character.rename"), character.name)?.trim();
     if (!name || name === character.name) return;
     const result = await renameCharacter(character.id, name);
     if (!result.ok) window.alert(result.error);
@@ -75,7 +77,7 @@ export function CharacterSidebar({
   async function handleDelete(character: Character) {
     if (
       !window.confirm(
-        `Remove "${character.name}" from the party? Their inventory is deleted too.`
+        t("character.deleteConfirm", { name: character.name })
       )
     )
       return;
@@ -93,9 +95,9 @@ export function CharacterSidebar({
 
   function menuEntries(character: Character): MenuEntry[] {
     return [
-      { label: "Rename", onSelect: () => handleRename(character) },
+      { label: t("character.rename"), onSelect: () => handleRename(character) },
       {
-        label: "Delete",
+        label: t("character.delete"),
         onSelect: () => handleDelete(character),
         danger: true,
       },
@@ -108,13 +110,13 @@ export function CharacterSidebar({
         variant="small"
         className="px-3 font-semibold uppercase tracking-wide text-gray-400"
       >
-        Party
+        {t("inventory.party")}
       </Typography>
 
       <div id="inventory-character-list" className="mt-2 flex-1 space-y-1">
         {characters.length === 0 && (
           <Typography variant="muted" className="px-3 py-2">
-            No characters yet. Add the first party member below.
+            {t("addCharacter.noCharacters")}
           </Typography>
         )}
 
@@ -152,7 +154,7 @@ export function CharacterSidebar({
                 : "border-gray-200 text-gray-400"
             )}
           >
-            Move to end
+            {t("character.moveToEnd")}
           </div>
         )}
       </div>

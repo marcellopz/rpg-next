@@ -1,28 +1,11 @@
-import Link from "next/link";
 import { CampaignCard } from "@/components/campaigns/CampaignCard";
 import { NewCampaignButton } from "@/components/campaigns/NewCampaignButton";
-import { Typography, buttonVariants } from "@/components/ui";
+import { DemoSection } from "@/components/campaigns/DemoSection";
+import { CampaignsPageHeaderBrowse, CampaignsPageHeaderOwned } from "@/components/campaigns/CampaignsPageHeader";
+import { CampaignsEmptyState } from "@/components/campaigns/CampaignsEmptyState";
+import { SignInLink } from "@/components/campaigns/SignInLink";
 import { DEMO_CAMPAIGNS } from "@/data/demo-campaigns";
-import { loginUrl } from "@/lib/auth/login-url";
 import { getCampaignsForCurrentUser } from "@/lib/queries/campaigns";
-
-function DemoSection() {
-  return (
-    <div id="campaigns-demo" className="mt-14">
-      <Typography variant="h3" as="h2">
-        Demo campaigns
-      </Typography>
-      <Typography variant="subtitle" className="mt-1 text-sm">
-        A few examples to explore. These aren&apos;t part of your account.
-      </Typography>
-      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {DEMO_CAMPAIGNS.map((c) => (
-          <CampaignCard key={c.id} campaign={c} />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default async function CampaignsPage() {
   const { isSignedIn, campaigns } = await getCampaignsForCurrentUser();
@@ -32,16 +15,8 @@ export default async function CampaignsPage() {
     return (
       <div id="campaigns-page" className="app-container py-10">
         <div id="campaigns-header" className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Typography variant="h1">Campaigns</Typography>
-            <Typography variant="subtitle" className="mt-1">
-              A peek at what your table could look like. Sign in to start your
-              own.
-            </Typography>
-          </div>
-          <Link href={loginUrl("/campaigns")} className={buttonVariants()}>
-            Sign in
-          </Link>
+          <CampaignsPageHeaderBrowse />
+          <SignInLink />
         </div>
 
         <div id="campaigns-list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -56,22 +31,13 @@ export default async function CampaignsPage() {
   return (
     <div id="campaigns-page" className="app-container py-6">
       <div id="campaigns-header" className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <Typography variant="h1">Campaigns</Typography>
-          <Typography variant="subtitle" className="mt-1">
-            Pick up where your table left off, or start something new.
-          </Typography>
-        </div>
+        <CampaignsPageHeaderOwned />
         <NewCampaignButton />
       </div>
 
       {campaigns.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center">
-          <Typography variant="h3">No campaigns yet</Typography>
-          <Typography variant="subtitle" className="mx-auto mt-1 max-w-sm text-sm">
-            Create your first campaign to start building your world, your party,
-            and your story.
-          </Typography>
+          <CampaignsEmptyState />
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

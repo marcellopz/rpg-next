@@ -1,5 +1,6 @@
 import { NavLink } from "@/components/navigation/NavLink";
 import type { NoteScope } from "@/app/actions/categories";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 
 export function NotesTabs({
@@ -9,6 +10,7 @@ export function NotesTabs({
   basePath: string;
   activeTab: NoteScope;
 }) {
+  const { t } = useI18n();
   return (
     <div
       id="campaign-notes-tabs"
@@ -23,7 +25,7 @@ export function NotesTabs({
             : "text-gray-500 hover:text-gray-700"
         )}
       >
-        Campaign notes
+        {t("notes.campaign")}
       </NavLink>
       <NavLink
         href={`${basePath}?tab=my`}
@@ -34,7 +36,7 @@ export function NotesTabs({
             : "text-gray-500 hover:text-gray-700"
         )}
       >
-        My notes
+        {t("notes.personal")}
       </NavLink>
     </div>
   );

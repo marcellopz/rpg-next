@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { addCondition } from "@/app/actions/combat";
 import type { CombatCombatant } from "@/lib/combat/types";
 import { CONDITION_COLORS } from "@/lib/combat/types";
+import { useI18n } from "@/lib/i18n/context";
 import { useCombatTracker } from "@/components/combat/CombatTrackerContext";
 import { Button, TextField, Typography } from "@/components/ui";
 import { ConditionChip } from "@/components/combat/ConditionChip";
@@ -19,6 +20,7 @@ export function AddConditionDialog({
   combatant: CombatCombatant;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const { campaignId } = useCombatTracker();
   const [error, setError] = useState<string | null>(null);
   const [indefinite, setIndefinite] = useState(false);
@@ -35,7 +37,7 @@ export function AddConditionDialog({
     const duration = indefinite ? -1 : Number(form.get("duration"));
 
     if (!name) {
-      setError("Condition name is required.");
+      setError(t("validation.required", { field: "Condition name" }));
       return;
     }
 
@@ -60,13 +62,13 @@ export function AddConditionDialog({
     <CombatNestedDialog
       open={open}
       onClose={onClose}
-      title={`Add condition to ${combatant.name}`}
+      title={t("addCondition.title")}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
           id="condition-name"
           name="name"
-          label="Condition name"
+          label={t("addCondition.name")}
           required
           value={previewName}
           onChange={(e) => setPreviewName(e.target.value)}
@@ -84,7 +86,7 @@ export function AddConditionDialog({
           <TextField
             id="condition-duration"
             name="duration"
-            label="Duration (turns)"
+            label={t("addCondition.duration")}
             type="number"
             min={1}
             defaultValue="1"
@@ -129,10 +131,10 @@ export function AddConditionDialog({
         )}
         <div className="flex justify-end gap-2 pt-1">
           <Button type="button" variant="secondary" size="sm" onClick={onClose}>
-            Cancel
+            {t("buttons.cancel")}
           </Button>
           <Button type="submit" variant="primary" size="sm" disabled={pending}>
-            Add
+            {t("buttons.add")}
           </Button>
         </div>
       </form>

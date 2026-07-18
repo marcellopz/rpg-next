@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getServerTranslations } from "@/lib/i18n/server";
 import { CampaignSettings } from "@/components/campaigns/CampaignSettings";
 import { Typography, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -10,18 +11,18 @@ export default async function CampaignSettingsPage({
 }: {
   params: { campaignCode: string };
 }) {
+  const { t } = await getServerTranslations("en");
   const campaign = await getCampaignDetailForCurrentUser(params.campaignCode);
 
   if (!campaign || !campaign.isAdmin) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <Typography variant="h2">Campaign settings not available</Typography>
+        <Typography variant="h2">{t("campaignSettings.notAvailable")}</Typography>
         <Typography variant="subtitle" className="mt-2">
-          This campaign doesn&apos;t exist, or you don&apos;t have admin
-          permission to manage it.
+          {t("campaignSettings.notAvailableDesc")}
         </Typography>
         <Link href="/campaigns" className={cn("mt-6", buttonVariants())}>
-          Back to campaigns
+          {t("buttons.backToCampaigns")}
         </Link>
       </div>
     );
@@ -35,14 +36,13 @@ export default async function CampaignSettingsPage({
         href={`/campaigns/${campaign.publicCode}`}
         className="text-sm text-gray-500 hover:text-gray-900"
       >
-        Back to campaign
+        {t("campaignSettings.backToCampaign")}
       </Link>
 
       <header className="mt-4">
-        <Typography variant="h1">Campaign settings</Typography>
+        <Typography variant="h1">{t("campaignSettings.title")}</Typography>
         <Typography variant="subtitle" className="mt-2">
-          Only the campaign admin can change settings for{" "}
-          <span className="font-medium text-gray-900">{campaign.name}</span>.
+          {t("campaignSettings.adminOnlyDesc", { name: campaign.name })}
         </Typography>
       </header>
 
