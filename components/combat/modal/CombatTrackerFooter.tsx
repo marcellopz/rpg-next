@@ -22,6 +22,7 @@ import {
   applySetRound,
   applySortByInitiative,
 } from "@/lib/combat/turn-engine";
+import { useI18n } from "@/lib/i18n/context";
 import { useCombatTracker } from "@/components/combat/CombatTrackerContext";
 import { Button } from "@/components/ui";
 
@@ -30,6 +31,7 @@ export function CombatTrackerFooter({
 }: {
   onAddCombatant: () => void;
 }) {
+  const { t } = useI18n();
   const { combat, campaignId, isDm, runAction } = useCombatTracker();
   if (!combat) return null;
 
@@ -39,7 +41,7 @@ export function CombatTrackerFooter({
     return (
       <div className="flex justify-center">
         <span className="rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold text-accent-700">
-          {session.round === 0 ? "Waiting to start" : `Round ${session.round}`}
+          {session.round === 0 ? t("combat.waitingToStart") : t("combat.round", { round: session.round })}
         </span>
       </div>
     );
@@ -63,7 +65,7 @@ export function CombatTrackerFooter({
               }
             >
               <ChevronLeft className="mr-1 h-4 w-4" aria-hidden />
-              Prev
+              {t("combat.buttons.prev")}
             </Button>
             <Button
               type="button"
@@ -77,7 +79,7 @@ export function CombatTrackerFooter({
                 )
               }
             >
-              Next
+              {t("combat.buttons.next")}
               <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
             </Button>
           </div>
@@ -94,7 +96,7 @@ export function CombatTrackerFooter({
           }
         >
           <ArrowDownUp className="mr-1.5 h-4 w-4" aria-hidden />
-          Sort
+          {t("combat.buttons.sort")}
         </Button>
       </div>
 
@@ -112,12 +114,12 @@ export function CombatTrackerFooter({
             }
           >
             <Play className="mr-1.5 h-4 w-4" aria-hidden />
-            Start round
+            {t("combat.buttons.startRound")}
           </Button>
         ) : (
           <>
             <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200">
-              Round {session.round}
+              {t("combat.round", { round: session.round })}
             </span>
             <Button
               type="button"
@@ -131,13 +133,13 @@ export function CombatTrackerFooter({
               }
             >
               <RotateCcw className="mr-1.5 h-4 w-4" aria-hidden />
-              Reset
+              {t("combat.buttons.reset")}
             </Button>
           </>
         )}
         <Button type="button" variant="primary" size="sm" onClick={onAddCombatant}>
           <Plus className="mr-1.5 h-4 w-4" aria-hidden />
-          Add combatant
+          {t("combat.buttons.add")}
         </Button>
       </div>
     </div>

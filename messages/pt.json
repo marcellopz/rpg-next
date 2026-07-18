@@ -1,6 +1,6 @@
 {
   "navbar": {
-    "logo": "Gerenciador RPG",
+    "logo": "RPG Manager",
     "campaigns": "Campanhas",
     "signIn": "Entrar",
     "account": "Conta"
@@ -147,7 +147,14 @@
     "addCharacter": "Adicione o primeiro personagem para começar a rastrear o equipamento do grupo.",
     "viewLog": "Ver log",
     "logTitle": "Log de inventário",
-    "logEmpty": "Nenhuma alteração registrada ainda. Todos os adicionar, editar, transferir e excluir aparecerão aqui."
+    "logEmpty": "Nenhuma alteração registrada ainda. Todos os adicionar, editar, transferir e excluir aparecerão aqui.",
+    "table": {
+      "qty": "Qtd",
+      "name": "Nome",
+      "type": "Tipo",
+      "weight": "Peso",
+      "total": "Total"
+    }
   },
   "addCharacter": {
     "title": "Adicionar personagem",
@@ -241,6 +248,7 @@
   },
   "combat": {
     "tool": "Combate",
+    "subtitle": "Rastreie iniciativa, saúde e condições ativas.",
     "noEncounter": "Sem encontro ativo",
     "startEncounter": "Inicie um encontro para começar o rastreamento de combate.",
     "start": "Iniciar encontro",
@@ -248,10 +256,27 @@
     "active": "Encontro ativo",
     "round": "Rodada {round}",
     "turn": "Turno de {name}",
+    "waitingToStart": "Aguardando início",
+    "noCombatants": "Nenhum combatente ainda.",
     "addCombatant": "Adicionar combatente",
     "condition": "Adicionar condição",
     "conditions": "Condições",
     "removeCondition": "Remover",
+    "table": {
+      "initiative": "Init",
+      "combatant": "Combatente",
+      "ac": "CA",
+      "hitPoints": "Pontos de vida",
+      "reaction": "Reação"
+    },
+    "buttons": {
+      "prev": "Anterior",
+      "next": "Próximo",
+      "sort": "Classificar",
+      "startRound": "Iniciar rodada",
+      "reset": "Reiniciar",
+      "add": "Adicionar combatente"
+    },
     "hp": "PV",
     "ac": "CA",
     "initiative": "Iniciativa",

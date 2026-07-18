@@ -67,6 +67,7 @@ export function InlineEdit({
   }
 
   return (
+    <div className="flex items-center">
     <input
       ref={inputRef}
       type={type}
@@ -87,9 +88,10 @@ export function InlineEdit({
       }}
       onBlur={() => void commit()}
       className={cn(
-        "w-full rounded border border-accent-400 bg-white px-1 py-0 text-inherit focus:outline-none disabled:opacity-50",
-        inputClassName
-      )}
-    />
+        "w-fit max-w-[4rem] rounded border border-accent-400 bg-white px-1 py-0 text-inherit focus:outline-none disabled:opacity-50",
+          inputClassName
+        )}
+      />
+    </div>
   );
 }

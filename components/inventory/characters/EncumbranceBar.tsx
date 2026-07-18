@@ -29,14 +29,14 @@ export function EncumbranceBar({
   const tipLeft = encumbrancePercent(strength, weight);
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-baseline justify-between gap-2 text-xs">
-        <span className="tabular-nums text-gray-600">
+    <div className="w-full space-y-1 overflow-hidden">
+      <div className="flex flex-col gap-1 text-xs sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
+        <span className="tabular-nums text-gray-600 whitespace-nowrap">
           {formatWeight(weight)} / {max} lb
         </span>
         <span
           className={cn(
-            "rounded px-1.5 py-0.5 text-[0.65rem] font-medium leading-none",
+            "rounded px-1.5 py-0.5 text-[0.65rem] font-medium leading-none w-fit",
             chip.chipClassName
           )}
         >
@@ -44,9 +44,9 @@ export function EncumbranceBar({
         </span>
       </div>
 
-      <div className="relative">
+      <div className="relative w-full overflow-hidden">
         <div
-          className="flex h-2 overflow-hidden rounded-full"
+          className="flex h-2 overflow-hidden rounded-full w-full"
           role="progressbar"
           aria-valuenow={Math.round(weight * 100) / 100}
           aria-valuemin={0}

@@ -10,6 +10,7 @@ import {
   type ItemField,
 } from "@/app/actions/inventory";
 import { Typography, type MenuEntry } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/context";
 import type { Character, InventoryItem } from "@/lib/queries/inventory";
 import { AddItemForm } from "./AddItemForm";
 import { ItemRow, ITEMS_GRID } from "./ItemRow";
@@ -24,6 +25,7 @@ export function ItemsTable({
   character: Character;
   allCharacters: Character[];
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropId, setDropId] = useState<string | "end" | null>(null);
@@ -110,11 +112,11 @@ export function ItemsTable({
           ITEMS_GRID
         )}
       >
-        <span>Qty</span>
-        <span>Name</span>
-        <span>Type</span>
-        <span>Weight</span>
-        <span>Total</span>
+        <span>{t("inventory.table.qty")}</span>
+        <span>{t("inventory.table.name")}</span>
+        <span className="hidden sm:inline">{t("inventory.table.type")}</span>
+        <span className="hidden sm:inline">{t("inventory.table.weight")}</span>
+        <span>{t("inventory.table.total")}</span>
         <span />
       </div>
 

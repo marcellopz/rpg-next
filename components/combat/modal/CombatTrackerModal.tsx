@@ -105,7 +105,7 @@ function CombatTrackerHeader({ onClose }: { onClose: () => void }) {
           {t("combat.tool")}
         </Typography>
         <Typography variant="small" as="p" className="mt-0.5">
-          Track initiative, health, and active conditions.
+          {t("combat.subtitle")}
         </Typography>
       </div>
       <div className="flex items-center justify-between gap-3 sm:justify-end">

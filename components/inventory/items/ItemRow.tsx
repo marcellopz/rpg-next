@@ -14,8 +14,10 @@ import { formatWeight } from "../encumbrance";
 import { InlineEdit } from "../InlineEdit";
 
 // Shared column template so the header (ItemsTable) and rows stay aligned.
+// Mobile: Qty, Name, Total, Actions
+// Tablet+: Qty, Name, Type, Weight, Total, Actions
 export const ITEMS_GRID =
-  "grid-cols-[3.5rem_minmax(0,1fr)_7.5rem_5rem_5rem_2.5rem]";
+  "grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_2.5rem] sm:grid-cols-[3.5rem_minmax(0,1fr)_7.5rem_5rem_5rem_2.5rem]";
 
 export function ItemRow({
   item,
@@ -85,12 +87,13 @@ export function ItemRow({
         />
       </div>
 
+      {/* Hidden on mobile, shown on tablet+ */}
       <select
         aria-label={t("inventory.tool")}
         value={item.itemType}
         onChange={(e) => void onEdit("itemType", e.target.value)}
         className={cn(
-          "cursor-pointer rounded border-0 bg-transparent py-0.5 pl-0 pr-6 text-sm capitalize hover:bg-accent-50 focus:outline-none",
+          "hidden cursor-pointer rounded border-0 bg-transparent py-0.5 pl-0 pr-6 text-sm capitalize hover:bg-accent-50 focus:outline-none sm:block",
           textClass
         )}
       >
@@ -101,7 +104,8 @@ export function ItemRow({
         ))}
       </select>
 
-      <div className="text-gray-600">
+      {/* Hidden on mobile, shown on tablet+ */}
+      <div className="hidden text-gray-600 sm:block">
         <InlineEdit
           value={formatWeight(item.weight)}
           ariaLabel={item.name}
@@ -110,11 +114,12 @@ export function ItemRow({
         />
       </div>
 
+      {/* Shown on all screens */}
       <div className="px-1 text-gray-600">
         {formatWeight(item.weight * item.quantity)}
       </div>
 
-      <div className="justify-self-end opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+      <div className="justify-self-end">
         <Menu label={`Options for ${item.name}`} entries={menuEntries} />
       </div>
     </div>

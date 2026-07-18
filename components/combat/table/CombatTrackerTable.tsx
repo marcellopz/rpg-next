@@ -4,31 +4,34 @@ import { useState, type DragEvent } from "react";
 import { reorderCombatants } from "@/app/actions/combat";
 import { resolveTurnForViewer } from "@/lib/combat/hp-colors";
 import { applyReorderCombatants } from "@/lib/combat/turn-engine";
+import { useI18n } from "@/lib/i18n/context";
 import { useCombatTracker } from "@/components/combat/CombatTrackerContext";
 import { CombatTrackerRow } from "@/components/combat/table/CombatTrackerRow";
 
 function CombatTableHeader({ showHpColumns }: { showHpColumns: boolean }) {
+  const { t } = useI18n();
   return (
     <div
       role="row"
       className={`tracker-table-header ${showHpColumns ? "with-hp" : "without-hp"}`}
     >
       <div role="columnheader" className="tracker-table-initiative" title="Initiative">
-        Init
+        {t("combat.table.initiative")}
       </div>
-      <div role="columnheader" className="tracker-table-name">Combatant</div>
+      <div role="columnheader" className="tracker-table-name">{t("combat.table.combatant")}</div>
       {showHpColumns && (
         <>
-          <div role="columnheader" className="tracker-table-ac">AC</div>
-          <div role="columnheader" className="tracker-table-hp">Hit points</div>
+          <div role="columnheader" className="tracker-table-ac">{t("combat.table.ac")}</div>
+          <div role="columnheader" className="tracker-table-hp">{t("combat.table.hitPoints")}</div>
         </>
       )}
-      <div role="columnheader" className="tracker-table-reaction">Reaction</div>
+      <div role="columnheader" className="tracker-table-reaction">{t("combat.table.reaction")}</div>
     </div>
   );
 }
 
 export function CombatTrackerTable() {
+  const { t } = useI18n();
   const { combat, campaignId, isDm, runAction } = useCombatTracker();
   const [dragId, setDragId] = useState<string | null>(null);
 
@@ -79,7 +82,7 @@ export function CombatTrackerTable() {
         <CombatTableHeader showHpColumns={showHpColumns} />
         <div role="rowgroup" className="tracker-table-body">
           {sorted.length === 0 ? (
-            <div id="no-combatants">No combatants yet.</div>
+            <div id="no-combatants">{t("combat.noCombatants")}</div>
           ) : (
             sorted.map((combatant) => (
               <CombatTrackerRow

@@ -17,8 +17,8 @@
     margin-right: auto;
     width: 100%;
     max-width: var(--app-max-width);
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 
   @media (min-width: 640px) {

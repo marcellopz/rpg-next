@@ -147,7 +147,14 @@
     "addCharacter": "Add the first character to start tracking the party's gear.",
     "viewLog": "View log",
     "logTitle": "Inventory log",
-    "logEmpty": "No changes recorded yet. Every add, edit, transfer, and delete will show up here."
+    "logEmpty": "No changes recorded yet. Every add, edit, transfer, and delete will show up here.",
+    "table": {
+      "qty": "Qty",
+      "name": "Name",
+      "type": "Type",
+      "weight": "Weight",
+      "total": "Total"
+    }
   },
   "addCharacter": {
     "title": "Add character",
@@ -237,6 +244,7 @@
   },
   "combat": {
     "tool": "Combat",
+    "subtitle": "Track initiative, health, and active conditions.",
     "noEncounter": "No active encounter",
     "startEncounter": "Start an encounter to begin combat tracking.",
     "start": "Start encounter",
@@ -244,10 +252,27 @@
     "active": "Encounter active",
     "round": "Round {round}",
     "turn": "{name}'s turn",
+    "waitingToStart": "Waiting to start",
+    "noCombatants": "No combatants yet.",
     "addCombatant": "Add combatant",
     "condition": "Add condition",
     "conditions": "Conditions",
     "removeCondition": "Remove",
+    "table": {
+      "initiative": "Init",
+      "combatant": "Combatant",
+      "ac": "AC",
+      "hitPoints": "Hit points",
+      "reaction": "Reaction"
+    },
+    "buttons": {
+      "prev": "Prev",
+      "next": "Next",
+      "sort": "Sort",
+      "startRound": "Start round",
+      "reset": "Reset",
+      "add": "Add combatant"
+    },
     "hp": "HP",
     "ac": "AC",
     "initiative": "Initiative",
