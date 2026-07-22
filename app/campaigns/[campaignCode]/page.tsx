@@ -3,6 +3,7 @@ import { CampaignWorkspace } from "@/components/campaigns/CampaignWorkspace";
 import { parseCampaignTool } from "@/components/campaigns/campaign-tools";
 import { Typography, buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { DEMO_CAMPAIGN_CODE, getDemoCampaign } from "@/data/demo-campaign";
 import {
   getCampaignDetailForCurrentUser,
   getCurrentUserId,
@@ -46,7 +47,11 @@ export default async function CampaignPage({
   params: { campaignCode: string };
   searchParams: { tab?: string; page?: string; tool?: string; character?: string };
 }) {
-  const campaign = await getCampaignDetailForCurrentUser(params.campaignCode);
+  const isDemo = params.campaignCode === DEMO_CAMPAIGN_CODE;
+
+  const campaign = isDemo
+    ? getDemoCampaign().detail
+    : await getCampaignDetailForCurrentUser(params.campaignCode);
 
   if (!campaign) {
     return (
@@ -63,7 +68,7 @@ export default async function CampaignPage({
   }
 
   const activeTool = parseCampaignTool(searchParams.tool);
-  const userId = await getCurrentUserId();
+  const userId = isDemo ? null : await getCurrentUserId();
 
   let tree: NoteTree = EMPTY_TREE;
   let activeTab: "campaign" | "personal" = "campaign";
@@ -76,34 +81,45 @@ export default async function CampaignPage({
 
   // Kick off the combat fetch now and await it after the tool-specific
   // queries so it doesn't add a round trip to every render.
-  const combatPromise: Promise<CombatState | null> = getCombatForCampaign(
-    campaign.id
-  );
+  const combatPromise: Promise<CombatState | null> = isDemo
+    ? Promise.resolve(getDemoCampaign().combat)
+    : getCombatForCampaign(campaign.id);
 
   if (activeTool === "notes") {
     activeTab = searchParams.tab === "my" ? "personal" : "campaign";
 
-    // When the URL names a page, fetch it in parallel with the trees; only
-    // fall back to a second round trip when we need the tree to pick a default.
-    const [trees, pageFromUrl] = await Promise.all([
-      getNoteTreesForCampaign(campaign.id),
-      searchParams.page ? getPageForCurrentUser(searchParams.page) : null,
-    ]);
-    tree = trees[activeTab];
+    if (isDemo) {
+      tree = getDemoCampaign().noteTrees[activeTab];
+      const fallbackId = searchParams.page ?? defaultPageId(tree);
+      selectedPage = fallbackId ? getDemoCampaign().pageById(fallbackId) : null;
+    } else {
+      // When the URL names a page, fetch it in parallel with the trees; only
+      // fall back to a second round trip when we need the tree to pick a default.
+      const [trees, pageFromUrl] = await Promise.all([
+        getNoteTreesForCampaign(campaign.id),
+        searchParams.page ? getPageForCurrentUser(searchParams.page) : null,
+      ]);
+      tree = trees[activeTab];
 
-    let page = pageFromUrl;
-    if (!page) {
-      const fallbackId = defaultPageId(tree);
-      if (fallbackId) page = await getPageForCurrentUser(fallbackId);
+      let page = pageFromUrl;
+      if (!page) {
+        const fallbackId = defaultPageId(tree);
+        if (fallbackId) page = await getPageForCurrentUser(fallbackId);
+      }
+      if (page && page.campaignId === campaign.id) selectedPage = page;
     }
-    if (page && page.campaignId === campaign.id) selectedPage = page;
   }
 
   if (activeTool === "inventory") {
-    [characters, inventoryLog] = await Promise.all([
-      getInventoryForCampaign(campaign.id),
-      getInventoryLog(campaign.id),
-    ]);
+    if (isDemo) {
+      characters = getDemoCampaign().characters;
+      inventoryLog = getDemoCampaign().inventoryLog;
+    } else {
+      [characters, inventoryLog] = await Promise.all([
+        getInventoryForCampaign(campaign.id),
+        getInventoryLog(campaign.id),
+      ]);
+    }
     selectedCharacterId =
       characters.find((c) => c.id === searchParams.character)?.id ??
       characters[0]?.id ??
@@ -111,10 +127,18 @@ export default async function CampaignPage({
   }
 
   if (activeTool === "resources") {
-    [resources, inventoryCharacterOptions] = await Promise.all([
-      getResourcesForCampaign(campaign.id),
-      getInventoryCharacterOptions(campaign.id),
-    ]);
+    if (isDemo) {
+      resources = getDemoCampaign().resources;
+      inventoryCharacterOptions = getDemoCampaign().characters.map((c) => ({
+        id: c.id,
+        name: c.name,
+      }));
+    } else {
+      [resources, inventoryCharacterOptions] = await Promise.all([
+        getResourcesForCampaign(campaign.id),
+        getInventoryCharacterOptions(campaign.id),
+      ]);
+    }
   }
 
   const combat = await combatPromise;
@@ -139,7 +163,9 @@ export default async function CampaignPage({
       resources={resources}
       inventoryCharacterOptions={inventoryCharacterOptions}
       combat={combat}
+      readOnly={isDemo}
       canEditSelected={
+        !isDemo &&
         !!selectedPage &&
         (selectedPage.visibility === "public" || selectedPage.ownerId === userId)
       }

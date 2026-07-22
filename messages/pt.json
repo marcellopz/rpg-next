@@ -58,6 +58,7 @@
     "invite": "Convidar",
     "demo": "Campanha de demonstração",
     "demoDesc": "Experimente o aplicativo com uma campanha de exemplo",
+    "demoReadOnly": "Demonstração somente leitura — faça login para criar sua própria campanha",
     "create": "Criar campanha",
     "noDescription": "Sem descrição ainda"
   },

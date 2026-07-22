@@ -127,12 +127,14 @@ export function CombatTrackerModal({
   campaignId,
   isDm,
   combat,
+  readOnly,
   onClose,
 }: {
   open: boolean;
   campaignId: string;
   isDm: boolean;
   combat: CombatState | null;
+  readOnly?: boolean;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -166,6 +168,7 @@ export function CombatTrackerModal({
         isDm={isDm}
         initialCombat={combat}
         enabled={open}
+        readOnly={readOnly}
       >
         <div
           role="dialog"

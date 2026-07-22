@@ -16,10 +16,12 @@ export function NoteCategoryGroup({
   category,
   selectedPageId,
   controller,
+  readOnly,
 }: {
   category: NoteCategory;
   selectedPageId: string | null;
   controller: NotesSidebarController;
+  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const isCollapsed = !controller.expandedIds.has(category.id);
@@ -29,19 +31,20 @@ export function NoteCategoryGroup({
   return (
     <div>
       <div
-        draggable
+        draggable={!readOnly}
         onDragStart={(e) => {
+          if (readOnly) return;
           e.dataTransfer.effectAllowed = "move";
           controller.setDragItem({ type: "category", id: category.id });
         }}
         onDragEnd={controller.clearDrag}
-        onDragOver={(e) => controller.handleDragOver(e, target)}
+        onDragOver={(e) => !readOnly && controller.handleDragOver(e, target)}
         onDragLeave={() =>
           controller.setDropTarget((prev) =>
             sameTarget(prev, target) ? null : prev
           )
         }
-        onDrop={(e) => controller.handleDrop(e, target)}
+        onDrop={(e) => !readOnly && controller.handleDrop(e, target)}
         className={cn(
           "group flex items-center gap-1 rounded-lg border-t-2 border-transparent",
           isDropTarget &&
@@ -69,12 +72,14 @@ export function NoteCategoryGroup({
           <Folder className="h-4 w-4 shrink-0 text-gray-400" />
           <span className="truncate">{category.name}</span>
         </button>
-        <div className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-          <Menu
-            label={`Options for ${category.name}`}
-            entries={controller.categoryMenuEntries(category)}
-          />
-        </div>
+        {!readOnly && (
+          <div className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+            <Menu
+              label={`Options for ${category.name}`}
+              entries={controller.categoryMenuEntries(category)}
+            />
+          </div>
+        )}
       </div>
       {!isCollapsed && (
         <div className="mt-1 space-y-1 pl-5">
@@ -84,6 +89,7 @@ export function NoteCategoryGroup({
               page={page}
               selected={page.id === selectedPageId}
               controller={controller}
+              readOnly={readOnly}
             />
           ))}
           {category.pages.length === 0 && (

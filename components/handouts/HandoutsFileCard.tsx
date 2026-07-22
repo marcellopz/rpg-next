@@ -28,11 +28,13 @@ export function HandoutsFileCard({
   file,
   campaignId,
   canDelete,
+  readOnly,
   onDeleted,
 }: {
   file: CampaignFileRow;
   campaignId: string;
   canDelete: boolean;
+  readOnly?: boolean;
   onDeleted?: () => void;
 }) {
   const { t } = useI18n();
@@ -172,7 +174,7 @@ export function HandoutsFileCard({
           >
             {opening ? t("campaignSettings.saving") : isImage || isPdf ? "Open" : "Download"}
           </Button>
-          {isShared && (
+          {!readOnly && isShared && (
             <Button
               type="button"
               variant="primary"

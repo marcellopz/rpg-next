@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { savePage } from "@/app/actions/pages";
+import { isDemoCampaignId } from "@/data/demo-campaign";
 import { useI18n } from "@/lib/i18n/context";
 import type { NotePage } from "@/lib/queries/notes";
 import { PageEditor } from "./PageEditor";
@@ -91,6 +92,7 @@ export function PageEditorPanel({
 
   usePageLiveSync({
     pageId: page.id,
+    enabled: !isDemoCampaignId(page.campaignId),
     getIgnoreUpdatedAt: () => lastLocalSaveAtRef.current,
     onRemoteUpdate: handleRemoteUpdate,
   });

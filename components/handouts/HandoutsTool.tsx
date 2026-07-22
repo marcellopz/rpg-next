@@ -14,9 +14,11 @@ import { useCampaignHandouts } from "./useCampaignHandouts";
 export function HandoutsTool({
   campaignId,
   isAdmin,
+  readOnly,
 }: {
   campaignId: string;
   isAdmin: boolean;
+  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -46,7 +48,7 @@ export function HandoutsTool({
   }, []);
 
   function canDeleteFile(uploaderId: string, visibility: HandoutVisibility) {
-    if (!userId) return false;
+    if (readOnly || !userId) return false;
     if (uploaderId === userId) return true;
     return isAdmin && visibility === "public";
   }
@@ -97,24 +99,28 @@ export function HandoutsTool({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setHistoryOpen(true)}
-          >
-            <History className="mr-1.5 h-4 w-4" aria-hidden />
-            {t("handouts.history")}
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={() => setUploadOpen(true)}
-          >
-            <Upload className="mr-1.5 h-4 w-4" aria-hidden />
-            {t("handouts.upload")}
-          </Button>
+          {!readOnly && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setHistoryOpen(true)}
+            >
+              <History className="mr-1.5 h-4 w-4" aria-hidden />
+              {t("handouts.history")}
+            </Button>
+          )}
+          {!readOnly && (
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => setUploadOpen(true)}
+            >
+              <Upload className="mr-1.5 h-4 w-4" aria-hidden />
+              {t("handouts.upload")}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -153,16 +159,18 @@ export function HandoutsTool({
               Choose shared for the whole table, or personal for files only you
               can see. Shared images can be shown to everyone as a popup.
             </Typography>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              className="mt-6"
-              onClick={() => setUploadOpen(true)}
-            >
-              <Upload className="mr-1.5 h-4 w-4" aria-hidden />
-              {t("handouts.upload")}
-            </Button>
+            {!readOnly && (
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                className="mt-6"
+                onClick={() => setUploadOpen(true)}
+              >
+                <Upload className="mr-1.5 h-4 w-4" aria-hidden />
+                {t("handouts.upload")}
+              </Button>
+            )}
           </div>
         ) : files.length === 0 ? (
           <div className="flex min-h-[24rem] flex-col items-center justify-center text-center">
@@ -181,6 +189,7 @@ export function HandoutsTool({
                 file={file}
                 campaignId={campaignId}
                 canDelete={canDeleteFile(file.uploaderId, file.visibility)}
+                readOnly={readOnly}
                 onDeleted={() => void refresh()}
               />
             ))}
@@ -188,12 +197,14 @@ export function HandoutsTool({
         )}
       </div>
 
-      <HandoutsUploadDialog
-        open={uploadOpen}
-        campaignId={campaignId}
-        onClose={() => setUploadOpen(false)}
-        onUploaded={() => void refresh()}
-      />
+      {!readOnly && (
+        <HandoutsUploadDialog
+          open={uploadOpen}
+          campaignId={campaignId}
+          onClose={() => setUploadOpen(false)}
+          onUploaded={() => void refresh()}
+        />
+      )}
       {historyOpen && (
         <HandoutsHistoryPanel
           campaignId={campaignId}

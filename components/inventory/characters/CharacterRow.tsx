@@ -14,6 +14,7 @@ export function CharacterRow({
   menuEntries,
   dragging,
   dropIndicator,
+  dragEnabled = true,
   onDragStart,
   onDragEnd,
   onDragOver,
@@ -26,6 +27,7 @@ export function CharacterRow({
   menuEntries: MenuEntry[];
   dragging: boolean;
   dropIndicator: boolean;
+  dragEnabled?: boolean;
   onDragStart: () => void;
   onDragEnd: () => void;
   onDragOver: (e: DragEvent) => void;
@@ -34,15 +36,16 @@ export function CharacterRow({
 }) {
   return (
     <div
-      draggable
+      draggable={dragEnabled}
       onDragStart={(e) => {
+        if (!dragEnabled) return;
         e.dataTransfer.effectAllowed = "move";
         onDragStart();
       }}
       onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
+      onDragOver={dragEnabled ? onDragOver : undefined}
       onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      onDrop={dragEnabled ? onDrop : undefined}
       className={cn(
         "group flex items-center gap-1 border-t-2",
         dropIndicator ? "border-accent-400" : "border-transparent",
@@ -67,9 +70,11 @@ export function CharacterRow({
         />
         <span className="truncate font-medium">{character.name}</span>
       </NavLink>
-      <div className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-        <Menu label={`Options for ${character.name}`} entries={menuEntries} />
-      </div>
+      {menuEntries.length > 0 && (
+        <div className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+          <Menu label={`Options for ${character.name}`} entries={menuEntries} />
+        </div>
+      )}
     </div>
   );
 }

@@ -40,7 +40,7 @@ export function CombatTrackerRow({
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
 }) {
-  const { campaignId, isDm, runAction } = useCombatTracker();
+  const { campaignId, isDm, runAction, readOnly } = useCombatTracker();
   const [hp, setHp] = useState(combatant.hp);
   const [openPlus, setOpenPlus] = useState(false);
   const [healValue, setHealValue] = useState(0);
@@ -74,6 +74,7 @@ export function CombatTrackerRow({
   }
 
   function handleTouchStart(e: React.TouchEvent) {
+    if (readOnly) return;
     const touch = e.touches[0];
     longPressStart.current = { x: touch.clientX, y: touch.clientY };
     clearLongPressTimer();
@@ -149,6 +150,7 @@ export function CombatTrackerRow({
         onDrop={onDrop}
         onContextMenu={(e) => {
           e.preventDefault();
+          if (readOnly) return;
           setContextMenu({ x: e.clientX, y: e.clientY });
         }}
         onTouchStart={handleTouchStart}

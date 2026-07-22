@@ -4,7 +4,7 @@ import { DemoSection } from "@/components/campaigns/DemoSection";
 import { CampaignsPageHeaderBrowse, CampaignsPageHeaderOwned } from "@/components/campaigns/CampaignsPageHeader";
 import { CampaignsEmptyState } from "@/components/campaigns/CampaignsEmptyState";
 import { SignInLink } from "@/components/campaigns/SignInLink";
-import { DEMO_CAMPAIGNS } from "@/data/demo-campaigns";
+import { DEMO_CAMPAIGN_CARD } from "@/data/demo-campaign";
 import { getCampaignsForCurrentUser } from "@/lib/queries/campaigns";
 
 export default async function CampaignsPage() {
@@ -20,9 +20,7 @@ export default async function CampaignsPage() {
         </div>
 
         <div id="campaigns-list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {DEMO_CAMPAIGNS.map((c) => (
-            <CampaignCard key={c.id} campaign={c} />
-          ))}
+          <CampaignCard campaign={DEMO_CAMPAIGN_CARD} />
         </div>
       </div>
     );

@@ -41,11 +41,13 @@ export function CharacterPanel({
   character,
   allCharacters,
   onViewLog,
+  readOnly,
 }: {
   campaignId: string;
   character: Character;
   allCharacters: Character[];
   onViewLog: () => void;
+  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -85,24 +87,33 @@ export function CharacterPanel({
         <style>{`@media (min-width: 1024px) { header { grid-template-columns: auto 1fr auto auto; } }`}</style>
         {/* Avatar - spans 3 rows on mobile, 2 rows on desktop */}
         <div className="col-start-1 row-start-1 row-span-3 lg:row-span-2">
-          <Tooltip label={t("character.photo")}>
-            <button
-              type="button"
-              aria-label={`Change ${character.name}'s photo`}
-              onClick={() => setPhotoOpen(true)}
-              className="group relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            >
-              <CharacterAvatar
-                name={character.name}
-                imageUrl={character.imageUrl}
-                size={50}
-                className="border border-gray-200"
-              />
-              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                <Camera className="h-4 w-4 text-white" aria-hidden="true" />
-              </span>
-            </button>
-          </Tooltip>
+          {readOnly ? (
+            <CharacterAvatar
+              name={character.name}
+              imageUrl={character.imageUrl}
+              size={50}
+              className="border border-gray-200"
+            />
+          ) : (
+            <Tooltip label={t("character.photo")}>
+              <button
+                type="button"
+                aria-label={`Change ${character.name}'s photo`}
+                onClick={() => setPhotoOpen(true)}
+                className="group relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              >
+                <CharacterAvatar
+                  name={character.name}
+                  imageUrl={character.imageUrl}
+                  size={50}
+                  className="border border-gray-200"
+                />
+                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  <Camera className="h-4 w-4 text-white" aria-hidden="true" />
+                </span>
+              </button>
+            </Tooltip>
+          )}
         </div>
 
         {/* Name - row 1, col 2 */}
@@ -137,6 +148,7 @@ export function CharacterPanel({
               type="number"
               displayClassName={COMPACT_EDIT}
               inputClassName="text-xs"
+              readOnly={readOnly}
               onCommit={(v) => commitStat("strength", v)}
             />
           </div>
@@ -155,6 +167,7 @@ export function CharacterPanel({
                 type="number"
                 displayClassName={COMPACT_EDIT}
                 inputClassName="text-xs"
+                readOnly={readOnly}
                 onCommit={(v) => commitStat(field, v)}
               />
             </div>
@@ -167,7 +180,7 @@ export function CharacterPanel({
         </div>
       </header>
 
-      <ItemsTable character={character} allCharacters={allCharacters} />
+      <ItemsTable character={character} allCharacters={allCharacters} readOnly={readOnly} />
 
       {photoOpen && (
         <ImageCropDialog

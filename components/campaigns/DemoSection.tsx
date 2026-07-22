@@ -2,7 +2,7 @@
 
 import { CampaignCard } from "@/components/campaigns/CampaignCard";
 import { Typography } from "@/components/ui";
-import { DEMO_CAMPAIGNS } from "@/data/demo-campaigns";
+import { DEMO_CAMPAIGN_CARD } from "@/data/demo-campaign";
 import { useI18n } from "@/lib/i18n/context";
 
 export function DemoSection() {
@@ -17,9 +17,7 @@ export function DemoSection() {
         {t("campaigns.demoDesc")}
       </Typography>
       <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {DEMO_CAMPAIGNS.map((c) => (
-          <CampaignCard key={c.id} campaign={c} />
-        ))}
+        <CampaignCard campaign={DEMO_CAMPAIGN_CARD} />
       </div>
     </div>
   );

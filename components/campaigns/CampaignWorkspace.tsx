@@ -47,6 +47,7 @@ export function CampaignWorkspace({
   resources,
   inventoryCharacterOptions,
   combat,
+  readOnly,
 }: {
   campaignId: string;
   name: string;
@@ -67,6 +68,7 @@ export function CampaignWorkspace({
   resources: ResourcesDashboard;
   inventoryCharacterOptions: InventoryCharacterOption[];
   combat: CombatState | null;
+  readOnly: boolean;
 }) {
   const { t } = useI18n();
   const treeHasPages =
@@ -124,12 +126,18 @@ export function CampaignWorkspace({
                     {t("campaign.player")}
                   </Chip>
                 )}
+                {readOnly && (
+                  <Chip variant="onDark" className="uppercase tracking-wide">
+                    {t("campaigns.demoReadOnly")}
+                  </Chip>
+                )}
                 <Chip variant="onDarkSolid">{t("campaign.workspace")}</Chip>
                 <div id="campaign-actions" className="ml-auto flex flex-wrap gap-2">
                   <CombatTrackerLauncher
                     campaignId={campaignId}
                     isDm={isDm}
                     combat={combat}
+                    readOnly={readOnly}
                   />
                   <CampaignSearchButton
                     campaignId={campaignId}
@@ -184,6 +192,7 @@ export function CampaignWorkspace({
                 tree={tree}
                 activeTab={activeTab}
                 selectedPageId={selectedPage?.id ?? null}
+                readOnly={readOnly}
               />
             </aside>
 
@@ -222,15 +231,17 @@ export function CampaignWorkspace({
             characters={characters}
             selectedCharacterId={selectedCharacterId}
             log={inventoryLog}
+            readOnly={readOnly}
           />
         ) : activeTool === "resources" ? (
           <ResourcesTool
             campaignId={campaignId}
             dashboard={resources}
             inventoryCharacters={inventoryCharacterOptions}
+            readOnly={readOnly}
           />
         ) : activeTool === "handouts" ? (
-          <HandoutsTool campaignId={campaignId} isAdmin={isAdmin} />
+          <HandoutsTool campaignId={campaignId} isAdmin={isAdmin} readOnly={readOnly} />
         ) : (
           <ToolPlaceholder
             title={getToolPlaceholderLabel(activeTool)}

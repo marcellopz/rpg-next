@@ -11,6 +11,7 @@ export function InlineEdit({
   type = "text",
   displayClassName,
   inputClassName,
+  readOnly,
   onCommit,
 }: {
   value: string;
@@ -18,6 +19,7 @@ export function InlineEdit({
   type?: "text" | "number";
   displayClassName?: string;
   inputClassName?: string;
+  readOnly?: boolean;
   onCommit: (next: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
@@ -48,6 +50,14 @@ export function InlineEdit({
     await onCommit(next);
     setBusy(false);
     setEditing(false);
+  }
+
+  if (readOnly) {
+    return (
+      <span className={cn("rounded px-1 text-left", displayClassName)}>
+        {value}
+      </span>
+    );
   }
 
   if (!editing) {

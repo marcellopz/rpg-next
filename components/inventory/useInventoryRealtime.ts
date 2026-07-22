@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { isDemoCampaignId } from "@/data/demo-campaign";
 import { createClient } from "@/lib/supabase/client";
 
 const TABLES = ["characters", "inventory_items", "inventory_log_entries"];
@@ -16,6 +17,7 @@ export function useInventoryRealtime(campaignId: string) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (isDemoCampaignId(campaignId)) return;
     const supabase = createClient();
 
     function scheduleRefresh() {

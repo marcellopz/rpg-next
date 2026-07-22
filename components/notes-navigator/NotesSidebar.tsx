@@ -24,12 +24,14 @@ export function NotesSidebar({
   tree,
   activeTab,
   selectedPageId,
+  readOnly,
 }: {
   campaignId: string;
   publicCode: string;
   tree: NoteTree;
   activeTab: NoteScope;
   selectedPageId: string | null;
+  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const sidebar = useNotesSidebar({
@@ -60,6 +62,7 @@ export function NotesSidebar({
             category={category}
             selectedPageId={selectedPageId}
             controller={sidebar}
+            readOnly={readOnly}
           />
         ))}
 
@@ -71,28 +74,31 @@ export function NotesSidebar({
                 page={page}
                 selected={page.id === selectedPageId}
                 controller={sidebar}
+                readOnly={readOnly}
               />
             ))}
           </div>
         )}
 
-        <RootPageDropZone controller={sidebar} />
+        {!readOnly && <RootPageDropZone controller={sidebar} />}
       </div>
 
-      <div id="campaign-sidebar-actions" className="mt-5 grid gap-2">
-        <NewItemForm
-          label={t("notes.newCategory")}
-          placeholder="Category name"
-          maxLength={CATEGORY_NAME_MAX}
-          onSubmit={sidebar.createRootCategory}
-        />
-        <NewItemForm
-          label={t("notes.newPage")}
-          placeholder="Page title"
-          maxLength={PAGE_TITLE_MAX}
-          onSubmit={sidebar.createRootPage}
-        />
-      </div>
+      {!readOnly && (
+        <div id="campaign-sidebar-actions" className="mt-5 grid gap-2">
+          <NewItemForm
+            label={t("notes.newCategory")}
+            placeholder="Category name"
+            maxLength={CATEGORY_NAME_MAX}
+            onSubmit={sidebar.createRootCategory}
+          />
+          <NewItemForm
+            label={t("notes.newPage")}
+            placeholder="Page title"
+            maxLength={PAGE_TITLE_MAX}
+            onSubmit={sidebar.createRootPage}
+          />
+        </div>
+      )}
     </div>
   );
 }

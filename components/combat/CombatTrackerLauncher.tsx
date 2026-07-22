@@ -10,10 +10,12 @@ export function CombatTrackerLauncher({
   campaignId,
   isDm,
   combat,
+  readOnly,
 }: {
   campaignId: string;
   isDm: boolean;
   combat: CombatState | null;
+  readOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -34,6 +36,7 @@ export function CombatTrackerLauncher({
         campaignId={campaignId}
         isDm={isDm}
         combat={combat}
+        readOnly={readOnly}
         onClose={() => setOpen(false)}
       />
     </>

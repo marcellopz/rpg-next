@@ -12,9 +12,11 @@ import { ResourceItemRow } from "./ResourceItemRow";
 export function ResourceCardPanel({
   card,
   isEditing,
+  readOnly,
 }: {
   card: ResourceCard;
   isEditing: boolean;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState(card.name);
@@ -90,7 +92,7 @@ export function ResourceCardPanel({
           <p className="text-sm text-gray-500">No resources yet.</p>
         )}
         {card.items.map((item) => (
-          <ResourceItemRow key={item.id} item={item} isEditing={isEditing} />
+          <ResourceItemRow key={item.id} item={item} isEditing={isEditing} readOnly={readOnly} />
         ))}
         {isEditing && <AddResourceForm cardId={card.id} />}
       </div>

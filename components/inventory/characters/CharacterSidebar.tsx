@@ -22,11 +22,13 @@ export function CharacterSidebar({
   characters,
   selectedCharacterId,
   characterHref,
+  readOnly,
 }: {
   campaignId: string;
   characters: Character[];
   selectedCharacterId: string | null;
   characterHref: (characterId: string) => string;
+  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -126,9 +128,10 @@ export function CharacterSidebar({
             character={character}
             selected={character.id === selectedCharacterId}
             href={characterHref(character.id)}
-            menuEntries={menuEntries(character)}
+            menuEntries={readOnly ? [] : menuEntries(character)}
             dragging={dragId === character.id}
             dropIndicator={dropId === character.id}
+            dragEnabled={!readOnly}
             onDragStart={() => setDragId(character.id)}
             onDragEnd={clearDrag}
             onDragOver={(e) => handleDragOver(e, character.id)}
@@ -140,7 +143,7 @@ export function CharacterSidebar({
         ))}
 
         {/* End-of-list drop zone so a row can be dragged to the bottom. */}
-        {dragId && (
+        {!readOnly && dragId && (
           <div
             onDragOver={(e) => handleDragOver(e, "end")}
             onDragLeave={() =>
@@ -159,12 +162,14 @@ export function CharacterSidebar({
         )}
       </div>
 
-      <div id="inventory-sidebar-actions" className="mt-5">
-        <AddCharacterDialog
-          campaignId={campaignId}
-          characterHref={characterHref}
-        />
-      </div>
+      {!readOnly && (
+        <div id="inventory-sidebar-actions" className="mt-5">
+          <AddCharacterDialog
+            campaignId={campaignId}
+            characterHref={characterHref}
+          />
+        </div>
+      )}
     </div>
   );
 }

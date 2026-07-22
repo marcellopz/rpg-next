@@ -16,10 +16,12 @@ export function NotePageRow({
   page,
   selected,
   controller,
+  readOnly,
 }: {
   page: NotePageSummary;
   selected: boolean;
   controller: NotesSidebarController;
+  readOnly?: boolean;
 }) {
   const target: DropTarget = {
     type: "page",
@@ -29,19 +31,20 @@ export function NotePageRow({
 
   return (
     <div
-      draggable
+      draggable={!readOnly}
       onDragStart={(e) => {
+        if (readOnly) return;
         e.dataTransfer.effectAllowed = "move";
         controller.setDragItem({ type: "page", id: page.id });
       }}
       onDragEnd={controller.clearDrag}
-      onDragOver={(e) => controller.handleDragOver(e, target)}
+      onDragOver={(e) => !readOnly && controller.handleDragOver(e, target)}
       onDragLeave={() =>
         controller.setDropTarget((prev) =>
           sameTarget(prev, target) ? null : prev
         )
       }
-      onDrop={(e) => controller.handleDrop(e, target)}
+      onDrop={(e) => !readOnly && controller.handleDrop(e, target)}
       className={cn(
         "group flex items-center gap-1 border-t-2",
         sameTarget(controller.dropTarget, target)
@@ -65,12 +68,14 @@ export function NotePageRow({
         <FileText className="h-4 w-4 shrink-0 text-gray-400" />
         <span className="truncate">{page.title}</span>
       </NavLink>
-      <div className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-        <Menu
-          label={`Options for ${page.title}`}
-          entries={controller.pageMenuEntries(page)}
-        />
-      </div>
+      {!readOnly && (
+        <div className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+          <Menu
+            label={`Options for ${page.title}`}
+            entries={controller.pageMenuEntries(page)}
+          />
+        </div>
+      )}
     </div>
   );
 }

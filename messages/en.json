@@ -58,6 +58,7 @@
     "invite": "Invite",
     "demo": "Demo campaign",
     "demoDesc": "Try the app with a sample campaign",
+    "demoReadOnly": "Read-only demo — sign in to create your own campaign",
     "create": "Create campaign",
     "noDescription": "No description yet"
   },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getDemoCampaign, isDemoCampaignId } from "@/data/demo-campaign";
 import { createClient } from "@/lib/supabase/client";
 import { fetchFilesForCampaignClient } from "@/lib/files/client-state";
 import type {
@@ -31,6 +32,12 @@ export function useCampaignHandouts(campaignId: string) {
   });
 
   const refresh = useCallback(async () => {
+    if (isDemoCampaignId(campaignId)) {
+      setFiles(getDemoCampaign().handouts);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -49,6 +56,7 @@ export function useCampaignHandouts(campaignId: string) {
   }, [refresh]);
 
   useEffect(() => {
+    if (isDemoCampaignId(campaignId)) return;
     const supabase = createClient();
     const channel = supabase
       .channel(`handouts:${campaignId}`)

@@ -14,9 +14,11 @@ import { IconButton } from "@/components/ui";
 export function ResourceItemRow({
   item,
   isEditing,
+  readOnly,
 }: {
   item: ResourceItem;
   isEditing: boolean;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -116,7 +118,7 @@ export function ResourceItemRow({
         <IconButton
           aria-label={`Decrease ${item.name}`}
           onClick={() => adjustCurrent(-1)}
-          disabled={isPending || item.currentValue <= 0}
+          disabled={readOnly || isPending || item.currentValue <= 0}
         >
           <Minus className="h-3.5 w-3.5" />
         </IconButton>
@@ -126,7 +128,7 @@ export function ResourceItemRow({
         <IconButton
           aria-label={`Increase ${item.name}`}
           onClick={() => adjustCurrent(1)}
-          disabled={isPending || item.currentValue >= item.totalValue}
+          disabled={readOnly || isPending || item.currentValue >= item.totalValue}
         >
           <Plus className="h-3.5 w-3.5" />
         </IconButton>

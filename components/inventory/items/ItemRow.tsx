@@ -25,6 +25,8 @@ export function ItemRow({
   menuEntries,
   dragging,
   dropIndicator,
+  dragEnabled = true,
+  readOnly,
   onDragStart,
   onDragEnd,
   onDragOver,
@@ -37,6 +39,8 @@ export function ItemRow({
   menuEntries: MenuEntry[];
   dragging: boolean;
   dropIndicator: boolean;
+  dragEnabled?: boolean;
+  readOnly?: boolean;
   onDragStart: () => void;
   onDragEnd: () => void;
   onDragOver: (e: DragEvent) => void;
@@ -52,15 +56,16 @@ export function ItemRow({
 
   return (
     <div
-      draggable
+      draggable={dragEnabled}
       onDragStart={(e) => {
+        if (!dragEnabled) return;
         e.dataTransfer.effectAllowed = "move";
         onDragStart();
       }}
       onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
+      onDragOver={dragEnabled ? onDragOver : undefined}
       onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      onDrop={dragEnabled ? onDrop : undefined}
       className={cn(
         "group grid items-center gap-2 border-t-2 px-4 py-1.5 text-sm",
         ITEMS_GRID,
@@ -74,6 +79,7 @@ export function ItemRow({
           value={String(item.quantity)}
           ariaLabel={t("inventory.tool")}
           type="number"
+          readOnly={readOnly}
           onCommit={(v) => onEdit("quantity", v)}
         />
       </div>
@@ -83,6 +89,7 @@ export function ItemRow({
           value={item.name}
           ariaLabel={item.name}
           displayClassName={textClass}
+          readOnly={readOnly}
           onCommit={(v) => onEdit("name", v)}
         />
       </div>
@@ -91,9 +98,10 @@ export function ItemRow({
       <select
         aria-label={t("inventory.tool")}
         value={item.itemType}
+        disabled={readOnly}
         onChange={(e) => void onEdit("itemType", e.target.value)}
         className={cn(
-          "hidden cursor-pointer rounded border-0 bg-transparent py-0.5 pl-0 pr-6 text-sm capitalize hover:bg-accent-50 focus:outline-none sm:block",
+          "hidden cursor-pointer rounded border-0 bg-transparent py-0.5 pl-0 pr-6 text-sm capitalize hover:bg-accent-50 focus:outline-none sm:block disabled:cursor-default disabled:hover:bg-transparent",
           textClass
         )}
       >
@@ -110,6 +118,7 @@ export function ItemRow({
           value={formatWeight(item.weight)}
           ariaLabel={item.name}
           type="number"
+          readOnly={readOnly}
           onCommit={(v) => onEdit("weight", v)}
         />
       </div>
@@ -120,7 +129,9 @@ export function ItemRow({
       </div>
 
       <div className="justify-self-end">
-        <Menu label={`Options for ${item.name}`} entries={menuEntries} />
+        {menuEntries.length > 0 && (
+          <Menu label={`Options for ${item.name}`} entries={menuEntries} />
+        )}
       </div>
     </div>
   );

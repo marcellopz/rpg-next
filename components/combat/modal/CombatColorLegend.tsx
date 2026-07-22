@@ -1,9 +1,9 @@
 export function CombatColorLegend() {
   const segments = [
-    { label: "Critical", dot: "bg-gray-700" },
-    { label: "Bloodied", dot: "bg-red-500" },
-    { label: "Hurt", dot: "bg-amber-500" },
-    { label: "Healthy", dot: "bg-emerald-500" },
+    { label: "Critical", range: "≤25%", dot: "bg-gray-700" },
+    { label: "Bloodied", range: "26–50%", dot: "bg-red-500" },
+    { label: "Hurt", range: "51–75%", dot: "bg-amber-500" },
+    { label: "Healthy", range: ">75%", dot: "bg-emerald-500" },
   ];
 
   return (
@@ -18,6 +18,7 @@ export function CombatColorLegend() {
         >
           <span className={`h-2 w-2 rounded-full ${seg.dot}`} aria-hidden />
           {seg.label}
+          <span className="text-gray-400">({seg.range})</span>
         </span>
       ))}
     </div>

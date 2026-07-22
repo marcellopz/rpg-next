@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { isDemoCampaignId } from "@/data/demo-campaign";
 import { createClient } from "@/lib/supabase/client";
 
 const CARD_TABLE = "resource_cards";
@@ -13,6 +14,7 @@ export function useResourcesRealtime(campaignId: string) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (isDemoCampaignId(campaignId)) return;
     const supabase = createClient();
 
     function scheduleRefresh() {

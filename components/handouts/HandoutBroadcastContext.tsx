@@ -15,6 +15,7 @@ import {
   showHandoutToTable,
 } from "@/app/actions/files";
 import type { ActionResult } from "@/app/actions/campaigns";
+import { isDemoCampaignId } from "@/data/demo-campaign";
 import { fetchHandoutBroadcastClient } from "@/lib/files/client-state";
 import type { HandoutBroadcast } from "@/lib/files/types";
 import { createClient } from "@/lib/supabase/client";
@@ -63,6 +64,7 @@ export function HandoutBroadcastProvider({
   }, []);
 
   const refresh = useCallback(async () => {
+    if (isDemoCampaignId(campaignId)) return;
     try {
       const next = await fetchHandoutBroadcastClient(campaignId);
       applyBroadcast(next);
@@ -76,6 +78,7 @@ export function HandoutBroadcastProvider({
   }, [refresh]);
 
   useEffect(() => {
+    if (isDemoCampaignId(campaignId)) return;
     const supabase = createClient();
     let active = true;
     const channel = supabase.channel(`handout-live:${campaignId}`, {

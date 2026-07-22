@@ -21,9 +21,11 @@ import { cn } from "@/lib/cn";
 export function ItemsTable({
   character,
   allCharacters,
+  readOnly,
 }: {
   character: Character;
   allCharacters: Character[];
+  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -132,9 +134,11 @@ export function ItemsTable({
             key={item.id}
             item={item}
             index={index}
-            menuEntries={menuEntries(item)}
+            menuEntries={readOnly ? [] : menuEntries(item)}
             dragging={dragId === item.id}
             dropIndicator={dropId === item.id}
+            dragEnabled={!readOnly}
+            readOnly={readOnly}
             onDragStart={() => setDragId(item.id)}
             onDragEnd={clearDrag}
             onDragOver={(e) => handleDragOver(e, item.id)}
@@ -147,7 +151,7 @@ export function ItemsTable({
         ))}
 
         {/* End-of-list drop zone so a row can be dragged to the bottom. */}
-        {dragId && (
+        {!readOnly && dragId && (
           <div
             onDragOver={(e) => handleDragOver(e, "end")}
             onDragLeave={() =>
@@ -166,7 +170,7 @@ export function ItemsTable({
         )}
       </div>
 
-      <AddItemForm characterId={character.id} />
+      {!readOnly && <AddItemForm characterId={character.id} />}
     </div>
   );
 }

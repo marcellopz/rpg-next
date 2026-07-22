@@ -17,11 +17,13 @@ export function ResourcesDashboardGrid({
   cards,
   initialLayouts,
   isEditing,
+  readOnly,
 }: {
   campaignId: string;
   cards: ResourceCardData[];
   initialLayouts: Layouts;
   isEditing: boolean;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const parentRef = useRef<HTMLDivElement>(null);
@@ -104,7 +106,7 @@ export function ResourcesDashboardGrid({
         >
           {cards.map((card) => (
             <div key={card.id} className={isEditing ? "editing" : ""}>
-              <ResourceCardPanel card={card} isEditing={isEditing} />
+              <ResourceCardPanel card={card} isEditing={isEditing} readOnly={readOnly} />
             </div>
           ))}
         </Responsive>

@@ -25,6 +25,7 @@ type CombatTrackerContextValue = {
     optimistic: (prev: CombatState | null) => CombatState | null,
     action: () => Promise<ActionResult<T>>
   ) => Promise<ActionResult<T>>;
+  readOnly: boolean;
 };
 
 const CombatTrackerContext = createContext<CombatTrackerContextValue | null>(
@@ -38,12 +39,14 @@ export function CombatTrackerProvider({
   isDm,
   initialCombat,
   enabled,
+  readOnly,
   children,
 }: {
   campaignId: string;
   isDm: boolean;
   initialCombat: CombatState | null;
   enabled: boolean;
+  readOnly?: boolean;
   children: ReactNode;
 }) {
   const [combat, setCombat] = useState<CombatState | null>(initialCombat);
@@ -53,22 +56,25 @@ export function CombatTrackerProvider({
   isDmRef.current = isDm;
 
   const refreshCombat = useCallback(async () => {
+    if (readOnly) return;
     const next = await fetchCombatClient(campaignId);
     setCombat(next);
-  }, [campaignId]);
+  }, [campaignId, readOnly]);
 
   const refreshCombatRef = useRef(refreshCombat);
   refreshCombatRef.current = refreshCombat;
 
   // Fetch fresh state whenever the modal opens — do not re-sync from stale
   // server props while the modal stays open (that blocked live player updates).
+  // Skipped entirely for a read-only (demo) campaign: there is no real row to
+  // fetch, and doing so would overwrite the static combat state with null.
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || readOnly) return;
     void refreshCombatRef.current();
-  }, [enabled, campaignId]);
+  }, [enabled, campaignId, readOnly]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || readOnly) return;
 
     const supabase = createClient();
     const timerRef = { current: null as ReturnType<typeof setTimeout> | null };
@@ -102,13 +108,14 @@ export function CombatTrackerProvider({
       if (timerRef.current) clearTimeout(timerRef.current);
       void supabase.removeChannel(channel);
     };
-  }, [campaignId, enabled]);
+  }, [campaignId, enabled, readOnly]);
 
   const runAction = useCallback(
     async <T,>(
       optimistic: (prev: CombatState | null) => CombatState | null,
       action: () => Promise<ActionResult<T>>
     ): Promise<ActionResult<T>> => {
+      if (readOnly) return { ok: true, data: undefined as T };
       const snapshot = combatRef.current;
       setCombat(optimistic);
       const result = await action();
@@ -119,7 +126,7 @@ export function CombatTrackerProvider({
       void refreshCombatRef.current();
       return result;
     },
-    []
+    [readOnly]
   );
 
   const value = useMemo(
@@ -130,8 +137,9 @@ export function CombatTrackerProvider({
       setCombat,
       refreshCombat,
       runAction,
+      readOnly: !!readOnly,
     }),
-    [combat, campaignId, isDm, refreshCombat, runAction]
+    [combat, campaignId, isDm, refreshCombat, runAction, readOnly]
   );
 
   return (

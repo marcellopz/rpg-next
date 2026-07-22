@@ -17,12 +17,14 @@ export function InventoryTool({
   characters,
   selectedCharacterId,
   log,
+  readOnly,
 }: {
   campaignId: string;
   publicCode: string;
   characters: Character[];
   selectedCharacterId: string | null;
   log: InventoryLogEntry[];
+  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const [logOpen, setLogOpen] = useState(false);
@@ -50,6 +52,7 @@ export function InventoryTool({
           characters={characters}
           selectedCharacterId={selectedCharacterId}
           characterHref={characterHref}
+          readOnly={readOnly}
         />
       </aside>
 
@@ -60,6 +63,7 @@ export function InventoryTool({
             character={selected}
             allCharacters={characters}
             onViewLog={() => setLogOpen(true)}
+            readOnly={readOnly}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center p-8 text-center">
