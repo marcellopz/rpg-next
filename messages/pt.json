@@ -422,5 +422,11 @@
   },
   "common": {
     "comingSoon": "Em breve"
+  },
+  "footer": {
+    "tagline": "Notas, inventário e combate — tudo em um só lugar, onde quer que sua mesa se reúna.",
+    "contact": "Contato",
+    "discord": "Discord",
+    "email": "E-mail"
   }
 }

@@ -418,5 +418,11 @@
   },
   "common": {
     "comingSoon": "Coming soon"
+  },
+  "footer": {
+    "tagline": "Notes, inventory, and combat — all in one place, wherever your table meets.",
+    "contact": "Contact",
+    "discord": "Discord",
+    "email": "Email"
   }
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 import { getCurrentUser } from "@/lib/supabase/server";
+import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 import { getPendingInviteCountForCurrentUser } from "@/lib/queries/invites";
@@ -27,12 +27,7 @@ export default async function RootLayout({
           <NavigationProvider>
             <Navbar user={user} pendingInviteCount={pendingInviteCount} />
             <main id="site-main" className="flex-1">{children}</main>
-            <footer id="site-footer" className="mt-auto border-t border-gray-200 bg-white py-8">
-              <div className="app-container flex items-center gap-2 text-sm text-gray-500">
-                <Image src="/logo.svg" alt="" width={24} height={24} />
-                <span>RPG Manager</span>
-              </div>
-            </footer>
+            <Footer />
           </NavigationProvider>
         </I18nProvider>
       </body>
