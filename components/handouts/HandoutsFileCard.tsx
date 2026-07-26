@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   Eye,
   EyeOff,
@@ -102,11 +103,12 @@ export function HandoutsFileCard({
     <article className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="relative flex h-36 items-center justify-center bg-gray-50">
         {isImage && file.publicUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={file.publicUrl}
             alt={file.filename}
-            className="h-full w-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="object-cover"
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-gray-400">

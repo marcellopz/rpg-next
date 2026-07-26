@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { cn } from "@/lib/cn";
 
@@ -20,11 +21,10 @@ export function CharacterAvatar({
   return (
     <span
       aria-hidden="true"
-      className={cn("inline-block shrink-0 overflow-hidden rounded-full", className)}
+      className={cn("relative inline-block shrink-0 overflow-hidden rounded-full", className)}
       style={{ width: size, height: size, lineHeight: 0 }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+      <Image src={imageUrl} alt="" fill sizes={`${size}px`} className="object-cover" />
     </span>
   );
 }

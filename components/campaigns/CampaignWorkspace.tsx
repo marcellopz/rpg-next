@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { NavLink } from "@/components/navigation/NavLink";
 import { useI18n } from "@/lib/i18n/context";
 import { NotesSidebar } from "@/components/notes-navigator/NotesSidebar";
@@ -95,11 +96,13 @@ export function CampaignWorkspace({
         <div className="relative bg-gradient-to-br from-accent-700 via-accent-600 to-accent-500 px-6 py-8 text-white md:px-8">
           {imageUrl && (
             <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={imageUrl}
                 alt=""
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                sizes="100vw"
+                priority
+                className="object-cover"
               />
               {/* Darkening overlay keeps the white header text legible. */}
               <div

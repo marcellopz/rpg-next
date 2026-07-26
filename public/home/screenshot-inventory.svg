@@ -1,8 +1,0 @@
-<svg width="700" height="460" viewBox="0 0 700 460" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="1" y="1" width="698" height="458" rx="10" fill="#e9e9ee" stroke="#cfcfd6" stroke-width="2"/>
-  <rect x="24" y="24" width="652" height="40" rx="6" fill="#d6d6de"/>
-  <rect x="24" y="84" width="300" height="352" rx="6" fill="#dcdce3"/>
-  <rect x="344" y="84" width="332" height="160" rx="6" fill="#dcdce3"/>
-  <rect x="344" y="260" width="332" height="176" rx="6" fill="#dcdce3"/>
-  <text x="350" y="240" font-family="system-ui, sans-serif" font-size="22" fill="#8a8a93" text-anchor="middle">inventory placeholder</text>
-</svg>

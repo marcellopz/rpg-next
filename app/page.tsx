@@ -1,7 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { CombatPreview } from "@/components/home/CombatPreview";
+import { InventoryPreview } from "@/components/home/InventoryPreview";
 import { buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/context";
@@ -135,8 +138,13 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -right-16 h-80 w-80 rounded-full bg-black/20 blur-3xl" />
         <div className="relative mx-auto flex max-w-4xl flex-col items-center px-6 py-24 text-center sm:py-32">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-white.svg" alt="" className="mb-6 h-16 w-16" />
+          <Image
+            src="/logo-white.svg"
+            alt=""
+            width={64}
+            height={64}
+            className="mb-6 h-16 w-16"
+          />
           <span className="mb-5 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-wide">
             {t("home.tagline")}
           </span>
@@ -224,12 +232,7 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="flex flex-1 justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/home/screenshot-inventory.svg"
-                alt="Inventory screenshot placeholder"
-                className="w-full max-w-xl rounded-xl border border-gray-200 shadow-sm"
-              />
+              <InventoryPreview />
             </div>
           </div>
 
@@ -257,12 +260,7 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="flex flex-1 justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/home/screenshot-combat.svg"
-                alt="Combat tracker placeholder"
-                className="w-full max-w-xl rounded-xl border border-gray-200 shadow-sm"
-              />
+              <CombatPreview />
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { NavLink } from "@/components/navigation/NavLink";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { Tooltip, Chip } from "@/components/ui";
@@ -46,11 +47,12 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
     >
       <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-t-2xl bg-gradient-to-br from-accent-600 to-accent-800">
         {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={imageUrl}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
           />
         ) : (
           <span className="text-4xl font-bold text-white/90">

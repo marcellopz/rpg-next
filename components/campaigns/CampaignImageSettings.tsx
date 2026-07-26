@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ImagePlus } from "lucide-react";
 import { updateCampaignImage } from "@/app/actions/campaigns";
 import { ImageCropDialog } from "@/components/images/ImageCropDialog";
@@ -53,13 +54,14 @@ export function CampaignImageSettings({
       </Typography>
 
       <div className="mt-4 space-y-3">
-        <div className="aspect-[3/1] w-full overflow-hidden rounded-xl border border-gray-200">
+        <div className="relative aspect-[3/1] w-full overflow-hidden rounded-xl border border-gray-200">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={imageUrl}
               alt="Campaign cover"
-              className="h-full w-full object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 700px"
+              className="object-cover"
             />
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-accent-600 to-accent-800 text-white/80">
