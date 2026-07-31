@@ -40,6 +40,13 @@ export function PageEditorPanel({
   const lastLocalSaveAtRef = useRef<string | null>(null);
   const appliedUpdatedAtRef = useRef(page.updatedAt);
   const dirtyRef = useRef(false);
+  const dirtyEpochRef = useRef(0);
+  // A remote update (often our own save's realtime echo) that arrived while a
+  // save was in flight. The realtime broadcast for our own write frequently
+  // outraces the save action's own HTTP response, so `lastLocalSaveAtRef`
+  // isn't set yet when it lands — deferring it until the save settles avoids
+  // misreading it as a genuine conflicting edit.
+  const pendingRemoteUpdateRef = useRef<RemotePageUpdate | null>(null);
 
   const [dirty, setDirty] = useState(false);
   const [dirtyEpoch, setDirtyEpoch] = useState(0);
@@ -59,6 +66,7 @@ export function PageEditorPanel({
   const presenceLabel = formatPresenceLabel(presenceOthers);
 
   dirtyRef.current = dirty;
+  dirtyEpochRef.current = dirtyEpoch;
 
   const applyRemoteContent = useCallback((update: RemotePageUpdate) => {
     contentRef.current = update.contentJson;
@@ -77,6 +85,16 @@ export function PageEditorPanel({
       if (update.updatedAt === appliedUpdatedAtRef.current) return;
       if (update.updatedAt === lastLocalSaveAtRef.current) {
         appliedUpdatedAtRef.current = update.updatedAt;
+        return;
+      }
+
+      // A save is in flight and hasn't reported its updatedAt yet, so this
+      // could well be that save's own echo. Judging now would risk mistaking
+      // it for someone else's edit and remounting the editor mid-keystroke;
+      // hold it and let handleSave's completion re-run this check once the
+      // real updatedAt (or lack of one, on failure) is known.
+      if (savingRef.current) {
+        pendingRemoteUpdateRef.current = update;
         return;
       }
 
@@ -104,6 +122,10 @@ export function PageEditorPanel({
     // serialize into a server action. Round-trip through JSON so the payload
     // is guaranteed to be plain objects.
     const content: JSONContent = JSON.parse(JSON.stringify(contentRef.current));
+    // If the user keeps typing during the round trip below, dirtyEpoch moves
+    // on; comparing against this snapshot tells us whether `content` is still
+    // the whole story once the request comes back.
+    const dirtyEpochAtStart = dirtyEpochRef.current;
     savingRef.current = true;
     setSaving(true);
     setAutosaveIn(null);
@@ -129,13 +151,24 @@ export function PageEditorPanel({
       if (result.data.status === "saved") {
         lastLocalSaveAtRef.current = result.data.updatedAt;
         appliedUpdatedAtRef.current = result.data.updatedAt;
-        setDirty(false);
-        dirtyRef.current = false;
+        // Only clear dirty if nothing changed since we captured `content` —
+        // otherwise a keystroke that landed mid-save gets marked "saved" when
+        // it never left the browser, and the next autosave never re-arms.
+        if (dirtyEpochRef.current === dirtyEpochAtStart) {
+          setDirty(false);
+          dirtyRef.current = false;
+        }
         setRemoteUpdate(null);
       }
     } finally {
       savingRef.current = false;
       setSaving(false);
+      // Re-run any remote update that arrived while we couldn't yet tell it
+      // apart from our own save's echo, now that lastLocalSaveAtRef (or the
+      // lack of a change on failure) makes that judgment call reliable.
+      const pending = pendingRemoteUpdateRef.current;
+      pendingRemoteUpdateRef.current = null;
+      if (pending) handleRemoteUpdate(pending);
     }
   }
 

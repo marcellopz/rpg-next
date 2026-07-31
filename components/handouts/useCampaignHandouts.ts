@@ -31,25 +31,36 @@ export function useCampaignHandouts(campaignId: string) {
     kind: "all",
   });
 
-  const refresh = useCallback(async () => {
-    if (isDemoCampaignId(campaignId)) {
-      setFiles(getDemoCampaign().handouts);
-      setLoading(false);
+  // `background: true` skips the loading flag — used by realtime echoes and
+  // post-mutation reconciliation, where the list is already on screen and
+  // flipping to a skeleton would read as a flash of jank.
+  const refresh = useCallback(
+    async ({ background = false }: { background?: boolean } = {}) => {
+      if (isDemoCampaignId(campaignId)) {
+        setFiles(getDemoCampaign().handouts);
+        setLoading(false);
+        setError(null);
+        return;
+      }
+      if (!background) setLoading(true);
       setError(null);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const next = await fetchFilesForCampaignClient(campaignId);
-      setFiles(next);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load files.");
-      setFiles([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [campaignId]);
+      try {
+        const next = await fetchFilesForCampaignClient(campaignId);
+        setFiles(next);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not load files.");
+        if (!background) setFiles([]);
+      } finally {
+        if (!background) setLoading(false);
+      }
+    },
+    [campaignId]
+  );
+
+  /** Drop a row locally so a delete paints before the server confirms. */
+  const removeFileLocally = useCallback((fileId: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+  }, []);
 
   useEffect(() => {
     void refresh();
@@ -69,7 +80,7 @@ export function useCampaignHandouts(campaignId: string) {
           filter: `campaign_id=eq.${campaignId}`,
         },
         () => {
-          void refresh();
+          void refresh({ background: true });
         }
       )
       .subscribe();
@@ -94,5 +105,6 @@ export function useCampaignHandouts(campaignId: string) {
     filter,
     setFilter,
     refresh,
+    removeFileLocally,
   };
 }

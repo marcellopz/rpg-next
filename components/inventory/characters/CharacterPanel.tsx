@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Camera, History } from "lucide-react";
 import {
   updateCharacterImage,
@@ -13,8 +12,10 @@ import { IconButton, Tooltip } from "@/components/ui";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useI18n } from "@/lib/i18n/context";
 import type { Character } from "@/lib/queries/inventory";
+import { patchCharacter } from "@/lib/inventory/optimistic";
 import { carryWeight } from "../encumbrance";
 import { InlineEdit } from "../InlineEdit";
+import { useInventory } from "../InventoryContext";
 import { ItemsTable } from "../items/ItemsTable";
 import { cn } from "@/lib/cn";
 import { CharacterAvatar } from "./CharacterAvatar";
@@ -37,45 +38,47 @@ const COMPACT_EDIT =
 // One character's full inventory: compact profile header with encumbrance
 // bar, STR and coins inline beside the log button, and items below.
 export function CharacterPanel({
-  campaignId,
   character,
-  allCharacters,
   onViewLog,
-  readOnly,
 }: {
-  campaignId: string;
   character: Character;
-  allCharacters: Character[];
   onViewLog: () => void;
-  readOnly?: boolean;
 }) {
   const { t } = useI18n();
-  const router = useRouter();
+  const { campaignId, readOnly, run } = useInventory();
   const weight = carryWeight(character);
   const [photoOpen, setPhotoOpen] = useState(false);
   const { upload } = useFileUpload("public");
 
   async function commitStat(field: CharacterStatField, raw: string) {
-    const result = await updateCharacterStat(character.id, field, Number(raw));
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+    const value = Number(raw);
+    if (!Number.isFinite(value) || value === character[field]) return;
+    await run(
+      (prev) => patchCharacter(prev, character.id, { [field]: value }),
+      () => updateCharacterStat(character.id, field, value)
+    );
   }
 
   async function savePhoto(blob: Blob): Promise<string | null> {
     const file = new File([blob], "portrait.jpg", { type: "image/jpeg" });
     const uploaded = await upload(file, { campaignId, folder: "portraits" });
     if (!uploaded) return t("errors.save");
-    const result = await updateCharacterImage(character.id, uploaded.path);
-    if (!result.ok) return result.error;
-    router.refresh();
-    return null;
+    const result = await run(
+      (prev) =>
+        patchCharacter(prev, character.id, { imageUrl: uploaded.publicUrl }),
+      () => updateCharacterImage(character.id, uploaded.path),
+      { silent: true }
+    );
+    return result.ok ? null : result.error;
   }
 
   async function removePhoto(): Promise<string | null> {
-    const result = await updateCharacterImage(character.id, null);
-    if (!result.ok) return result.error;
-    router.refresh();
-    return null;
+    const result = await run(
+      (prev) => patchCharacter(prev, character.id, { imageUrl: null }),
+      () => updateCharacterImage(character.id, null),
+      { silent: true }
+    );
+    return result.ok ? null : result.error;
   }
 
   return (
@@ -180,7 +183,7 @@ export function CharacterPanel({
         </div>
       </header>
 
-      <ItemsTable character={character} allCharacters={allCharacters} readOnly={readOnly} />
+      <ItemsTable character={character} />
 
       {photoOpen && (
         <ImageCropDialog

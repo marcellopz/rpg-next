@@ -23,8 +23,11 @@ export type UploadedFile = {
 function sanitizeFilename(name: string): string {
   return name
     .trim()
-    .replace(/[/\\?%*:|"<>]/g, "-")
-    .replace(/\s+/g, "-")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // strip accents (é -> e, ç -> c, ...)
+    .replace(/[^a-zA-Z0-9._-]+/g, "-") // only safe ASCII chars survive as storage keys
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
     .slice(0, 180);
 }
 

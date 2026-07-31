@@ -30,19 +30,29 @@ export async function isCampaignDm(
   return membership?.role === "dm";
 }
 
+// A member is anyone with a membership row, plus the owner (who may not have
+// one). Both lookups run in parallel: the previous sequential version paid a
+// second round trip on every owner-initiated write, and owners are the most
+// active writers.
 export async function isCampaignMember(
   userId: string,
   campaignId: string
 ): Promise<boolean> {
   const admin = createAdminClient();
 
-  const { data: membership } = await admin
-    .from("memberships")
-    .select("id")
-    .eq("campaign_id", campaignId)
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (membership) return true;
+  const [{ data: membership }, { data: campaign }] = await Promise.all([
+    admin
+      .from("memberships")
+      .select("id")
+      .eq("campaign_id", campaignId)
+      .eq("user_id", userId)
+      .maybeSingle(),
+    admin
+      .from("campaigns")
+      .select("owner_id")
+      .eq("id", campaignId)
+      .maybeSingle(),
+  ]);
 
-  return isCampaignOwner(userId, campaignId);
+  return !!membership || campaign?.owner_id === userId;
 }

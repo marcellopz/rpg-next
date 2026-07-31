@@ -1,6 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+// No revalidatePath here: the workspace page is fully dynamic, callers apply
+// the change locally (optimistic) and other members are refreshed by the
+// resources realtime channel — server-side revalidation would only re-render
+// the page a second time inside the action response.
 import { createAdminClient, getCurrentUser } from "@/lib/supabase/server";
 import { isCampaignMember } from "@/lib/queries/campaigns";
 import type { ActionResult } from "@/app/actions/campaigns";
@@ -12,17 +15,6 @@ import type { DashboardLayouts } from "@/lib/resources/types";
 
 const NAME_MAX = 80;
 const VALUE_MAX = 1_000_000;
-
-async function revalidateCampaignWorkspace(campaignId: string) {
-  const admin = createAdminClient();
-  const { data: campaign } = await admin
-    .from("campaigns")
-    .select("public_code")
-    .eq("id", campaignId)
-    .maybeSingle();
-  if (campaign?.public_code)
-    revalidatePath(`/campaigns/${campaign.public_code}`);
-}
 
 function validateName(name: string, label: string): string | null {
   const trimmed = name.trim();
@@ -143,7 +135,6 @@ export async function createResourceCard(input: {
     return { ok: false, error: `Could not save card layout: ${layoutError}` };
   }
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: { id: card.id } };
 }
 
@@ -163,7 +154,6 @@ export async function deleteResourceCard(
   const layouts = removeCardFromLayouts(await loadLayouts(campaignId), cardId);
   const layoutError = await saveLayouts(campaignId, layouts);
   if (layoutError) return { ok: false, error: layoutError };
-  await revalidateCampaignWorkspace(campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -187,7 +177,6 @@ export async function renameResourceCard(input: {
     .eq("id", input.cardId);
   if (error) return { ok: false, error: "Could not rename card." };
 
-  await revalidateCampaignWorkspace(campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -236,7 +225,6 @@ export async function addResourceItem(input: {
     .single();
   if (error || !item) return { ok: false, error: "Could not add resource." };
 
-  await revalidateCampaignWorkspace(campaignId);
   return { ok: true, data: { id: item.id } };
 }
 
@@ -258,7 +246,6 @@ export async function deleteResourceItem(itemId: string): Promise<ActionResult> 
     .eq("id", itemId);
   if (error) return { ok: false, error: "Could not delete resource." };
 
-  await revalidateCampaignWorkspace(item.campaign_id);
   return { ok: true, data: undefined };
 }
 
@@ -307,7 +294,43 @@ export async function updateResourceItem(input: {
     .eq("id", input.itemId);
   if (error) return { ok: false, error: "Could not update resource." };
 
-  await revalidateCampaignWorkspace(item.campaign_id);
+  return { ok: true, data: undefined };
+}
+
+// Persist a drag-reorder of a card's resource list: sort_order = list index.
+export async function reorderResourceItems(input: {
+  cardId: string;
+  orderedIds: string[];
+}): Promise<ActionResult> {
+  const admin = createAdminClient();
+
+  // The card lookup and the item-id fetch don't depend on each other, so run
+  // them together instead of paying two sequential round trips.
+  const [{ data: card }, { data: rows }] = await Promise.all([
+    admin
+      .from("resource_cards")
+      .select("campaign_id")
+      .eq("id", input.cardId)
+      .maybeSingle(),
+    admin.from("resource_items").select("id").eq("card_id", input.cardId),
+  ]);
+
+  if (!card?.campaign_id) return { ok: false, error: "Card not found." };
+
+  const denied = await assertMember(card.campaign_id);
+  if (denied) return denied;
+
+  const validIds = new Set((rows ?? []).map((r) => r.id));
+  if (!input.orderedIds.every((id) => validIds.has(id)))
+    return { ok: false, error: "The resource list is out of date. Reload and try again." };
+
+  const updates = input.orderedIds.map((id, index) =>
+    admin.from("resource_items").update({ sort_order: index + 1 }).eq("id", id)
+  );
+  const results = await Promise.all(updates);
+  if (results.some((r) => r.error))
+    return { ok: false, error: "Could not reorder the resources. Please try again." };
+
   return { ok: true, data: undefined };
 }
 
@@ -331,6 +354,5 @@ export async function saveResourceLayouts(input: {
   const layoutError = await saveLayouts(input.campaignId, input.layouts);
   if (layoutError) return { ok: false, error: layoutError };
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }

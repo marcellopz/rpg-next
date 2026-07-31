@@ -12,10 +12,10 @@ import {
   createServerClient as createSSRClient,
   type CookieOptions,
 } from "@supabase/ssr";
-import {
-  createClient as createSupabaseClient,
-  type User,
-} from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import type { SessionUser } from "@/lib/supabase/types";
+
+export type { SessionUser };
 
 export function createServerClient() {
   const cookieStore = cookies();
@@ -55,14 +55,26 @@ export function createAdminClient() {
   );
 }
 
-// The signed-in user, deduplicated per request. auth.getUser() is a network
-// round trip to the Supabase auth server; without cache() a single navigation
-// repeats it in the layout, page, and every query helper (~6 sequential round
-// trips). With cache() the whole render shares one call.
-export const getCurrentUser = cache(async (): Promise<User | null> => {
+// The signed-in user, deduplicated per request.
+//
+// Uses auth.getClaims() rather than auth.getUser(): this project signs JWTs with
+// an asymmetric key (ES256), so getClaims() verifies the token locally via
+// WebCrypto against a cached JWKS — no network round trip. auth.getUser() calls
+// the Supabase auth server every time, which cost ~130ms per invocation and was
+// paid on every server action and every render.
+//
+// cache() still matters: it dedupes within a single request so the layout, page,
+// and query helpers share one verification.
+export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims?.sub) return null;
+
+  const { sub, email, user_metadata, app_metadata } = data.claims;
+  return {
+    id: sub,
+    email: email ?? null,
+    user_metadata: user_metadata ?? {},
+    app_metadata: app_metadata ?? {},
+  };
 });

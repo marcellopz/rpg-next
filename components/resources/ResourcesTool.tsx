@@ -9,7 +9,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { Button, Typography } from "@/components/ui";
 import { AddCardDialog } from "./AddCardDialog";
 import { ResourcesDashboardGrid } from "./ResourcesDashboardGrid";
-import { useResourcesRealtime } from "./useResourcesRealtime";
+import { ResourcesProvider, useResources } from "./ResourcesContext";
 
 export function ResourcesTool({
   campaignId,
@@ -22,9 +22,25 @@ export function ResourcesTool({
   inventoryCharacters: InventoryCharacterOption[];
   readOnly?: boolean;
 }) {
+  return (
+    <ResourcesProvider
+      campaignId={campaignId}
+      dashboard={dashboard}
+      readOnly={readOnly}
+    >
+      <ResourcesToolBody inventoryCharacters={inventoryCharacters} />
+    </ResourcesProvider>
+  );
+}
+
+function ResourcesToolBody({
+  inventoryCharacters,
+}: {
+  inventoryCharacters: InventoryCharacterOption[];
+}) {
   const { t } = useI18n();
+  const { campaignId, dashboard, readOnly } = useResources();
   const [isEditing, setIsEditing] = useState(false);
-  useResourcesRealtime(campaignId);
   const editing = isEditing && !readOnly;
 
   const linkedCharacterIds = new Set(

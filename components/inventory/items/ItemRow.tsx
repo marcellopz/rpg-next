@@ -1,6 +1,7 @@
 "use client";
 
 import type { DragEvent } from "react";
+import { GripVertical } from "lucide-react";
 import { Menu, type MenuEntry } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
@@ -17,7 +18,7 @@ import { InlineEdit } from "../InlineEdit";
 // Mobile: Qty, Name, Total, Actions
 // Tablet+: Qty, Name, Type, Weight, Total, Actions
 export const ITEMS_GRID =
-  "grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_2.5rem] sm:grid-cols-[3.5rem_minmax(0,1fr)_7.5rem_5rem_5rem_2.5rem]";
+  "grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_3.5rem_2.5rem] sm:grid-cols-[1.25rem_3.5rem_minmax(0,1fr)_7rem_5rem_5rem_2.5rem]";
 
 export function ItemRow({
   item,
@@ -56,13 +57,6 @@ export function ItemRow({
 
   return (
     <div
-      draggable={dragEnabled}
-      onDragStart={(e) => {
-        if (!dragEnabled) return;
-        e.dataTransfer.effectAllowed = "move";
-        onDragStart();
-      }}
-      onDragEnd={onDragEnd}
       onDragOver={dragEnabled ? onDragOver : undefined}
       onDragLeave={onDragLeave}
       onDrop={dragEnabled ? onDrop : undefined}
@@ -74,6 +68,23 @@ export function ItemRow({
         index % 2 === 1 && "bg-gray-50"
       )}
     >
+      {dragEnabled ? (
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = "move";
+            onDragStart();
+          }}
+          onDragEnd={onDragEnd}
+          aria-label={`Reorder ${item.name}`}
+          className="flex h-full cursor-grab items-center text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4" />
+        </div>
+      ) : (
+        <div />
+      )}
+
       <div className="text-gray-600">
         <InlineEdit
           value={String(item.quantity)}

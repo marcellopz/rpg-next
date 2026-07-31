@@ -2,9 +2,15 @@
 //
 // Middleware runs before every matched request. Supabase access tokens are
 // short-lived, so each request we create a request/response-bound client,
-// call auth.getUser() to refresh the token if needed, and let the SSR client
-// write any rotated cookies back onto the response. We return both the user
-// (for route-protection decisions) and the response (so cookies propagate).
+// verify the token (refreshing it if needed), and let the SSR client write any
+// rotated cookies back onto the response. We return both the user (for
+// route-protection decisions) and the response (so cookies propagate).
+//
+// getClaims() rather than getUser(): this project uses an asymmetric JWT signing
+// key, so verification happens locally against a cached JWKS instead of a
+// network round trip to the auth server on every single request. getClaims()
+// still refreshes the session when the access token is near expiry, so cookie
+// rotation keeps working.
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
@@ -33,9 +39,8 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getClaims();
+  const user = error || !data?.claims?.sub ? null : { id: data.claims.sub };
 
   return { user, response };
 }

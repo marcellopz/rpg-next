@@ -45,7 +45,7 @@ export function EditorToolbar({
   const saveLabel = saving
     ? t("pageEditor.saving")
     : autosaveIn != null
-      ? t("pageEditor.autosave", { seconds: autosaveIn })
+      ? t("pageEditor.autosave", { count: autosaveIn })
       : saveDisabled
         ? t("pageEditor.saved")
         : t("pageEditor.saveNow");

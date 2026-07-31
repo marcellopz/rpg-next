@@ -18,6 +18,10 @@ import {
 import type { NoteScope } from "@/app/actions/categories";
 import type { NoteCategory, NotePageSummary, NoteTree } from "@/lib/queries/notes";
 import type { MenuEntry } from "@/components/ui";
+import { useOptimisticData } from "@/hooks/useOptimisticData";
+import { isDemoCampaignId } from "@/data/demo-campaign";
+import { fetchNoteTreeClient } from "@/lib/notes/tree-client-state";
+import * as optimistic from "@/lib/notes/optimistic";
 
 export const CATEGORY_NAME_MAX = 80;
 export const PAGE_TITLE_MAX = 200;
@@ -43,7 +47,7 @@ export function sameTarget(a: DropTarget | null, b: DropTarget): boolean {
 export function useNotesSidebar({
   campaignId,
   publicCode,
-  tree,
+  tree: serverTree,
   activeTab,
   selectedPageId,
 }: {
@@ -54,6 +58,19 @@ export function useNotesSidebar({
   selectedPageId: string | null;
 }) {
   const router = useRouter();
+
+  // Tree edits (reorder, rename, move, delete) apply locally and reconcile in
+  // the background, so the sidebar never waits on a round trip. Keyed by scope:
+  // switching tabs delivers a different server tree, which is adopted because
+  // no mutation is in flight.
+  const disabled = isDemoCampaignId(campaignId);
+  const { data: tree, run, reconcile } = useOptimisticData<NoteTree>(serverTree, {
+    refetch: disabled
+      ? undefined
+      : () => fetchNoteTreeClient(campaignId, activeTab),
+    disabled,
+  });
+
   const basePath = `/campaigns/${publicCode}`;
   const tabQuery = activeTab === "personal" ? "?tab=my" : "";
   const selectedCategoryId =
@@ -121,7 +138,7 @@ export function useNotesSidebar({
     setDropTarget((prev) => (sameTarget(prev, target) ? prev : target));
   }
 
-  async function handleDrop(e: DragEvent, target: DropTarget) {
+  function handleDrop(e: DragEvent, target: DropTarget) {
     e.preventDefault();
     const item = dragItem;
     clearDrag();
@@ -133,13 +150,15 @@ export function useNotesSidebar({
       const at = ids.indexOf(target.id);
       if (at === -1) return;
       ids.splice(at, 0, item.id);
-      const result = await reorderCategories({
-        campaignId,
-        scope: activeTab,
-        orderedIds: ids,
-      });
-      if (!result.ok) window.alert(result.error);
-      router.refresh();
+      void run(
+        (prev) => optimistic.reorderCategories(prev, ids),
+        () =>
+          reorderCategories({
+            campaignId,
+            scope: activeTab,
+            orderedIds: ids,
+          })
+      );
       return;
     }
 
@@ -166,14 +185,18 @@ export function useNotesSidebar({
       orderedIds.push(item.id);
     }
 
-    const result = await reorderPages({
-      campaignId,
-      scope: activeTab,
-      categoryId,
-      orderedIds,
-    });
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+    const targetCategoryId = categoryId;
+    const ids = orderedIds;
+    void run(
+      (prev) => optimistic.reorderPages(prev, targetCategoryId, ids),
+      () =>
+        reorderPages({
+          campaignId,
+          scope: activeTab,
+          categoryId: targetCategoryId,
+          orderedIds: ids,
+        })
+    );
   }
 
   function expandCategory(id: string) {
@@ -185,24 +208,26 @@ export function useNotesSidebar({
     });
   }
 
-  async function handleRenameCategory(id: string, currentName: string) {
+  function handleRenameCategory(id: string, currentName: string) {
     const name = window.prompt("Rename category", currentName)?.trim();
     if (!name || name === currentName) return;
-    const result = await renameCategory(id, name);
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+    void run(
+      (prev) => optimistic.renameCategory(prev, id, name),
+      () => renameCategory(id, name)
+    );
   }
 
-  async function handleDeleteCategory(id: string, name: string) {
+  function handleDeleteCategory(id: string, name: string) {
     if (
       !window.confirm(
         `Delete the category "${name}"? Its pages move to the top level.`
       )
     )
       return;
-    const result = await deleteCategory(id);
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+    void run(
+      (prev) => optimistic.removeCategory(prev, id),
+      () => deleteCategory(id)
+    );
   }
 
   async function handleAddPageToCategory(category: NoteCategory) {
@@ -223,31 +248,32 @@ export function useNotesSidebar({
     router.push(pageHref(result.data.id));
   }
 
-  async function handleRenamePage(page: NotePageSummary) {
+  function handleRenamePage(page: NotePageSummary) {
     const title = window.prompt("Rename page", page.title)?.trim();
     if (!title || title === page.title) return;
-    const result = await renamePage(page.id, title);
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+    void run(
+      (prev) => optimistic.renamePage(prev, page.id, title),
+      () => renamePage(page.id, title)
+    );
   }
 
-  async function handleMovePage(page: NotePageSummary, categoryId: string | null) {
-    const result = await movePage(page.id, categoryId);
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+  function handleMovePage(page: NotePageSummary, categoryId: string | null) {
+    void run(
+      (prev) => optimistic.movePage(prev, page.id, categoryId),
+      () => movePage(page.id, categoryId)
+    );
   }
 
-  async function handleDeletePage(page: NotePageSummary) {
+  function handleDeletePage(page: NotePageSummary) {
     if (!window.confirm(`Delete the page "${page.title}"?`)) return;
-    const result = await deletePage(page.id);
-    if (!result.ok) {
-      window.alert(result.error);
-      return;
-    }
+    // Navigate off the page first so the editor doesn't render a deleted row.
     if (page.id === selectedPageId) {
       router.push(`${basePath}${tabQuery}`);
     }
-    router.refresh();
+    void run(
+      (prev) => optimistic.removePage(prev, page.id),
+      () => deletePage(page.id)
+    );
   }
 
   function pageMenuEntries(page: NotePageSummary): MenuEntry[] {
@@ -295,7 +321,9 @@ export function useNotesSidebar({
       scope: activeTab,
     });
     if (!result.ok) return result.error;
-    router.refresh();
+    // The server generates the category id and sort_order, so re-read the tree
+    // rather than guessing — one targeted query, not a full page render.
+    await reconcile();
     return null;
   }
 
@@ -314,6 +342,8 @@ export function useNotesSidebar({
   return {
     activeTab,
     basePath,
+    /** The client-owned tree, including edits not yet confirmed by the server. */
+    tree,
     expandedIds,
     dragItem,
     dropTarget,

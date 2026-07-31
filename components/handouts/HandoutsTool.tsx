@@ -24,7 +24,16 @@ export function HandoutsTool({
   const [uploadOpen, setUploadOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const { files, allCount, loading, error, filter, setFilter, refresh } =
+  const {
+    files,
+    allCount,
+    loading,
+    error,
+    filter,
+    setFilter,
+    refresh,
+    removeFileLocally,
+  } =
     useCampaignHandouts(campaignId);
 
   const VISIBILITY_FILTERS: { id: "all" | HandoutVisibility; label: string }[] = [
@@ -190,7 +199,12 @@ export function HandoutsTool({
                 campaignId={campaignId}
                 canDelete={canDeleteFile(file.uploaderId, file.visibility)}
                 readOnly={readOnly}
-                onDeleted={() => void refresh()}
+                onDeleted={() => {
+                  // Row disappears immediately; the re-read confirms in the
+                  // background and reconciles anything else that changed.
+                  removeFileLocally(file.id);
+                  void refresh({ background: true });
+                }}
               />
             ))}
           </div>
@@ -202,7 +216,7 @@ export function HandoutsTool({
           open={uploadOpen}
           campaignId={campaignId}
           onClose={() => setUploadOpen(false)}
-          onUploaded={() => void refresh()}
+          onUploaded={() => void refresh({ background: true })}
         />
       )}
       {historyOpen && (

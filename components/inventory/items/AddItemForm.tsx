@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { addItem } from "@/app/actions/inventory";
 import { Button, TextField } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/context";
@@ -11,18 +10,19 @@ import {
   itemTypeTextClass,
   type InventoryItemType,
 } from "@/lib/inventory/item-types";
+import { appendItem, tempId } from "@/lib/inventory/optimistic";
+import { useInventory } from "../InventoryContext";
 
 // Collapsed "Add item" button that expands to an inline form.
 export function AddItemForm({ characterId }: { characterId: string }) {
   const { t } = useI18n();
-  const router = useRouter();
+  const { run } = useInventory();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [itemType, setItemType] = useState<InventoryItemType>("normal");
   const [weight, setWeight] = useState("0");
   const [quantity, setQuantity] = useState("1");
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
   function reset() {
     setName("");
@@ -33,30 +33,46 @@ export function AddItemForm({ characterId }: { characterId: string }) {
   }
 
   function close() {
-    if (isPending) return;
     setOpen(false);
     reset();
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    startTransition(async () => {
-      const result = await addItem({
-        characterId,
-        name,
-        itemType,
-        weight: Number(weight) || 0,
-        quantity: Number(quantity) || 1,
-      });
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-      setOpen(false);
-      reset();
-      router.refresh();
-    });
+
+    const pending = {
+      name: name.trim(),
+      itemType,
+      weight: Number(weight) || 0,
+      quantity: Number(quantity) || 1,
+    };
+
+    // The row appears immediately under a placeholder id; reconcile swaps in
+    // the server's real row (generated id, sort_order) once the insert lands.
+    setOpen(false);
+    reset();
+
+    const result = await run(
+      (prev) =>
+        appendItem(prev, characterId, {
+          id: tempId(),
+          characterId,
+          ...pending,
+        }),
+      () => addItem({ characterId, ...pending }),
+      { reconcile: true, silent: true }
+    );
+
+    if (!result.ok) {
+      // Re-open with the values so the entry isn't lost.
+      setName(pending.name);
+      setItemType(pending.itemType);
+      setWeight(String(pending.weight));
+      setQuantity(String(pending.quantity));
+      setError(result.error);
+      setOpen(true);
+    }
   }
 
   if (!open) {
@@ -137,16 +153,10 @@ export function AddItemForm({ characterId }: { characterId: string }) {
       )}
 
       <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={isPending || !name.trim()}>
-          {isPending ? t("addItem.adding") : t("addItem.add")}
+        <Button type="submit" size="sm" disabled={!name.trim()}>
+          {t("addItem.add")}
         </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={close}
-          disabled={isPending}
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={close}>
           {t("addItem.cancel")}
         </Button>
       </div>

@@ -41,7 +41,10 @@ export function NotesSidebar({
     activeTab,
     selectedPageId,
   });
-  const isEmpty = tree.categories.length === 0 && tree.rootPages.length === 0;
+  // Render the controller's tree, not the prop: it carries optimistic edits.
+  const liveTree = sidebar.tree;
+  const isEmpty =
+    liveTree.categories.length === 0 && liveTree.rootPages.length === 0;
 
   return (
     <div className="flex h-full flex-col">
@@ -56,7 +59,7 @@ export function NotesSidebar({
           </Typography>
         )}
 
-        {tree.categories.map((category) => (
+        {liveTree.categories.map((category) => (
           <NoteCategoryGroup
             key={category.id}
             category={category}
@@ -66,9 +69,9 @@ export function NotesSidebar({
           />
         ))}
 
-        {tree.rootPages.length > 0 && (
+        {liveTree.rootPages.length > 0 && (
           <div className="space-y-1">
-            {tree.rootPages.map((page) => (
+            {liveTree.rootPages.map((page) => (
               <NotePageRow
                 key={page.id}
                 page={page}

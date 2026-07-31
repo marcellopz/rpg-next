@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { addResourceItem } from "@/app/actions/resources";
 import { Button, TextField } from "@/components/ui";
+import { appendItem, tempId } from "@/lib/resources/optimistic";
+import { useResources } from "./ResourcesContext";
 
 export function AddResourceForm({ cardId }: { cardId: string }) {
-  const router = useRouter();
+  const { run } = useResources();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [current, setCurrent] = useState("0");
   const [total, setTotal] = useState("1");
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
   function reset() {
     setName("");
@@ -21,24 +21,49 @@ export function AddResourceForm({ cardId }: { cardId: string }) {
     setError(null);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    startTransition(async () => {
-      const result = await addResourceItem({
-        cardId,
-        name,
-        currentValue: Number(current) || 0,
-        totalValue: Number(total) || 1,
-      });
-      if (!result?.ok) {
-        setError(result?.error ?? "Could not add resource. Please try again.");
-        return;
-      }
-      setOpen(false);
-      reset();
-      router.refresh();
-    });
+
+    const currentValue = Number(current) || 0;
+    const totalValue = Number(total) || 1;
+    const trimmed = name.trim();
+
+    // The row shows immediately under a placeholder id; reconcile swaps in the
+    // server's real row (and its generated id / sort_order) once the insert lands.
+    const optimisticId = tempId();
+    const pendingName = trimmed;
+
+    setOpen(false);
+    reset();
+
+    const result = await run(
+      (d) =>
+        appendItem(d, cardId, {
+          id: optimisticId,
+          name: pendingName,
+          currentValue,
+          totalValue,
+          sortOrder: Number.MAX_SAFE_INTEGER,
+        }),
+      () =>
+        addResourceItem({
+          cardId,
+          name: pendingName,
+          currentValue,
+          totalValue,
+        }),
+      { reconcile: true, silent: true }
+    );
+
+    if (!result.ok) {
+      // Re-open with the values so the entry isn't lost.
+      setName(pendingName);
+      setCurrent(String(currentValue));
+      setTotal(String(totalValue));
+      setError(result.error);
+      setOpen(true);
+    }
   }
 
   if (!open) {
@@ -94,11 +119,10 @@ export function AddResourceForm({ cardId }: { cardId: string }) {
             setOpen(false);
             reset();
           }}
-          disabled={isPending}
         >
           Cancel
         </Button>
-        <Button type="submit" size="xs" disabled={isPending || !name.trim()}>
+        <Button type="submit" size="xs" disabled={!name.trim()}>
           Add
         </Button>
       </div>

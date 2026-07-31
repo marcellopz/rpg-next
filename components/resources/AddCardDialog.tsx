@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { createResourceCard } from "@/app/actions/resources";
 import { useI18n } from "@/lib/i18n/context";
 import type { InventoryCharacterOption } from "@/lib/resources/types";
 import { Button, TextField, Typography } from "@/components/ui";
+import { useResources } from "./ResourcesContext";
 
 export function AddCardDialog({
   campaignId,
@@ -17,7 +17,7 @@ export function AddCardDialog({
   linkedCharacterIds: Set<string>;
 }) {
   const { t } = useI18n();
-  const router = useRouter();
+  const { reconcile } = useResources();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"standalone" | "character">("standalone");
   const [name, setName] = useState("");
@@ -67,7 +67,9 @@ export function AddCardDialog({
           return;
         }
         close();
-        router.refresh();
+        // The server assigns the new card's grid layout, so re-read rather than
+        // guessing — one targeted query, not a full page render.
+        await reconcile();
       } catch {
         setError(t("errors.create"));
       }

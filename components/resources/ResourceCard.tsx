@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, type DragEvent } from "react";
 import { GripVertical, Trash2 } from "lucide-react";
-import { deleteResourceCard, renameResourceCard } from "@/app/actions/resources";
+import {
+  deleteResourceCard,
+  renameResourceCard,
+  reorderResourceItems,
+} from "@/app/actions/resources";
 import type { ResourceCard } from "@/lib/resources/types";
 import { IconButton } from "@/components/ui";
+import { cn } from "@/lib/cn";
+import {
+  patchCard,
+  removeCard,
+  reorderCardItems,
+} from "@/lib/resources/optimistic";
 import { AddResourceForm } from "./AddResourceForm";
 import { ResourceItemRow } from "./ResourceItemRow";
+import { useResources } from "./ResourcesContext";
 
 export function ResourceCardPanel({
   card,
@@ -18,28 +28,58 @@ export function ResourceCardPanel({
   isEditing: boolean;
   readOnly?: boolean;
 }) {
-  const router = useRouter();
+  const { run } = useResources();
   const [name, setName] = useState(card.name);
-  const [isPending, startTransition] = useTransition();
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropId, setDropId] = useState<string | "end" | null>(null);
 
-  function refresh() {
-    router.refresh();
+  function clearDrag() {
+    setDragId(null);
+    setDropId(null);
+  }
+
+  function handleDragOver(e: DragEvent, targetId: string | "end") {
+    if (!dragId || dragId === targetId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDropId(targetId);
+  }
+
+  function handleDrop(e: DragEvent, targetId: string | "end") {
+    e.preventDefault();
+    const sourceId = dragId;
+    clearDrag();
+    if (!sourceId || sourceId === targetId) return;
+
+    const ids = card.items.map((i) => i.id).filter((id) => id !== sourceId);
+    if (targetId === "end") {
+      ids.push(sourceId);
+    } else {
+      const at = ids.indexOf(targetId);
+      if (at === -1) return;
+      ids.splice(at, 0, sourceId);
+    }
+
+    void run(
+      (d) => reorderCardItems(d, card.id, ids),
+      () => reorderResourceItems({ cardId: card.id, orderedIds: ids })
+    );
   }
 
   function handleRename() {
     const trimmed = name.trim();
     if (!trimmed || trimmed === card.name) return;
-    startTransition(async () => {
-      await renameResourceCard({ cardId: card.id, name: trimmed });
-      refresh();
-    });
+    void run(
+      (d) => patchCard(d, card.id, { name: trimmed }),
+      () => renameResourceCard({ cardId: card.id, name: trimmed })
+    );
   }
 
   function handleDelete() {
-    startTransition(async () => {
-      await deleteResourceCard(card.id);
-      refresh();
-    });
+    void run(
+      (d) => removeCard(d, card.id),
+      () => deleteResourceCard(card.id)
+    );
   }
 
   return (
@@ -63,7 +103,6 @@ export function ResourceCardPanel({
             onKeyDown={(e) => e.key === "Enter" && handleRename()}
             className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1 text-sm font-semibold"
             aria-label="Character name"
-            disabled={isPending}
           />
         ) : (
           <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
@@ -79,7 +118,6 @@ export function ResourceCardPanel({
           <IconButton
             aria-label={`Delete ${card.name}`}
             onClick={handleDelete}
-            disabled={isPending}
             className="text-gray-400 hover:text-red-600"
           >
             <Trash2 className="h-4 w-4" />
@@ -92,8 +130,41 @@ export function ResourceCardPanel({
           <p className="text-sm text-gray-500">No resources yet.</p>
         )}
         {card.items.map((item) => (
-          <ResourceItemRow key={item.id} item={item} isEditing={isEditing} readOnly={readOnly} />
+          <ResourceItemRow
+            key={item.id}
+            item={item}
+            isEditing={isEditing}
+            readOnly={readOnly}
+            dragging={dragId === item.id}
+            dropIndicator={dropId === item.id}
+            onDragStart={() => setDragId(item.id)}
+            onDragEnd={clearDrag}
+            onDragOver={(e) => handleDragOver(e, item.id)}
+            onDragLeave={() =>
+              setDropId((prev) => (prev === item.id ? null : prev))
+            }
+            onDrop={(e) => handleDrop(e, item.id)}
+          />
         ))}
+
+        {isEditing && dragId && (
+          <div
+            onDragOver={(e) => handleDragOver(e, "end")}
+            onDragLeave={() =>
+              setDropId((prev) => (prev === "end" ? null : prev))
+            }
+            onDrop={(e) => handleDrop(e, "end")}
+            className={cn(
+              "rounded-md border-2 border-dashed px-3 py-2 text-center text-xs",
+              dropId === "end"
+                ? "border-accent-400 bg-accent-50 text-accent-700"
+                : "border-gray-200 text-gray-400"
+            )}
+          >
+            Move to end
+          </div>
+        )}
+
         {isEditing && <AddResourceForm cardId={card.id} />}
       </div>
     </div>

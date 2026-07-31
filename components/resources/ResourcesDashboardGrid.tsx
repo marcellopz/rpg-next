@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { Responsive, type Layout, type Layouts } from "react-grid-layout";
@@ -25,7 +24,6 @@ export function ResourcesDashboardGrid({
   isEditing: boolean;
   readOnly?: boolean;
 }) {
-  const router = useRouter();
   const parentRef = useRef<HTMLDivElement>(null);
   const width = useGridWidth(parentRef);
   const [isReady, setIsReady] = useState(false);
@@ -53,15 +51,16 @@ export function ResourcesDashboardGrid({
     }
   }, [width, isReady]);
 
+  // The grid already renders `next` locally, so there is nothing to re-read
+  // after the write — this is a pure background persist.
   const persistLayouts = useCallback(
     (next: Layouts) => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(async () => {
-        await saveResourceLayouts({ campaignId, layouts: next });
-        router.refresh();
+      saveTimerRef.current = setTimeout(() => {
+        void saveResourceLayouts({ campaignId, layouts: next });
       }, 500);
     },
-    [campaignId, router]
+    [campaignId]
   );
 
   const onLayoutChange = useCallback(

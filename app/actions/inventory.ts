@@ -9,7 +9,7 @@
 // follows up with router.refresh(), and other members are refreshed by the
 // inventory realtime channel — server-side revalidation would only re-render
 // the page a second time inside the action response.
-import { createAdminClient, createServerClient } from "@/lib/supabase/server";
+import { createAdminClient, getCurrentUser } from "@/lib/supabase/server";
 import { isCampaignMember } from "@/lib/queries/campaigns";
 import type { ActionResult } from "@/app/actions/campaigns";
 import {
@@ -33,12 +33,11 @@ export type ItemField = "name" | "itemType" | "weight" | "quantity";
 
 type Actor = { id: string; name: string };
 
-// The current user plus a display label for log entries.
+// The current user plus a display label for log entries. Uses the shared,
+// request-cached getCurrentUser() (local JWT verification) rather than its own
+// auth.getUser() network call — this runs on every inventory mutation.
 async function getActor(): Promise<Actor | null> {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return null;
   const name =
     (user.user_metadata?.display_name as string | undefined) ??
@@ -645,15 +644,15 @@ export async function reorderItems(input: {
   const actor = await getActor();
   if (!actor) return { ok: false, error: "You must be signed in." };
 
-  const result = await getEditableCharacter(input.characterId, actor.id);
-  if ("error" in result) return { ok: false, error: result.error };
-  const { character } = result;
-
   const admin = createAdminClient();
-  const { data: rows } = await admin
-    .from("inventory_items")
-    .select("id")
-    .eq("character_id", input.characterId);
+
+  // The permission check and the item-id fetch are independent, so run them
+  // together rather than paying two sequential round trips.
+  const [result, { data: rows }] = await Promise.all([
+    getEditableCharacter(input.characterId, actor.id),
+    admin.from("inventory_items").select("id").eq("character_id", input.characterId),
+  ]);
+  if ("error" in result) return { ok: false, error: result.error };
 
   const validIds = new Set((rows ?? []).map((r) => r.id));
   if (!input.orderedIds.every((id) => validIds.has(id)))

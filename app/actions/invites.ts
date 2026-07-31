@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdminClient, createServerClient } from "@/lib/supabase/server";
+import { createAdminClient, getCurrentUser } from "@/lib/supabase/server";
 import { getCurrentUserId, isCampaignOwner } from "@/lib/queries/campaigns";
 import type { ActionResult } from "@/app/actions/campaigns";
 
@@ -52,10 +52,7 @@ async function getCurrentUserWithEmail(): Promise<{
   id: string;
   email: string;
 } | null> {
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user?.email) return null;
   return { id: user.id, email: normalizeEmail(user.email) };
 }

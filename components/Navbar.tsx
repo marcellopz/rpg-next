@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
+import type { SessionUser } from "@/lib/supabase/types";
 import { Menu, X } from "lucide-react";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { NavLink } from "@/components/navigation/NavLink";
@@ -20,7 +20,7 @@ function NavLinksContent({ i18n }: { i18n: { t: (key: string) => string } }) {
   ];
 }
 
-function getDisplayName(user: User | null): string | null {
+function getDisplayName(user: SessionUser | null): string | null {
   return (
     (user?.user_metadata?.display_name as string | undefined) ??
     (user?.user_metadata?.full_name as string | undefined) ??
@@ -34,7 +34,7 @@ export function Navbar({
   user,
   pendingInviteCount = 0,
 }: {
-  user: User | null;
+  user: SessionUser | null;
   pendingInviteCount?: number;
 }) {
   const { t } = useI18n();

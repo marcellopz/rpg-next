@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type DragEvent } from "react";
-import { useRouter } from "next/navigation";
 import {
   deleteItem,
   reorderItems,
@@ -12,23 +11,17 @@ import {
 import { Typography, type MenuEntry } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/context";
 import type { Character, InventoryItem } from "@/lib/queries/inventory";
+import * as optimistic from "@/lib/inventory/optimistic";
+import { useInventory } from "../InventoryContext";
 import { AddItemForm } from "./AddItemForm";
 import { ItemRow, ITEMS_GRID } from "./ItemRow";
 import { cn } from "@/lib/cn";
 
 // The selected character's item list: header, draggable editable rows, and
 // the add-item form. Rows can be sent to other party members via the menu.
-export function ItemsTable({
-  character,
-  allCharacters,
-  readOnly,
-}: {
-  character: Character;
-  allCharacters: Character[];
-  readOnly?: boolean;
-}) {
+export function ItemsTable({ character }: { character: Character }) {
   const { t } = useI18n();
-  const router = useRouter();
+  const { characters, readOnly, run } = useInventory();
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropId, setDropId] = useState<string | "end" | null>(null);
 
@@ -46,7 +39,7 @@ export function ItemsTable({
     setDropId(targetId);
   }
 
-  async function handleDrop(e: DragEvent, targetId: string | "end") {
+  function handleDrop(e: DragEvent, targetId: string | "end") {
     e.preventDefault();
     const sourceId = dragId;
     clearDrag();
@@ -61,40 +54,49 @@ export function ItemsTable({
       ids.splice(at, 0, sourceId);
     }
 
-    const result = await reorderItems({
-      characterId: character.id,
-      orderedIds: ids,
-    });
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
-  }
-
-  async function handleEdit(item: InventoryItem, field: ItemField, value: string) {
-    const result = await updateItem(
-      item.id,
-      field,
-      field === "weight" || field === "quantity" ? Number(value) : value
+    void run(
+      (prev) => optimistic.reorderItems(prev, character.id, ids),
+      () => reorderItems({ characterId: character.id, orderedIds: ids })
     );
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
   }
 
-  async function handleDelete(item: InventoryItem) {
+  async function handleEdit(
+    item: InventoryItem,
+    field: ItemField,
+    value: string
+  ): Promise<void> {
+    const numeric = field === "weight" || field === "quantity";
+    const parsed = numeric ? Number(value) : value;
+    if (numeric && !Number.isFinite(parsed as number)) return;
+    if (parsed === item[field]) return;
+
+    await run(
+      (prev) =>
+        optimistic.patchItem(prev, item.id, {
+          [field]: parsed,
+        } as Partial<InventoryItem>),
+      () => updateItem(item.id, field, parsed)
+    );
+  }
+
+  function handleDelete(item: InventoryItem) {
     if (!window.confirm(`Delete "${item.name}" from ${character.name}'s inventory?`))
       return;
-    const result = await deleteItem(item.id);
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+    void run(
+      (prev) => optimistic.removeItem(prev, item.id),
+      () => deleteItem(item.id)
+    );
   }
 
-  async function handleTransfer(item: InventoryItem, targetId: string) {
-    const result = await transferItem(item.id, targetId);
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+  function handleTransfer(item: InventoryItem, targetId: string) {
+    void run(
+      (prev) => optimistic.transferItem(prev, item.id, targetId),
+      () => transferItem(item.id, targetId)
+    );
   }
 
   function menuEntries(item: InventoryItem): MenuEntry[] {
-    const sendTargets: MenuEntry[] = allCharacters
+    const sendTargets: MenuEntry[] = characters
       .filter((c) => c.id !== character.id)
       .map((c) => ({
         label: `Send to ${c.name}`,
@@ -114,6 +116,7 @@ export function ItemsTable({
           ITEMS_GRID
         )}
       >
+        <span />
         <span>{t("inventory.table.qty")}</span>
         <span>{t("inventory.table.name")}</span>
         <span className="hidden sm:inline">{t("inventory.table.type")}</span>

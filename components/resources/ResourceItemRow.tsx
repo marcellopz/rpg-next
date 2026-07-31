@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { useState, type DragEvent } from "react";
+import { GripVertical, Minus, Plus, Trash2 } from "lucide-react";
 import {
   deleteResourceItem,
   setResourceCurrent,
@@ -10,63 +9,107 @@ import {
 } from "@/app/actions/resources";
 import type { ResourceItem } from "@/lib/resources/types";
 import { IconButton } from "@/components/ui";
+import { cn } from "@/lib/cn";
+import { patchItem, removeItem } from "@/lib/resources/optimistic";
+import { useResources } from "./ResourcesContext";
 
 export function ResourceItemRow({
   item,
   isEditing,
   readOnly,
+  dragging,
+  dropIndicator,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: {
   item: ResourceItem;
   isEditing: boolean;
   readOnly?: boolean;
+  dragging?: boolean;
+  dropIndicator?: boolean;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  onDragOver?: (e: DragEvent) => void;
+  onDragLeave?: () => void;
+  onDrop?: (e: DragEvent) => void;
 }) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const { run } = useResources();
   const [name, setName] = useState(item.name);
   const [current, setCurrent] = useState(String(item.currentValue));
   const [total, setTotal] = useState(String(item.totalValue));
 
-  function refresh() {
-    router.refresh();
-  }
-
   function adjustCurrent(delta: number) {
     const next = Math.max(0, Math.min(item.totalValue, item.currentValue + delta));
-    startTransition(async () => {
-      await setResourceCurrent({ itemId: item.id, currentValue: next });
-      refresh();
-    });
+    if (next === item.currentValue) return;
+    void run(
+      (d) => patchItem(d, item.id, { currentValue: next }),
+      () => setResourceCurrent({ itemId: item.id, currentValue: next })
+    );
   }
 
   function commitField(field: "name" | "current" | "total") {
-    startTransition(async () => {
-      if (field === "name") {
-        const trimmed = name.trim();
-        if (!trimmed || trimmed === item.name) return;
-        await updateResourceItem({ itemId: item.id, name: trimmed });
-      } else if (field === "current") {
-        const value = Number(current);
-        if (!Number.isFinite(value) || value === item.currentValue) return;
-        await updateResourceItem({ itemId: item.id, currentValue: value });
-      } else {
-        const value = Number(total);
-        if (!Number.isFinite(value) || value === item.totalValue) return;
-        await updateResourceItem({ itemId: item.id, totalValue: value });
-      }
-      refresh();
-    });
+    if (field === "name") {
+      const trimmed = name.trim();
+      if (!trimmed || trimmed === item.name) return;
+      void run(
+        (d) => patchItem(d, item.id, { name: trimmed }),
+        () => updateResourceItem({ itemId: item.id, name: trimmed })
+      );
+      return;
+    }
+
+    if (field === "current") {
+      const value = Number(current);
+      if (!Number.isFinite(value) || value === item.currentValue) return;
+      void run(
+        (d) => patchItem(d, item.id, { currentValue: value }),
+        () => updateResourceItem({ itemId: item.id, currentValue: value })
+      );
+      return;
+    }
+
+    const value = Number(total);
+    if (!Number.isFinite(value) || value === item.totalValue) return;
+    void run(
+      (d) => patchItem(d, item.id, { totalValue: value }),
+      () => updateResourceItem({ itemId: item.id, totalValue: value })
+    );
   }
 
   function handleDelete() {
-    startTransition(async () => {
-      await deleteResourceItem(item.id);
-      refresh();
-    });
+    void run(
+      (d) => removeItem(d, item.id),
+      () => deleteResourceItem(item.id)
+    );
   }
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5 text-sm">
+      <div
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        className={cn(
+          "flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5 text-sm",
+          dropIndicator && "ring-2 ring-accent-400",
+          dragging && "opacity-40"
+        )}
+      >
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = "move";
+            onDragStart?.();
+          }}
+          onDragEnd={onDragEnd}
+          aria-label={`Reorder ${item.name}`}
+          className="flex shrink-0 cursor-grab items-center text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4" />
+        </div>
         <input
           type="number"
           min={0}
@@ -76,7 +119,6 @@ export function ResourceItemRow({
           onKeyDown={(e) => e.key === "Enter" && commitField("current")}
           className="w-10 rounded border border-gray-300 px-1 py-0.5 text-center"
           aria-label={`Current value for ${item.name}`}
-          disabled={isPending}
         />
         <span className="text-gray-400">/</span>
         <input
@@ -88,7 +130,6 @@ export function ResourceItemRow({
           onKeyDown={(e) => e.key === "Enter" && commitField("total")}
           className="w-10 rounded border border-gray-300 px-1 py-0.5 text-center"
           aria-label={`Total value for ${item.name}`}
-          disabled={isPending}
         />
         <input
           type="text"
@@ -98,12 +139,10 @@ export function ResourceItemRow({
           onKeyDown={(e) => e.key === "Enter" && commitField("name")}
           className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-0.5"
           aria-label="Resource name"
-          disabled={isPending}
         />
         <IconButton
           aria-label={`Delete ${item.name}`}
           onClick={handleDelete}
-          disabled={isPending}
           className="text-gray-400 hover:text-red-600"
         >
           <Trash2 className="h-4 w-4" />
@@ -118,7 +157,7 @@ export function ResourceItemRow({
         <IconButton
           aria-label={`Decrease ${item.name}`}
           onClick={() => adjustCurrent(-1)}
-          disabled={readOnly || isPending || item.currentValue <= 0}
+          disabled={readOnly || item.currentValue <= 0}
         >
           <Minus className="h-3.5 w-3.5" />
         </IconButton>
@@ -128,7 +167,7 @@ export function ResourceItemRow({
         <IconButton
           aria-label={`Increase ${item.name}`}
           onClick={() => adjustCurrent(1)}
-          disabled={readOnly || isPending || item.currentValue >= item.totalValue}
+          disabled={readOnly || item.currentValue >= item.totalValue}
         >
           <Plus className="h-3.5 w-3.5" />
         </IconButton>

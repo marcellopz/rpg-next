@@ -11,6 +11,8 @@ import { Typography, type MenuEntry } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 import type { Character } from "@/lib/queries/inventory";
+import * as optimistic from "@/lib/inventory/optimistic";
+import { useInventory } from "../InventoryContext";
 import { AddCharacterDialog } from "./AddCharacterDialog";
 import { CharacterRow } from "./CharacterRow";
 
@@ -18,20 +20,15 @@ import { CharacterRow } from "./CharacterRow";
 // "Add character" dialog. Dropping a row inserts it before the row under the
 // cursor; the end-of-list zone appends.
 export function CharacterSidebar({
-  campaignId,
-  characters,
   selectedCharacterId,
   characterHref,
-  readOnly,
 }: {
-  campaignId: string;
-  characters: Character[];
   selectedCharacterId: string | null;
   characterHref: (characterId: string) => string;
-  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const router = useRouter();
+  const { campaignId, characters, readOnly, run } = useInventory();
   const [dragId, setDragId] = useState<string | null>(null);
   // null = no target; "end" = append at the end of the list.
   const [dropId, setDropId] = useState<string | "end" | null>(null);
@@ -48,7 +45,7 @@ export function CharacterSidebar({
     setDropId(targetId);
   }
 
-  async function handleDrop(e: DragEvent, targetId: string | "end") {
+  function handleDrop(e: DragEvent, targetId: string | "end") {
     e.preventDefault();
     const sourceId = dragId;
     clearDrag();
@@ -63,36 +60,40 @@ export function CharacterSidebar({
       ids.splice(at, 0, sourceId);
     }
 
-    const result = await reorderCharacters({ campaignId, orderedIds: ids });
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+    void run(
+      (prev) => optimistic.reorderCharacters(prev, ids),
+      () => reorderCharacters({ campaignId, orderedIds: ids })
+    );
   }
 
-  async function handleRename(character: Character) {
+  function handleRename(character: Character) {
     const name = window.prompt(t("character.rename"), character.name)?.trim();
     if (!name || name === character.name) return;
-    const result = await renameCharacter(character.id, name);
-    if (!result.ok) window.alert(result.error);
-    router.refresh();
+    void run(
+      (prev) => optimistic.patchCharacter(prev, character.id, { name }),
+      () => renameCharacter(character.id, name)
+    );
   }
 
-  async function handleDelete(character: Character) {
+  function handleDelete(character: Character) {
     if (
       !window.confirm(
         t("character.deleteConfirm", { name: character.name })
       )
     )
       return;
-    const result = await deleteCharacter(character.id);
-    if (!result.ok) {
-      window.alert(result.error);
-      return;
-    }
+
+    // Navigate off the deleted character first so the panel doesn't render a
+    // row that's already gone from local state.
     if (character.id === selectedCharacterId) {
       const remaining = characters.find((c) => c.id !== character.id);
       router.push(remaining ? characterHref(remaining.id) : characterHref(""));
     }
-    router.refresh();
+
+    void run(
+      (prev) => optimistic.removeCharacter(prev, character.id),
+      () => deleteCharacter(character.id)
+    );
   }
 
   function menuEntries(character: Character): MenuEntry[] {

@@ -1,6 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+// No revalidatePath here: the tracker owns its state client-side
+// (CombatTrackerContext applies optimistic updates and refetches via
+// fetchCombatClient), and other members are refreshed by the combat realtime
+// channel. The page's `combat` prop is only the initial value.
 import { createAdminClient, getCurrentUser } from "@/lib/supabase/server";
 import { isCampaignDm } from "@/lib/campaign/permissions";
 import type { ActionResult } from "@/app/actions/campaigns";
@@ -8,17 +11,6 @@ import type { CombatantType } from "@/lib/combat/types";
 
 const NAME_MAX = 80;
 const STAT_MAX = 10_000;
-
-async function revalidateCampaignWorkspace(campaignId: string) {
-  const admin = createAdminClient();
-  const { data: campaign } = await admin
-    .from("campaigns")
-    .select("public_code")
-    .eq("id", campaignId)
-    .maybeSingle();
-  if (campaign?.public_code)
-    revalidatePath(`/campaigns/${campaign.public_code}`);
-}
 
 async function assertDm(campaignId: string): Promise<ActionResult<never> | null> {
   const user = await getCurrentUser();
@@ -87,7 +79,6 @@ export async function startCombat(campaignId: string): Promise<ActionResult> {
   );
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -104,7 +95,6 @@ export async function endCombat(input: {
     await admin.from("combat_conditions").delete().eq("campaign_id", input.campaignId);
     await admin.from("combat_combatants").delete().eq("campaign_id", input.campaignId);
     await admin.from("combat_sessions").delete().eq("campaign_id", input.campaignId);
-    await revalidateCampaignWorkspace(input.campaignId);
     return { ok: true, data: undefined };
   }
 
@@ -139,7 +129,6 @@ export async function endCombat(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -160,7 +149,6 @@ export async function updateDmNotes(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -181,7 +169,6 @@ export async function setShowHpToPlayers(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -235,7 +222,6 @@ export async function addCombatant(input: {
     .single();
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: { id: data.id } };
 }
 
@@ -276,7 +262,6 @@ export async function updateCombatant(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -308,7 +293,6 @@ export async function deleteCombatant(input: {
       .eq("id", remaining[i].id);
   }
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -331,7 +315,6 @@ export async function updateCombatantHp(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -352,7 +335,6 @@ export async function reorderCombatants(input: {
     if (error) return { ok: false, error: error.message };
   }
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -377,7 +359,6 @@ export async function sortByInitiative(campaignId: string): Promise<ActionResult
     if (error) return { ok: false, error: error.message };
   }
 
-  await revalidateCampaignWorkspace(campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -398,7 +379,6 @@ export async function setRound(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -417,7 +397,6 @@ export async function resetRound(campaignId: string): Promise<ActionResult> {
     .eq("campaign_id", campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -438,7 +417,6 @@ export async function setTurn(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -534,7 +512,6 @@ export async function advanceTurn(campaignId: string): Promise<ActionResult> {
     await resetReactionForTurn(campaignId, newTurn);
   }
 
-  await revalidateCampaignWorkspace(campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -574,7 +551,6 @@ export async function retreatTurn(campaignId: string): Promise<ActionResult> {
       .eq("campaign_id", campaignId);
   }
 
-  await revalidateCampaignWorkspace(campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -594,7 +570,6 @@ export async function setReactionUsed(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -631,7 +606,6 @@ export async function addCondition(input: {
   });
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -650,6 +624,5 @@ export async function removeCondition(input: {
     .eq("campaign_id", input.campaignId);
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }

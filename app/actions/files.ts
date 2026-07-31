@@ -1,6 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+// No revalidatePath here: the handouts tool owns its state client-side
+// (useCampaignHandouts fetches via fetchFilesForCampaignClient) and other
+// members are refreshed by the files realtime channel — server-side
+// revalidation would only re-render the page a second time in the response.
 import type { ActionResult } from "@/app/actions/campaigns";
 import { isCampaignMember, isCampaignOwner } from "@/lib/campaign/permissions";
 import { mapFileRow, type FileDbRow } from "@/lib/files/mappers";
@@ -17,18 +20,6 @@ import {
   getCurrentUser,
 } from "@/lib/supabase/server";
 import { resolveUserDisplayNames } from "@/lib/users/display-name";
-
-async function revalidateCampaignWorkspace(campaignId: string) {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("campaigns")
-    .select("public_code")
-    .eq("id", campaignId)
-    .maybeSingle();
-  if (data?.public_code) {
-    revalidatePath(`/campaigns/${data.public_code}`);
-  }
-}
 
 async function assertMember(campaignId: string) {
   const user = await getCurrentUser();
@@ -101,7 +92,6 @@ export async function registerCampaignFile(input: {
 
   if (error) return { ok: false, error: error.message };
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: { id: data.id } };
 }
 
@@ -164,7 +154,6 @@ export async function deleteCampaignFile(input: {
   const { error } = await admin.from("files").delete().eq("id", input.fileId);
   if (error) return { ok: false, error: error.message };
 
-  await revalidateCampaignWorkspace(input.campaignId);
   return { ok: true, data: undefined };
 }
 
@@ -249,7 +238,6 @@ export async function showHandoutToTable(input: {
   );
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(input.campaignId);
 
   return {
     ok: true,
@@ -283,7 +271,6 @@ export async function clearHandoutBroadcast(
   );
 
   if (error) return { ok: false, error: error.message };
-  await revalidateCampaignWorkspace(campaignId);
 
   return {
     ok: true,
