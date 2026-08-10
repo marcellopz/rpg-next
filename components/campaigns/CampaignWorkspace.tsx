@@ -11,6 +11,7 @@ import {
   type CampaignToolId,
 } from "@/components/campaigns/campaign-tools";
 import { ToolPlaceholder } from "@/components/campaigns/ToolPlaceholder";
+import { AllowRemoteDisplayToggle } from "@/components/handouts/AllowRemoteDisplayToggle";
 import { HandoutBroadcastModal } from "@/components/handouts/HandoutBroadcastModal";
 import { HandoutBroadcastProvider } from "@/components/handouts/HandoutBroadcastContext";
 import { HandoutsTool } from "@/components/handouts/HandoutsTool";
@@ -135,7 +136,8 @@ export function CampaignWorkspace({
                   </Chip>
                 )}
                 <Chip variant="onDarkSolid">{t("campaign.workspace")}</Chip>
-                <div id="campaign-actions" className="ml-auto flex flex-wrap gap-2">
+                <div id="campaign-actions" className="ml-auto flex flex-wrap items-center gap-2">
+                  <AllowRemoteDisplayToggle />
                   <CombatTrackerLauncher
                     campaignId={campaignId}
                     isDm={isDm}

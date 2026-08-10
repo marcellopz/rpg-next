@@ -16,7 +16,11 @@ import {
 } from "@/app/actions/files";
 import type { ActionResult } from "@/app/actions/campaigns";
 import { isDemoCampaignId } from "@/data/demo-campaign";
-import { fetchHandoutBroadcastClient } from "@/lib/files/client-state";
+import {
+  fetchHandoutBroadcastClient,
+  getAllowRemoteDisplayPref,
+  setAllowRemoteDisplayPref,
+} from "@/lib/files/client-state";
 import type { HandoutBroadcast } from "@/lib/files/types";
 import { createClient } from "@/lib/supabase/client";
 
@@ -27,6 +31,9 @@ type HandoutBroadcastContextValue = {
   dismissLocally: () => void;
   dismissedKey: string | null;
   broadcastKey: string | null;
+  selfUserId: string | null;
+  allowRemoteDisplay: boolean;
+  setAllowRemoteDisplay: (allow: boolean) => void;
 };
 
 const HandoutBroadcastContext =
@@ -46,9 +53,35 @@ export function HandoutBroadcastProvider({
 }) {
   const [broadcast, setBroadcast] = useState<HandoutBroadcast | null>(null);
   const [dismissedKey, setDismissedKey] = useState<string | null>(null);
+  const [selfUserId, setSelfUserId] = useState<string | null>(null);
+  const [allowRemoteDisplay, setAllowRemoteDisplayState] = useState(true);
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createClient>["channel"]
   > | null>(null);
+
+  useEffect(() => {
+    setAllowRemoteDisplayState(getAllowRemoteDisplayPref(campaignId));
+  }, [campaignId]);
+
+  const setAllowRemoteDisplay = useCallback(
+    (allow: boolean) => {
+      setAllowRemoteDisplayState(allow);
+      setAllowRemoteDisplayPref(campaignId, allow);
+    },
+    [campaignId]
+  );
+
+  useEffect(() => {
+    if (isDemoCampaignId(campaignId)) return;
+    const supabase = createClient();
+    let cancelled = false;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setSelfUserId(data.user?.id ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [campaignId]);
 
   const applyBroadcast = useCallback((next: HandoutBroadcast | null) => {
     setBroadcast(next);
@@ -172,6 +205,9 @@ export function HandoutBroadcastProvider({
       dismissLocally,
       dismissedKey,
       broadcastKey: broadcastKeyOf(broadcast),
+      selfUserId,
+      allowRemoteDisplay,
+      setAllowRemoteDisplay,
     }),
     [
       broadcast,
@@ -179,6 +215,9 @@ export function HandoutBroadcastProvider({
       clearForEveryone,
       dismissLocally,
       dismissedKey,
+      selfUserId,
+      allowRemoteDisplay,
+      setAllowRemoteDisplay,
     ]
   );
 

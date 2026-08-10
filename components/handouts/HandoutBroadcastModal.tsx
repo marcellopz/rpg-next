@@ -18,15 +18,21 @@ export function HandoutBroadcastModal() {
     dismissedKey,
     clearForEveryone,
     dismissLocally,
+    selfUserId,
+    allowRemoteDisplay,
   } = useHandoutBroadcast();
   const [clearing, setClearing] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(20);
 
   const file = broadcast?.file ?? null;
+  // The sharer always sees their own popup; everyone else can opt out locally.
+  const isOwnBroadcast =
+    Boolean(broadcast?.shownBy) && broadcast?.shownBy === selfUserId;
   const visible =
     Boolean(file) &&
     Boolean(broadcastKey) &&
-    dismissedKey !== broadcastKey;
+    dismissedKey !== broadcastKey &&
+    (allowRemoteDisplay || isOwnBroadcast);
 
   useEffect(() => {
     if (!visible || !broadcast?.updatedAt) return;

@@ -341,7 +341,9 @@
     "delete": "Excluir",
     "deleteConfirm": "Excluir {name}?",
     "history": "Histórico",
-    "noFiles": "Nenhum material ainda"
+    "noFiles": "Nenhum material ainda",
+    "allowRemoteDisplay": "Permitir exibição remota de imagens",
+    "allowRemoteDisplayHint": "Ver imagens e PDFs que outros membros mostram para a mesa"
   },
   "account": {
     "title": "Conta",

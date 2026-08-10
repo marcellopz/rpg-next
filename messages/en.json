@@ -337,7 +337,9 @@
     "delete": "Delete",
     "deleteConfirm": "Delete {name}?",
     "history": "History",
-    "noFiles": "No handouts yet"
+    "noFiles": "No handouts yet",
+    "allowRemoteDisplay": "Allow remote image display",
+    "allowRemoteDisplayHint": "See images and PDFs other members show to the table"
   },
   "account": {
     "title": "Account",

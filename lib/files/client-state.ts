@@ -6,6 +6,28 @@ import type {
   StorageBucket,
 } from "@/lib/files/types";
 
+const ALLOW_REMOTE_DISPLAY_PREFIX = "rpg:allow-remote-display:";
+
+/** Per-browser opt-out from the "show to table" popup — never sent to the server. */
+export function getAllowRemoteDisplayPref(campaignId: string): boolean {
+  if (typeof window === "undefined") return true;
+  const raw = window.localStorage.getItem(
+    `${ALLOW_REMOTE_DISPLAY_PREFIX}${campaignId}`
+  );
+  return raw === null ? true : raw === "true";
+}
+
+export function setAllowRemoteDisplayPref(
+  campaignId: string,
+  allow: boolean
+): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    `${ALLOW_REMOTE_DISPLAY_PREFIX}${campaignId}`,
+    String(allow)
+  );
+}
+
 function browserPublicUrl(bucket: StorageBucket, path: string): string | null {
   if (bucket !== "public-assets") return null;
   const supabase = createClient();
