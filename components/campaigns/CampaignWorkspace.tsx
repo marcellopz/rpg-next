@@ -137,7 +137,6 @@ export function CampaignWorkspace({
                 )}
                 <Chip variant="onDarkSolid">{t("campaign.workspace")}</Chip>
                 <div id="campaign-actions" className="ml-auto flex flex-wrap items-center gap-2">
-                  <AllowRemoteDisplayToggle />
                   <CombatTrackerLauncher
                     campaignId={campaignId}
                     isDm={isDm}
@@ -165,6 +164,9 @@ export function CampaignWorkspace({
                     </NavLink>
                   )}
                 </div>
+              </div>
+              <div className="mt-2 flex justify-end">
+                <AllowRemoteDisplayToggle />
               </div>
               <h1 id="campaign-title" className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
                 {name}
