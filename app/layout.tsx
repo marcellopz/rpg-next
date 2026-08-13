@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 import { getCurrentUser } from "@/lib/supabase/server";
@@ -30,6 +32,8 @@ export default async function RootLayout({
             <Footer />
           </NavigationProvider>
         </I18nProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
