@@ -1,6 +1,7 @@
 export type CampaignToolId =
   | "notes"
   | "inventory"
+  | "map"
   | "handouts"
   | "resources";
 
@@ -20,6 +21,12 @@ export const CAMPAIGN_TOOLS: {
     id: "inventory",
     label: "Inventory",
     hint: "Track each party member's gear, coins, and carry weight.",
+    placeholder: "",
+  },
+  {
+    id: "map",
+    label: "Map",
+    hint: "Upload a map of your world and drop pins on the places that matter.",
     placeholder: "",
   },
   {

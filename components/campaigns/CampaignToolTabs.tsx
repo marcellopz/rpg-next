@@ -27,6 +27,7 @@ export function CampaignToolTabs({
     const labels: Record<CampaignToolId, string> = {
       notes: t("tools.notes"),
       inventory: t("tools.inventory"),
+      map: t("tools.map"),
       resources: t("tools.resources"),
       handouts: t("tools.handouts"),
     };
