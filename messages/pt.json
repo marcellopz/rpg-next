@@ -390,7 +390,18 @@
     "pinDescriptionPlaceholder": "O que há aqui?",
     "edit": "Editar",
     "delete": "Excluir",
-    "deleteConfirm": "Excluir o marcador \"{label}\"?"
+    "deleteConfirm": "Excluir o marcador \"{label}\"?",
+    "linkedNotes": "Notas vinculadas",
+    "noLinkedNotes": "Nenhuma nota vinculada ainda.",
+    "linkNote": "Vincular nota",
+    "unlinkNote": "Desvincular nota",
+    "searchNotes": "Buscar notas…",
+    "noNotesFound": "Nenhuma nota corresponde a essa busca",
+    "linkPin": "Vincular marcador",
+    "unlinkPin": "Desvincular marcador",
+    "searchPins": "Buscar marcadores…",
+    "noPinsFound": "Nenhum marcador corresponde a essa busca",
+    "noMapYet": "Esta campanha ainda não tem um mapa."
   },
   "account": {
     "title": "Conta",

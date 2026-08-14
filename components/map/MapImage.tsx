@@ -31,8 +31,11 @@ const PAN_THRESHOLD_PX = 4;
 
 export function MapImage({
   map,
+  campaignId,
+  publicCode,
   readOnly,
   addPinMode,
+  initialPinId,
   onAddPinAt,
   onDragPin,
   onDropPin,
@@ -41,8 +44,12 @@ export function MapImage({
   children,
 }: {
   map: CampaignMap;
+  campaignId: string;
+  publicCode: string;
   readOnly: boolean;
   addPinMode: boolean;
+  /** A pin id from a `?pin=` deep link — auto-selected and scrolled into view once. */
+  initialPinId?: string | null;
   onAddPinAt: (x: number, y: number) => void;
   onDragPin: (pinId: string, x: number, y: number) => void;
   onDropPin: (pinId: string, x: number, y: number) => void;
@@ -108,6 +115,28 @@ export function MapImage({
       .filter((pin) => pin.type === "group")
       .map((pin, index) => [pin.id, index + 1])
   );
+
+  // Deep link: select the target pin and scroll it into view, once, as soon
+  // as it shows up in `map.pins` (which may load asynchronously after mount).
+  const jumpedToInitialPin = useRef(false);
+  useEffect(() => {
+    if (jumpedToInitialPin.current || !initialPinId) return;
+    const pin = map.pins.find((p) => p.id === initialPinId);
+    if (!pin) return;
+    jumpedToInitialPin.current = true;
+    if (hiddenTypes.has(pin.type)) {
+      setHiddenTypes((prev) => {
+        const next = new Set(prev);
+        next.delete(pin.type);
+        return next;
+      });
+    }
+    setSelectedPinId(pin.id);
+    const marker = containerRef.current?.querySelector(
+      `[data-pin-id="${pin.id}"]`
+    );
+    marker?.scrollIntoView({ block: "center", inline: "center" });
+  }, [initialPinId, map.pins, hiddenTypes]);
 
   // Viewport-relative point to keep fixed across the next zoom change
   // (the cursor for wheel zoom; null = viewport center for the buttons).
@@ -329,6 +358,8 @@ export function MapImage({
               key={pin.id}
               pin={pin}
               number={groupNumbers.get(pin.id) ?? null}
+              campaignId={campaignId}
+              publicCode={publicCode}
               containerRef={containerRef}
               readOnly={readOnly || addPinMode}
               selected={selectedPinId === pin.id}

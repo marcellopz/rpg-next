@@ -386,7 +386,18 @@
     "pinDescriptionPlaceholder": "What's here?",
     "edit": "Edit",
     "delete": "Delete",
-    "deleteConfirm": "Delete pin \"{label}\"?"
+    "deleteConfirm": "Delete pin \"{label}\"?",
+    "linkedNotes": "Linked notes",
+    "noLinkedNotes": "No notes linked yet.",
+    "linkNote": "Link a note",
+    "unlinkNote": "Unlink note",
+    "searchNotes": "Search notes…",
+    "noNotesFound": "No notes match that search",
+    "linkPin": "Link pin",
+    "unlinkPin": "Unlink pin",
+    "searchPins": "Search pins…",
+    "noPinsFound": "No pins match that search",
+    "noMapYet": "This campaign doesn't have a map yet."
   },
   "account": {
     "title": "Account",

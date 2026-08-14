@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
 import type { JSONContent } from "@tiptap/core";
@@ -21,6 +21,8 @@ export function PageEditor({
   presenceLabel,
   remoteBanner,
   onOpenHistory,
+  onOpenLinkPin,
+  linkedPinsBar,
 }: {
   initialContent?: JSONContent;
   /** When false the document is rendered read-only, without the toolbar. */
@@ -40,6 +42,9 @@ export function PageEditor({
     onDismiss: () => void;
   } | null;
   onOpenHistory?: () => void;
+  onOpenLinkPin?: () => void;
+  /** Rendered directly under the toolbar, above the document content. */
+  linkedPinsBar?: ReactNode;
 }) {
   const { t } = useI18n();
   useEffect(() => {
@@ -98,6 +103,7 @@ export function PageEditor({
           autosaveIn={autosaveIn}
           presenceLabel={presenceLabel}
           onOpenHistory={onOpenHistory}
+          onOpenLinkPin={onOpenLinkPin}
         />
       )}
       {!editable && (
@@ -119,6 +125,7 @@ export function PageEditor({
           )}
         </div>
       )}
+      {linkedPinsBar}
       {remoteBanner && (
         <div
           id="campaign-editor-remote-banner"

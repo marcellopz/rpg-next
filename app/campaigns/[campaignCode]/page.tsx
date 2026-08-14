@@ -45,7 +45,13 @@ export default async function CampaignPage({
   searchParams,
 }: {
   params: { campaignCode: string };
-  searchParams: { tab?: string; page?: string; tool?: string; character?: string };
+  searchParams: {
+    tab?: string;
+    page?: string;
+    tool?: string;
+    character?: string;
+    pin?: string;
+  };
 }) {
   const isDemo = params.campaignCode === DEMO_CAMPAIGN_CODE;
 
@@ -164,6 +170,7 @@ export default async function CampaignPage({
       inventoryCharacterOptions={inventoryCharacterOptions}
       combat={combat}
       readOnly={isDemo}
+      initialMapPinId={searchParams.pin ?? null}
       canEditSelected={
         !isDemo &&
         !!selectedPage &&

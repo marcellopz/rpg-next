@@ -51,6 +51,7 @@ export function CampaignWorkspace({
   inventoryCharacterOptions,
   combat,
   readOnly,
+  initialMapPinId,
 }: {
   campaignId: string;
   name: string;
@@ -72,6 +73,8 @@ export function CampaignWorkspace({
   inventoryCharacterOptions: InventoryCharacterOption[];
   combat: CombatState | null;
   readOnly: boolean;
+  /** A pin id from a `?pin=` deep link (e.g. a note's "linked pins" jump). */
+  initialMapPinId: string | null;
 }) {
   const { t } = useI18n();
   const treeHasPages =
@@ -242,6 +245,7 @@ export function CampaignWorkspace({
                       key={selectedPage.id}
                       page={selectedPage}
                       canEdit={canEditSelected}
+                      publicCode={publicCode}
                     />
                   ) : (
                     <div className="flex flex-1 items-center justify-center p-8 text-center">
@@ -272,7 +276,12 @@ export function CampaignWorkspace({
               readOnly={readOnly}
             />
           ) : activeTool === "map" ? (
-          <MapTool campaignId={campaignId} readOnly={readOnly} />
+          <MapTool
+            campaignId={campaignId}
+            publicCode={publicCode}
+            readOnly={readOnly}
+            initialPinId={initialMapPinId}
+          />
         ) : activeTool === "resources" ? (
             <ResourcesTool
               campaignId={campaignId}

@@ -13,6 +13,7 @@ import {
   Italic,
   List,
   ListOrdered,
+  MapPin,
   Minus,
   Quote,
   Redo,
@@ -32,6 +33,7 @@ export function EditorToolbar({
   autosaveIn,
   presenceLabel,
   onOpenHistory,
+  onOpenLinkPin,
 }: {
   editor: Editor;
   onSave?: () => void;
@@ -40,6 +42,7 @@ export function EditorToolbar({
   autosaveIn?: number | null;
   presenceLabel?: string | null;
   onOpenHistory?: () => void;
+  onOpenLinkPin?: () => void;
 }) {
   const { t } = useI18n();
   const saveLabel = saving
@@ -167,11 +170,23 @@ export function EditorToolbar({
           type="button"
           variant="secondary"
           size="xs"
+          disabled={!onOpenLinkPin}
+          onClick={onOpenLinkPin}
+          title={t("map.linkPin")}
+        >
+          <MapPin className="h-3.5 w-3.5" />
+          <span className="hidden xl:inline">{t("map.linkPin")}</span>
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="xs"
           disabled={!onOpenHistory}
           onClick={onOpenHistory}
+          title={t("notes.history")}
         >
           <History className="h-3.5 w-3.5" />
-          {t("notes.history")}
+          <span className="hidden xl:inline">{t("notes.history")}</span>
         </Button>
         <Button
           size="xs"

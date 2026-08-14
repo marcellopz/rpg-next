@@ -5,6 +5,7 @@ import { useRef, type PointerEvent, type RefObject } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { PIN_TYPE_STYLES, type MapPin } from "@/lib/map/types";
 import { Button, Typography } from "@/components/ui";
+import { PinLinkedNotes } from "./PinLinkedNotes";
 
 const DRAG_THRESHOLD_PX = 4;
 
@@ -22,6 +23,8 @@ function pointerFraction(
 export function MapPinMarker({
   pin,
   number,
+  campaignId,
+  publicCode,
   containerRef,
   readOnly,
   selected,
@@ -34,6 +37,8 @@ export function MapPinMarker({
   pin: MapPin;
   /** Sequence number for ordered 'group' pins; null for other types. */
   number: number | null;
+  campaignId: string;
+  publicCode: string;
   containerRef: RefObject<HTMLElement>;
   readOnly: boolean;
   selected: boolean;
@@ -107,6 +112,7 @@ export function MapPinMarker({
 
   return (
     <div
+      data-pin-id={pin.id}
       className="absolute z-10"
       style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
     >
@@ -189,6 +195,12 @@ export function MapPinMarker({
               </Button>
             </div>
           )}
+          <PinLinkedNotes
+            pinId={pin.id}
+            campaignId={campaignId}
+            publicCode={publicCode}
+            readOnly={readOnly}
+          />
         </div>
       )}
     </div>

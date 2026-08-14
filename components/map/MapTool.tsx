@@ -19,10 +19,15 @@ import { useCampaignMap } from "./useCampaignMap";
 
 export function MapTool({
   campaignId,
+  publicCode,
   readOnly,
+  initialPinId,
 }: {
   campaignId: string;
+  publicCode: string;
   readOnly?: boolean;
+  /** A pin id from a `?pin=` deep link (e.g. a note's "linked pins" jump). */
+  initialPinId?: string | null;
 }) {
   const { t } = useI18n();
   const {
@@ -248,8 +253,11 @@ export function MapTool({
         ) : (
           <MapImage
             map={map}
+            campaignId={campaignId}
+            publicCode={publicCode}
             readOnly={!!readOnly}
             addPinMode={addPinMode}
+            initialPinId={initialPinId}
             onAddPinAt={(x, y) => setNewPinAt({ x, y })}
             onDragPin={(pinId, x, y) => updatePinLocally(pinId, { x, y })}
             onDropPin={(pinId, x, y) => void handleDropPin(pinId, x, y)}

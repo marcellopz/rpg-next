@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n/context";
 import type { NotePage } from "@/lib/queries/notes";
 import { PageEditor } from "./PageEditor";
 import { PageHistoryPanel } from "./PageHistoryPanel";
+import { PageLinkedPins } from "./PageLinkedPins";
 import {
   type RemotePageUpdate,
   usePageLiveSync,
@@ -30,9 +31,11 @@ const AUTOSAVE_MS = 5000;
 export function PageEditorPanel({
   page,
   canEdit,
+  publicCode,
 }: {
   page: NotePage;
   canEdit: boolean;
+  publicCode: string;
 }) {
   const { t } = useI18n();
   const contentRef = useRef<JSONContent | null>(null);
@@ -54,6 +57,7 @@ export function PageEditorPanel({
   const [autosaveIn, setAutosaveIn] = useState<number | null>(null);
   const [autosavePaused, setAutosavePaused] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [linkPinOpen, setLinkPinOpen] = useState(false);
   const [remoteUpdate, setRemoteUpdate] = useState<RemotePageUpdate | null>(
     null
   );
@@ -241,6 +245,17 @@ export function PageEditorPanel({
             : null
         }
         onOpenHistory={() => setHistoryOpen(true)}
+        onOpenLinkPin={canEdit ? () => setLinkPinOpen(true) : undefined}
+        linkedPinsBar={
+          <PageLinkedPins
+            pageId={page.id}
+            campaignId={page.campaignId}
+            publicCode={publicCode}
+            canEdit={canEdit}
+            pickerOpen={linkPinOpen}
+            onPickerClose={() => setLinkPinOpen(false)}
+          />
+        }
       />
       {historyOpen && (
         <PageHistoryPanel

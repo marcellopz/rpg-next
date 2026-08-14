@@ -81,6 +81,20 @@ export type CampaignMap = {
 
 export type MapPinLogAction = "add" | "edit" | "move" | "delete";
 
+/** A note page linked to a pin, as shown in the pin's popover. */
+export type LinkedNote = {
+  pageId: string;
+  title: string;
+  visibility: "public" | "private";
+};
+
+/** A map pin linked to a note page, as shown in the note editor. */
+export type LinkedPin = {
+  pinId: string;
+  label: string;
+  type: MapPinType;
+};
+
 export function mapsFolder(campaignId: string): string {
   return `${campaignId}/map`;
 }
