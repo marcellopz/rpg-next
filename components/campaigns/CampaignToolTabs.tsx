@@ -60,6 +60,13 @@ export function CampaignToolTabs({
               key={tool.id}
               id={tool.id === "notes" ? "campaign-tool-notes" : undefined}
               href={toolHref(tool.id)}
+              // This route is dynamic (cookie-based auth), so Next's default
+              // prefetch only warms the loading.tsx skeleton, not the actual
+              // data — explicit `true` fully prefetches each tab's RSC
+              // payload as soon as the tab bar is in view, so a click lands
+              // on an already-warm Router Cache entry instead of a fresh
+              // server round trip.
+              prefetch
               role="tab"
               aria-selected={selected}
               className={cn(
