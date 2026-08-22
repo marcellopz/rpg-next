@@ -25,7 +25,7 @@ import { IconButton } from "@/components/ui";
 import { MapPinMarker } from "./MapPinMarker";
 
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 4;
+const MAX_ZOOM = 20;
 const BUTTON_ZOOM_STEP = 1.4;
 const PAN_THRESHOLD_PX = 4;
 

@@ -149,6 +149,11 @@
     "viewLog": "Ver log",
     "logTitle": "Log de inventário",
     "logEmpty": "Nenhuma alteração registrada ainda. Todos os adicionar, editar, transferir e excluir aparecerão aqui.",
+    "sendTo": "Enviar para {name}",
+    "transferTitle": "Enviar \"{item}\" para {character}",
+    "transferQuantity": "Quantidade",
+    "transferSend": "Enviar",
+    "transferInvalidQuantity": "Informe uma quantidade entre 1 e {max}.",
     "table": {
       "qty": "Qtd",
       "name": "Nome",
@@ -263,6 +268,7 @@
     "condition": "Adicionar condição",
     "conditions": "Condições",
     "removeCondition": "Remover",
+    "editCondition": "Editar condição",
     "table": {
       "initiative": "Init",
       "combatant": "Combatente",

@@ -583,11 +583,16 @@ export async function updateItem(
   return { ok: true, data: undefined };
 }
 
-// Move an item to another character in the same campaign. A single "transfer"
-// log entry (the old app logged a delete + add pair instead).
+// Move some or all of an item's quantity to another character in the same
+// campaign. If the target already has an item with the same name + weight,
+// the transferred quantity merges into that row instead of creating a
+// second stack. Otherwise: sending the full quantity moves the row (parity
+// with the old behavior); sending less splits it — the source row shrinks
+// and a new row is created on the target.
 export async function transferItem(
   itemId: string,
-  targetCharacterId: string
+  targetCharacterId: string,
+  quantity: number
 ): Promise<ActionResult> {
   const actor = await getActor();
   if (!actor) return { ok: false, error: "You must be signed in." };
@@ -599,6 +604,10 @@ export async function transferItem(
   if (targetCharacterId === item.character_id)
     return { ok: true, data: undefined };
 
+  const qty = Math.trunc(quantity);
+  if (!Number.isFinite(qty) || qty < 1 || qty > item.quantity)
+    return { ok: false, error: "Invalid quantity." };
+
   const admin = createAdminClient();
   const { data: target } = await admin
     .from("characters")
@@ -608,29 +617,97 @@ export async function transferItem(
   if (!target || target.campaign_id !== item.campaign_id)
     return { ok: false, error: "Target character not found." };
 
-  // Append at the end of the target's item list.
-  const { data: lastRow } = await admin
+  const { data: existingStack } = await admin
     .from("inventory_items")
-    .select("sort_order")
+    .select("id, quantity")
     .eq("character_id", targetCharacterId)
-    .order("sort_order", { ascending: false })
+    .eq("name", item.name)
+    .eq("weight", item.weight)
     .limit(1)
     .maybeSingle();
-  const sortOrder = (lastRow?.sort_order ?? 0) + 1;
 
-  const { error } = await admin
-    .from("inventory_items")
-    .update({ character_id: targetCharacterId, sort_order: sortOrder })
-    .eq("id", itemId);
-  if (error)
-    return { ok: false, error: "Could not transfer the item. Please try again." };
+  if (existingStack) {
+    const { error: mergeError } = await admin
+      .from("inventory_items")
+      .update({ quantity: existingStack.quantity + qty })
+      .eq("id", existingStack.id);
+    if (mergeError)
+      return { ok: false, error: "Could not transfer the item. Please try again." };
+
+    if (qty >= item.quantity) {
+      const { error } = await admin
+        .from("inventory_items")
+        .delete()
+        .eq("id", itemId);
+      if (error)
+        return { ok: false, error: "Could not transfer the item. Please try again." };
+    } else {
+      const { error } = await admin
+        .from("inventory_items")
+        .update({ quantity: item.quantity - qty })
+        .eq("id", itemId);
+      if (error)
+        return { ok: false, error: "Could not transfer the item. Please try again." };
+    }
+  } else if (qty >= item.quantity) {
+    // Append at the end of the target's item list.
+    const { data: lastRow } = await admin
+      .from("inventory_items")
+      .select("sort_order")
+      .eq("character_id", targetCharacterId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const sortOrder = (lastRow?.sort_order ?? 0) + 1;
+
+    const { error } = await admin
+      .from("inventory_items")
+      .update({ character_id: targetCharacterId, sort_order: sortOrder })
+      .eq("id", itemId);
+    if (error)
+      return { ok: false, error: "Could not transfer the item. Please try again." };
+  } else {
+    const { error: shrinkError } = await admin
+      .from("inventory_items")
+      .update({ quantity: item.quantity - qty })
+      .eq("id", itemId);
+    if (shrinkError)
+      return { ok: false, error: "Could not transfer the item. Please try again." };
+
+    const { data: lastRow } = await admin
+      .from("inventory_items")
+      .select("sort_order")
+      .eq("character_id", targetCharacterId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const sortOrder = (lastRow?.sort_order ?? 0) + 1;
+
+    const { error: insertError } = await admin.from("inventory_items").insert({
+      campaign_id: item.campaign_id,
+      character_id: targetCharacterId,
+      name: item.name,
+      item_type: item.item_type,
+      weight: item.weight,
+      quantity: qty,
+      sort_order: sortOrder,
+    });
+    if (insertError) {
+      // Best effort: undo the shrink so a failed insert doesn't just erase quantity.
+      await admin
+        .from("inventory_items")
+        .update({ quantity: item.quantity })
+        .eq("id", itemId);
+      return { ok: false, error: "Could not transfer the item. Please try again." };
+    }
+  }
 
   await writeLog({
     campaignId: item.campaign_id,
     actor,
     changeType: "transfer",
-    description: `Moved ${item.quantity} × "${item.name}" from ${characterName} to ${target.name}`,
-    itemSnapshot: itemSnapshot(item),
+    description: `Moved ${qty} × "${item.name}" from ${characterName} to ${target.name}`,
+    itemSnapshot: itemSnapshot({ ...item, quantity: qty }),
   });
   return { ok: true, data: undefined };
 }

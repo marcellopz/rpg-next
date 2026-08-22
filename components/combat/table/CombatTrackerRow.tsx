@@ -189,7 +189,6 @@ export function CombatTrackerRow({
                   title={effect.name}
                   duration={effect.duration}
                   color={effect.color}
-                  isDm={isDm}
                 />
               ))}
             </div>

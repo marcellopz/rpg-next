@@ -33,6 +33,7 @@ export function ItemRow({
   onDragOver,
   onDragLeave,
   onDrop,
+  onTouchDragStart,
   onEdit,
 }: {
   item: InventoryItem;
@@ -47,6 +48,8 @@ export function ItemRow({
   onDragOver: (e: DragEvent) => void;
   onDragLeave: () => void;
   onDrop: (e: DragEvent) => void;
+  /** Touch equivalent of onDragStart — mobile has no native HTML5 DnD. */
+  onTouchDragStart: () => void;
   onEdit: (
     field: "name" | "itemType" | "weight" | "quantity",
     value: string
@@ -57,6 +60,7 @@ export function ItemRow({
 
   return (
     <div
+      data-drag-id={item.id}
       onDragOver={dragEnabled ? onDragOver : undefined}
       onDragLeave={onDragLeave}
       onDrop={dragEnabled ? onDrop : undefined}
@@ -76,8 +80,13 @@ export function ItemRow({
             onDragStart();
           }}
           onDragEnd={onDragEnd}
+          // touch-none stops the browser from starting a page-scroll gesture
+          // as soon as the finger touches the handle — without it, this
+          // element gets no touch events at all, since HTML5 drag-and-drop
+          // (draggable/onDragStart above) isn't wired for touch by browsers.
+          onTouchStart={onTouchDragStart}
           aria-label={`Reorder ${item.name}`}
-          className="flex h-full cursor-grab items-center text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+          className="flex h-full cursor-grab touch-none items-center text-gray-300 hover:text-gray-500 active:cursor-grabbing"
         >
           <GripVertical className="h-4 w-4" />
         </div>

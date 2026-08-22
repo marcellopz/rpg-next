@@ -609,12 +609,41 @@ export async function addCondition(input: {
   return { ok: true, data: undefined };
 }
 
+export async function updateCondition(input: {
+  campaignId: string;
+  conditionId: string;
+  name: string;
+  duration: number;
+  color: string;
+}): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "You must be signed in." };
+
+  const nameErr = validateName(input.name);
+  if (nameErr) return { ok: false, error: nameErr };
+  if (!input.color) return { ok: false, error: "Color is required." };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("combat_conditions")
+    .update({
+      name: input.name.trim(),
+      duration: input.duration,
+      color: input.color,
+    })
+    .eq("id", input.conditionId)
+    .eq("campaign_id", input.campaignId);
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, data: undefined };
+}
+
 export async function removeCondition(input: {
   campaignId: string;
   conditionId: string;
 }): Promise<ActionResult> {
-  const denied = await assertDm(input.campaignId);
-  if (denied) return denied;
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "You must be signed in." };
 
   const admin = createAdminClient();
   const { error } = await admin

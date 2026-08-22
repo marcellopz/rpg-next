@@ -103,25 +103,57 @@ export function appendItem(
   }));
 }
 
-/** Move an item to another character's list, appending at the end. */
+/**
+ * Move `quantity` of an item to another character's list. If the target
+ * already has an item with the same name + weight, the quantity merges into
+ * that stack; otherwise sending the full quantity moves the row as-is, and
+ * sending less shrinks the source row and appends a new (temp-id) row on the
+ * target. Pass `{ reconcile: true }` — a merge target's true quantity and a
+ * new row's real id both need the server's answer, not this guess.
+ */
 export function transferItem(
   characters: Character[],
   itemId: string,
-  targetCharacterId: string
+  targetCharacterId: string,
+  quantity: number
 ): Character[] {
   const item = characters
     .flatMap((c) => c.items)
     .find((i) => i.id === itemId);
   if (!item) return characters;
 
+  const sendingAll = quantity >= item.quantity;
+
   return characters.map((c) => {
     if (c.id === targetCharacterId) {
-      return {
-        ...c,
-        items: [...c.items, { ...item, characterId: targetCharacterId }],
-      };
+      const existingStack = c.items.find(
+        (i) => i.name === item.name && i.weight === item.weight
+      );
+      if (existingStack) {
+        return {
+          ...c,
+          items: c.items.map((i) =>
+            i.id === existingStack.id
+              ? { ...i, quantity: i.quantity + quantity }
+              : i
+          ),
+        };
+      }
+      const incoming = sendingAll
+        ? { ...item, characterId: targetCharacterId }
+        : { ...item, id: tempId(), characterId: targetCharacterId, quantity };
+      return { ...c, items: [...c.items, incoming] };
     }
-    return { ...c, items: c.items.filter((i) => i.id !== itemId) };
+    if (!c.items.some((i) => i.id === itemId)) return c;
+    if (sendingAll) {
+      return { ...c, items: c.items.filter((i) => i.id !== itemId) };
+    }
+    return {
+      ...c,
+      items: c.items.map((i) =>
+        i.id === itemId ? { ...i, quantity: i.quantity - quantity } : i
+      ),
+    };
   });
 }
 

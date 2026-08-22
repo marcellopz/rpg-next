@@ -121,7 +121,6 @@ export function AddConditionDialog({
             title={previewName || "Condition"}
             duration={indefinite ? -1 : previewDuration}
             color={color}
-            isDm={false}
           />
         </div>
         {error && (

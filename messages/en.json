@@ -149,6 +149,11 @@
     "viewLog": "View log",
     "logTitle": "Inventory log",
     "logEmpty": "No changes recorded yet. Every add, edit, transfer, and delete will show up here.",
+    "sendTo": "Send to {name}",
+    "transferTitle": "Send \"{item}\" to {character}",
+    "transferQuantity": "Quantity",
+    "transferSend": "Send",
+    "transferInvalidQuantity": "Enter a quantity between 1 and {max}.",
     "table": {
       "qty": "Qty",
       "name": "Name",
@@ -259,6 +264,7 @@
     "condition": "Add condition",
     "conditions": "Conditions",
     "removeCondition": "Remove",
+    "editCondition": "Edit condition",
     "table": {
       "initiative": "Init",
       "combatant": "Combatant",

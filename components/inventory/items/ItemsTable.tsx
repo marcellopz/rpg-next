@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
+import { useEffect, useState, type DragEvent } from "react";
 import {
   deleteItem,
   reorderItems,
@@ -15,6 +15,7 @@ import * as optimistic from "@/lib/inventory/optimistic";
 import { useInventory } from "../InventoryContext";
 import { AddItemForm } from "./AddItemForm";
 import { ItemRow, ITEMS_GRID } from "./ItemRow";
+import { TransferItemDialog } from "./TransferItemDialog";
 import { cn } from "@/lib/cn";
 
 // The selected character's item list: header, draggable editable rows, and
@@ -24,6 +25,11 @@ export function ItemsTable({ character }: { character: Character }) {
   const { characters, readOnly, run } = useInventory();
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropId, setDropId] = useState<string | "end" | null>(null);
+  const [transferPrompt, setTransferPrompt] = useState<{
+    item: InventoryItem;
+    targetId: string;
+    targetName: string;
+  } | null>(null);
 
   const items = character.items;
 
@@ -32,19 +38,9 @@ export function ItemsTable({ character }: { character: Character }) {
     setDropId(null);
   }
 
-  function handleDragOver(e: DragEvent, targetId: string | "end") {
-    if (!dragId || dragId === targetId) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setDropId(targetId);
-  }
-
-  function handleDrop(e: DragEvent, targetId: string | "end") {
-    e.preventDefault();
-    const sourceId = dragId;
-    clearDrag();
-    if (!sourceId || sourceId === targetId) return;
-
+  // Shared by both the desktop (native HTML5 DnD) and mobile (touch) paths.
+  function commitReorder(sourceId: string, targetId: string | "end") {
+    if (sourceId === targetId) return;
     const ids = items.map((i) => i.id).filter((id) => id !== sourceId);
     if (targetId === "end") {
       ids.push(sourceId);
@@ -59,6 +55,63 @@ export function ItemsTable({ character }: { character: Character }) {
       () => reorderItems({ characterId: character.id, orderedIds: ids })
     );
   }
+
+  function handleDragOver(e: DragEvent, targetId: string | "end") {
+    if (!dragId || dragId === targetId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDropId(targetId);
+  }
+
+  function handleDrop(e: DragEvent, targetId: string | "end") {
+    e.preventDefault();
+    const sourceId = dragId;
+    clearDrag();
+    if (sourceId) commitReorder(sourceId, targetId);
+  }
+
+  // Touch has no native drag-and-drop, so once a finger-drag starts (grip
+  // handle's onTouchStart sets dragId) these track the finger globally and
+  // hit-test whatever row is currently underneath it via elementFromPoint.
+  // Attached natively (not via React's onTouch* props) so preventDefault
+  // actually stops the page from scrolling — React's synthetic touch
+  // listeners are passive by default and can't block that.
+  useEffect(() => {
+    if (!dragId) return;
+
+    function targetIdAt(x: number, y: number): string | "end" | null {
+      const row = document.elementFromPoint(x, y)?.closest("[data-drag-id]") as
+        | HTMLElement
+        | null;
+      return (row?.dataset.dragId as string | "end" | undefined) ?? null;
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+      const touch = e.touches[0];
+      if (!touch) return;
+      e.preventDefault();
+      const targetId = targetIdAt(touch.clientX, touch.clientY);
+      if (targetId && targetId !== dragId) setDropId(targetId);
+    }
+
+    function handleTouchEnd(e: TouchEvent) {
+      const touch = e.changedTouches[0];
+      const targetId = touch ? targetIdAt(touch.clientX, touch.clientY) : null;
+      const sourceId = dragId;
+      clearDrag();
+      if (sourceId && targetId) commitReorder(sourceId, targetId);
+    }
+
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd);
+    document.addEventListener("touchcancel", clearDrag);
+    return () => {
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchcancel", clearDrag);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragId]);
 
   async function handleEdit(
     item: InventoryItem,
@@ -88,10 +141,14 @@ export function ItemsTable({ character }: { character: Character }) {
     );
   }
 
-  function handleTransfer(item: InventoryItem, targetId: string) {
+  function handleTransfer(item: InventoryItem, targetId: string, quantity: number) {
+    // Always reconcile: a merge into an existing stack needs the server's
+    // true resulting quantity (another member could transfer into the same
+    // stack concurrently), and a new row needs its real, server-generated id.
     void run(
-      (prev) => optimistic.transferItem(prev, item.id, targetId),
-      () => transferItem(item.id, targetId)
+      (prev) => optimistic.transferItem(prev, item.id, targetId, quantity),
+      () => transferItem(item.id, targetId, quantity),
+      { reconcile: true }
     );
   }
 
@@ -99,8 +156,15 @@ export function ItemsTable({ character }: { character: Character }) {
     const sendTargets: MenuEntry[] = characters
       .filter((c) => c.id !== character.id)
       .map((c) => ({
-        label: `Send to ${c.name}`,
-        onSelect: () => handleTransfer(item, c.id),
+        label: t("inventory.sendTo", { name: c.name }),
+        onSelect: () => {
+          // Sending the only unit is unambiguous — skip asking how many.
+          if (item.quantity <= 1) {
+            handleTransfer(item, c.id, item.quantity);
+          } else {
+            setTransferPrompt({ item, targetId: c.id, targetName: c.name });
+          }
+        },
       }));
     return [
       ...sendTargets,
@@ -149,6 +213,7 @@ export function ItemsTable({ character }: { character: Character }) {
               setDropId((prev) => (prev === item.id ? null : prev))
             }
             onDrop={(e) => handleDrop(e, item.id)}
+            onTouchDragStart={() => setDragId(item.id)}
             onEdit={(field, value) => handleEdit(item, field, value)}
           />
         ))}
@@ -156,6 +221,7 @@ export function ItemsTable({ character }: { character: Character }) {
         {/* End-of-list drop zone so a row can be dragged to the bottom. */}
         {!readOnly && dragId && (
           <div
+            data-drag-id="end"
             onDragOver={(e) => handleDragOver(e, "end")}
             onDragLeave={() =>
               setDropId((prev) => (prev === "end" ? null : prev))
@@ -174,6 +240,18 @@ export function ItemsTable({ character }: { character: Character }) {
       </div>
 
       {!readOnly && <AddItemForm characterId={character.id} />}
+
+      {transferPrompt && (
+        <TransferItemDialog
+          item={transferPrompt.item}
+          targetName={transferPrompt.targetName}
+          onClose={() => setTransferPrompt(null)}
+          onSend={(quantity) => {
+            handleTransfer(transferPrompt.item, transferPrompt.targetId, quantity);
+            setTransferPrompt(null);
+          }}
+        />
+      )}
     </div>
   );
 }
