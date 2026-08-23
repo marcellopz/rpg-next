@@ -6,10 +6,12 @@
     "account": "Account"
   },
   "home": {
+    "brand": "RPG Campaign Manager",
     "tagline": "Your table, all in one place",
     "headline": "Run unforgettable campaigns without the chaos",
-    "description": "Roll your dice at the table. The app keeps track of the notes, inventory, initiative, and lore.",
+    "description": "Roll at the table. The app keeps notes, inventory, initiative, and lore in sync.",
     "cta": "Go to campaigns",
+    "demoCta": "Try the demo",
     "ready": "Ready to roll initiative?",
     "readyDescription": "Create a campaign and bring your whole table along.",
     "featureGridTitle": "Everything your table needs",
@@ -31,6 +33,8 @@
       "wikiDesc": "Rich-text pages organized into categories. Campaign notes for the table, private notes for you, with search and edit history.",
       "inventory": "Party inventory",
       "inventoryDesc": "Track each character's gear, coins, and carry weight.",
+      "map": "Campaign map",
+      "mapDesc": "Upload a map, drop pins on the places that matter, and link them to your notes.",
       "combat": "Combat tracker",
       "combatDesc": "Initiative, HP, and conditions, synced live to every player.",
       "resources": "Resource tracking",

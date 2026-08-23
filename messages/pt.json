@@ -6,10 +6,12 @@
     "account": "Conta"
   },
   "home": {
+    "brand": "RPG Campaign Manager",
     "tagline": "Sua mesa, tudo em um só lugar",
     "headline": "Conduza campanhas inesquecíveis sem o caos",
-    "description": "Role seus dados reais na mesa. O aplicativo controla as anotações, inventário, iniciativa e lore.",
+    "description": "Role na mesa. O app mantém anotações, inventário, iniciativa e lore sincronizados.",
     "cta": "Ir para campanhas",
+    "demoCta": "Experimentar o demo",
     "ready": "Pronto para rolar iniciativa?",
     "readyDescription": "Crie uma campanha e traga toda a sua mesa junto.",
     "featureGridTitle": "Tudo que sua mesa precisa",
@@ -31,6 +33,8 @@
       "wikiDesc": "Páginas em texto rico organizadas em categorias. Notas da campanha para a mesa, notas privadas para você, com busca e histórico de edições.",
       "inventory": "Inventário do grupo",
       "inventoryDesc": "Acompanhe o equipamento, moedas e peso carregado de cada personagem.",
+      "map": "Mapa da campanha",
+      "mapDesc": "Envie um mapa, marque os lugares importantes com pins e ligue-os às suas notas.",
       "combat": "Rastreador de combate",
       "combatDesc": "Iniciativa, pontos de vida e condições, sincronizados em tempo real com todos os jogadores.",
       "resources": "Rastreamento de recursos",

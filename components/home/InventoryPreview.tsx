@@ -41,7 +41,7 @@ export function InventoryPreview() {
     <div className="w-full max-w-xl overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       {/* Character header */}
       <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 sm:px-5">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-br from-accent-500 to-accent-700 text-base font-bold text-white">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-accent-700 text-base font-bold text-white">
           M
         </div>
         <div className="min-w-0 flex-1">
@@ -64,22 +64,27 @@ export function InventoryPreview() {
         </div>
       </div>
 
-      {/* Encumbrance bar */}
+      {/* Encumbrance bar — mirrors EncumbranceBar: light tracks + darker fill */}
       <div className="px-4 pt-3 sm:px-5">
         <div className="flex items-baseline justify-between text-xs">
-          <span className="tabular-nums text-gray-600">58.7 / 240 lb</span>
+          <span className="tabular-nums text-gray-600">58.7 / 480 lb</span>
           <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[0.65rem] font-medium leading-none text-emerald-700">
             Unencumbered
           </span>
         </div>
-        <div className="relative mt-1 flex h-2 overflow-hidden rounded-full">
-          <div className="h-full w-[50%] bg-emerald-100" />
-          <div className="h-full w-[20%] border-l-2 border-white bg-amber-100" />
-          <div className="h-full w-[15%] border-l-2 border-white bg-orange-100" />
-          <div className="h-full w-[15%] border-l-2 border-white bg-red-100" />
+        <div className="relative mt-1 overflow-hidden">
+          <div className="flex h-2 overflow-hidden rounded-full">
+            {/* Zones at 5/10/15/30 × STR — widths 1/6, 1/6, 1/6, 1/2 of the bar */}
+            <div className="relative h-full w-[16.667%] bg-emerald-200">
+              <div className="absolute inset-y-0 left-0 w-[73%] bg-emerald-600" />
+            </div>
+            <div className="relative h-full w-[16.667%] border-l-2 border-white bg-yellow-200" />
+            <div className="relative h-full w-[16.667%] border-l-2 border-white bg-orange-200" />
+            <div className="relative h-full w-[50%] border-l-2 border-white bg-red-200" />
+          </div>
           <div
-            className="pointer-events-none absolute top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-gray-500"
-            style={{ left: "24%" }}
+            className="pointer-events-none absolute top-1/2 z-10 h-4 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gray-500"
+            style={{ left: "12.2%" }}
             aria-hidden
           />
         </div>

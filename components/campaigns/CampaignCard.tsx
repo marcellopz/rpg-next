@@ -4,6 +4,7 @@ import Image from "next/image";
 import { NavLink } from "@/components/navigation/NavLink";
 import { PictoAvatar } from "@/components/PictoAvatar";
 import { Tooltip, Chip } from "@/components/ui";
+import { accentHatchStyle } from "@/lib/ui/accent-hatch";
 import { useI18n } from "@/lib/i18n/context";
 
 export type Campaign = {
@@ -21,7 +22,7 @@ export type Campaign = {
   isOwner?: boolean;
   // Sample campaign shown for illustration; not part of the user's account.
   demo?: boolean;
-  /** Public URL of the cover image; null/undefined falls back to the gradient. */
+  /** Public URL of the cover image; null/undefined falls back to the hatch banner. */
   imageUrl?: string | null;
 };
 
@@ -45,7 +46,10 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
       href={`/campaigns/${id}`}
       className="group flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm"
     >
-      <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-t-2xl bg-gradient-to-br from-accent-600 to-accent-800">
+      <div
+        className="relative flex h-28 items-center justify-center overflow-hidden rounded-t-2xl bg-accent-800"
+        style={imageUrl ? undefined : accentHatchStyle}
+      >
         {imageUrl ? (
           <Image
             src={imageUrl}
