@@ -4,6 +4,7 @@
 // (useCampaignMap fetches via fetchMapForCampaignClient) and applies
 // optimistic updates for pin mutations.
 import type { ActionResult } from "@/app/actions/campaigns";
+import { DEMO_MAP_HISTORY, isDemoMapId } from "@/data/demo-campaign";
 import { isCampaignMember } from "@/lib/campaign/permissions";
 import {
   MAP_PIN_TYPES,
@@ -104,6 +105,8 @@ export async function registerCampaignMap(input: {
 }
 
 async function getMapCampaignId(mapId: string): Promise<string | null> {
+  if (isDemoMapId(mapId)) return "demo";
+
   const admin = createAdminClient();
   const { data } = await admin
     .from("campaign_maps")
@@ -281,6 +284,10 @@ export type MapPinLogEntry = {
 export async function listMapPinLog(
   mapId: string
 ): Promise<ActionResult<MapPinLogEntry[]>> {
+  if (isDemoMapId(mapId)) {
+    return { ok: true, data: DEMO_MAP_HISTORY };
+  }
+
   const campaignId = await getMapCampaignId(mapId);
   if (!campaignId) return { ok: false, error: "Map not found." };
   const auth = await assertMember(campaignId);

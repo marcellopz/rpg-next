@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { isDemoCampaignId } from "@/data/demo-campaign";
+import { DEMO_MAP, isDemoCampaignId } from "@/data/demo-campaign";
 import { fetchMapForCampaignClient } from "@/lib/map/client-state";
 import type { CampaignMap, MapPin } from "@/lib/map/types";
 
@@ -15,7 +15,7 @@ export function useCampaignMap(campaignId: string) {
   const refresh = useCallback(
     async ({ background = false }: { background?: boolean } = {}) => {
       if (isDemoCampaignId(campaignId)) {
-        setMap(null);
+        setMap(DEMO_MAP);
         setLoading(false);
         setError(null);
         return;

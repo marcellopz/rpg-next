@@ -11,6 +11,11 @@ const nextConfig = {
         hostname: "jwogywcghwvrovllyhbb.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      {
+        protocol: "https",
+        hostname: "media.wizards.com",
+        pathname: "/**",
+      },
     ],
   },
   experimental: {

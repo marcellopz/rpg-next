@@ -4,6 +4,15 @@
 // client-side, refetching after each mutation (same reasoning as
 // app/actions/maps.ts and app/actions/files.ts).
 import type { ActionResult } from "@/app/actions/campaigns";
+import {
+  DEMO_MAP_PINS,
+  getDemoPagesLinkedToPin,
+  getDemoPinsLinkedToPage,
+  isDemoCampaignId,
+  isDemoPageId,
+  isDemoPinId,
+} from "@/data/demo-campaign";
+import { DEMO_PAGES } from "@/data/demo-campaign/notes";
 import { isCampaignMember } from "@/lib/campaign/permissions";
 import type { LinkedNote, LinkedPin, MapPinType } from "@/lib/map/types";
 import { parseMapPinType } from "@/lib/map/types";
@@ -18,6 +27,8 @@ async function assertMember(campaignId: string) {
 }
 
 async function getPinCampaignId(pinId: string): Promise<string | null> {
+  if (isDemoPinId(pinId)) return "demo";
+
   const admin = createAdminClient();
   const { data } = await admin
     .from("map_pins")
@@ -51,6 +62,9 @@ export async function linkPinToPage(input: {
   pinId: string;
   pageId: string;
 }): Promise<ActionResult> {
+  if (isDemoPinId(input.pinId) || isDemoPageId(input.pageId)) {
+    return { ok: false, error: "Demo campaign is read-only." };
+  }
   const campaignId = await getPinCampaignId(input.pinId);
   if (!campaignId) return { ok: false, error: "Pin not found." };
   const auth = await assertMember(campaignId);
@@ -83,6 +97,9 @@ export async function unlinkPinFromPage(input: {
   pinId: string;
   pageId: string;
 }): Promise<ActionResult> {
+  if (isDemoPinId(input.pinId) || isDemoPageId(input.pageId)) {
+    return { ok: false, error: "Demo campaign is read-only." };
+  }
   const campaignId = await getPinCampaignId(input.pinId);
   if (!campaignId) return { ok: false, error: "Pin not found." };
   const auth = await assertMember(campaignId);
@@ -103,6 +120,10 @@ export async function unlinkPinFromPage(input: {
 export async function listPagesLinkedToPin(
   pinId: string
 ): Promise<ActionResult<LinkedNote[]>> {
+  if (isDemoPinId(pinId)) {
+    return { ok: true, data: getDemoPagesLinkedToPin(pinId) };
+  }
+
   const campaignId = await getPinCampaignId(pinId);
   if (!campaignId) return { ok: false, error: "Pin not found." };
   const auth = await assertMember(campaignId);
@@ -146,6 +167,10 @@ export async function listPagesLinkedToPin(
 export async function listPinsLinkedToPage(
   pageId: string
 ): Promise<ActionResult<LinkedPin[]>> {
+  if (isDemoPageId(pageId)) {
+    return { ok: true, data: getDemoPinsLinkedToPage(pageId) };
+  }
+
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Not signed in." };
 
@@ -181,6 +206,17 @@ export type MapPinOption = { id: string; label: string; type: MapPinType };
 export async function listMapPinOptions(
   campaignId: string
 ): Promise<ActionResult<MapPinOption[]>> {
+  if (isDemoCampaignId(campaignId)) {
+    return {
+      ok: true,
+      data: DEMO_MAP_PINS.map((p) => ({
+        id: p.id,
+        label: p.label,
+        type: p.type,
+      })),
+    };
+  }
+
   const auth = await assertMember(campaignId);
   if (!auth.ok) return { ok: false, error: auth.error };
 
@@ -219,6 +255,17 @@ export type NotePageOption = {
 export async function listNotePageOptions(
   campaignId: string
 ): Promise<ActionResult<NotePageOption[]>> {
+  if (isDemoCampaignId(campaignId)) {
+    return {
+      ok: true,
+      data: Object.values(DEMO_PAGES).map((page) => ({
+        id: page.id,
+        title: page.title,
+        visibility: page.visibility,
+      })),
+    };
+  }
+
   const auth = await assertMember(campaignId);
   if (!auth.ok || !auth.user) return { ok: false, error: auth.error };
 

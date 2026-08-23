@@ -4,6 +4,7 @@ import type { Character, InventoryLogEntry } from "@/lib/queries/inventory";
 import type { ResourcesDashboard } from "@/lib/resources/types";
 import type { CombatState } from "@/lib/combat/types";
 import type { CampaignFileRow } from "@/lib/files/types";
+import type { CampaignMap } from "@/lib/map/types";
 
 import { DEMO_CAMPAIGN_DETAIL } from "./campaign";
 
@@ -13,8 +14,19 @@ import { DEMO_CHARACTERS, DEMO_INVENTORY_LOG } from "./inventory";
 import { DEMO_RESOURCES } from "./resources";
 import { DEMO_COMBAT } from "./combat";
 import { DEMO_HANDOUTS } from "./handouts";
+import { DEMO_MAP } from "./map";
 
 export { DEMO_CAMPAIGN_CODE, isDemoCampaignId } from "./constants";
+export {
+  DEMO_MAP,
+  DEMO_MAP_HISTORY,
+  DEMO_MAP_PINS,
+  getDemoPagesLinkedToPin,
+  getDemoPinsLinkedToPage,
+  isDemoMapId,
+  isDemoPageId,
+  isDemoPinId,
+} from "./map";
 
 export type DemoCampaignData = {
   detail: CampaignDetail;
@@ -25,6 +37,7 @@ export type DemoCampaignData = {
   resources: ResourcesDashboard;
   combat: CombatState;
   handouts: CampaignFileRow[];
+  map: CampaignMap;
 };
 
 // Everything app/campaigns/[campaignCode]/page.tsx needs to render the demo
@@ -40,5 +53,6 @@ export function getDemoCampaign(): DemoCampaignData {
     resources: DEMO_RESOURCES,
     combat: DEMO_COMBAT,
     handouts: DEMO_HANDOUTS,
+    map: DEMO_MAP,
   };
 }

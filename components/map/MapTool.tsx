@@ -168,7 +168,7 @@ export function MapTool({
               {t("map.addPin")}
             </Button>
           )}
-          {!readOnly && map && (
+          {map && (
             <Button
               type="button"
               variant="secondary"
