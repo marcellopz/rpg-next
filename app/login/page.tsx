@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -8,11 +9,13 @@ import {
   AUTH_RETURN_MAX_AGE,
   safeReturnPath,
 } from "@/lib/auth/login-url";
+import { useI18n } from "@/lib/i18n/context";
 import { Button, TextField, Typography } from "@/components/ui";
 
 type Mode = "signin" | "signup";
 
 export default function LoginPage() {
+  const { t } = useI18n();
   const supabase = createClient();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
@@ -198,6 +201,16 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
             />
+            {mode === "signin" && (
+              <p className="text-right text-sm">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-accent-600 hover:text-accent-500"
+                >
+                  {t("auth.forgotPassword")}
+                </Link>
+              </p>
+            )}
             {mode === "signup" && (
               <TextField
                 type="password"

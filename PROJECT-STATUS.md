@@ -9,7 +9,8 @@ The app has the **authentication flow, campaign CRUD, in-app campaign invites, w
 ## What's implemented
 
 ### Authentication
-- **Login page** (`app/login/page.tsx`): Google OAuth + email/password (sign in and create account modes)
+- **Login page** (`app/login/page.tsx`): Google OAuth + email/password (sign in and create account modes); “Forgot password?” link to `/auth/forgot-password`
+- **Forgot / update password** (`app/auth/forgot-password`, `app/auth/update-password`): Supabase `resetPasswordForEmail` → recovery email → `/auth/callback?next=/auth/update-password` → `updateUser({ password })`
 - **Auth callback** (`app/auth/callback/route.ts`): exchanges the OAuth `code` for a session and verifies the email-confirmation OTP (`token_hash` + `type`)
 - **Session middleware** (`lib/supabase/middleware.ts` + `middleware.ts`):
   - Refreshes the Supabase session cookie on every request
@@ -156,5 +157,5 @@ These render a simple "Coming soon" and exist only to preserve the route structu
 - [ ] `pnpm supabase login` + `pnpm supabase link --project-ref <ref>` to link the CLI
 - [ ] `pnpm db:push` to apply all migrations (`0001`–`0008`)
 - [ ] **Auth → Providers → Google** enabled (Client ID + secret) with redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`
-- [ ] **Auth → URL Configuration**: add `http://localhost:3000/auth/callback` to the redirect allowlist
+- [ ] **Auth → URL Configuration**: add `http://localhost:3000/auth/callback` (and production `https://<host>/auth/callback`) to the redirect allowlist — required for Google OAuth and password-recovery emails
 - [ ] **Auth → Providers → Email**: confirm whether email confirmation is required (affects the sign-up flow)

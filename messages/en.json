@@ -5,6 +5,24 @@
     "signIn": "Sign in",
     "account": "Account"
   },
+  "auth": {
+    "forgotPassword": "Forgot password?",
+    "forgotTitle": "Reset password",
+    "forgotDescription": "Enter your email and we’ll send a link to choose a new password.",
+    "forgotSubmit": "Send reset link",
+    "forgotSending": "Sending…",
+    "forgotSuccess": "If an account exists for that email, we sent a reset link. Check your inbox.",
+    "backToSignIn": "Back to sign in",
+    "updateTitle": "Choose a new password",
+    "updateDescription": "Enter a new password for your account.",
+    "newPassword": "New password",
+    "confirmPassword": "Repeat password",
+    "updateSubmit": "Update password",
+    "updateSaving": "Updating…",
+    "passwordMismatch": "Passwords do not match.",
+    "noSession": "This reset link is invalid or has expired.",
+    "requestNewLink": "Request a new link"
+  },
   "home": {
     "brand": "RPG Campaign Manager",
     "tagline": "Your table, all in one place",

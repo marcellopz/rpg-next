@@ -5,6 +5,24 @@
     "signIn": "Entrar",
     "account": "Conta"
   },
+  "auth": {
+    "forgotPassword": "Esqueceu a senha?",
+    "forgotTitle": "Redefinir senha",
+    "forgotDescription": "Informe seu e-mail e enviaremos um link para escolher uma nova senha.",
+    "forgotSubmit": "Enviar link",
+    "forgotSending": "Enviando…",
+    "forgotSuccess": "Se existir uma conta com esse e-mail, enviamos um link de redefinição. Verifique sua caixa de entrada.",
+    "backToSignIn": "Voltar ao login",
+    "updateTitle": "Escolha uma nova senha",
+    "updateDescription": "Digite uma nova senha para sua conta.",
+    "newPassword": "Nova senha",
+    "confirmPassword": "Repetir senha",
+    "updateSubmit": "Atualizar senha",
+    "updateSaving": "Atualizando…",
+    "passwordMismatch": "As senhas não coincidem.",
+    "noSession": "Este link de redefinição é inválido ou expirou.",
+    "requestNewLink": "Pedir um novo link"
+  },
   "home": {
     "brand": "RPG Campaign Manager",
     "tagline": "Sua mesa, tudo em um só lugar",
