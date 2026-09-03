@@ -250,7 +250,7 @@ export function MapImage({
     if (activePointers.current.size === 2) {
       // Two fingers: cancel pan and start a pinch.
       pan.current = null;
-      const [a, b] = [...activePointers.current.values()];
+      const [a, b] = Array.from(activePointers.current.values());
       const distance = pointerDistance(a, b);
       if (distance > 0) {
         pinch.current = {
@@ -286,7 +286,7 @@ export function MapImage({
 
     // Pinch zoom with two active pointers.
     if (activePointers.current.size >= 2 && pinch.current) {
-      const [a, b] = [...activePointers.current.values()];
+      const [a, b] = Array.from(activePointers.current.values());
       const distance = pointerDistance(a, b);
       if (distance <= 0) return;
       const mid = pointerMidpoint(a, b);
@@ -325,7 +325,7 @@ export function MapImage({
     // so the leftover finger doesn't jump the scroll.
     if (activePointers.current.size === 1) {
       const viewport = viewportRef.current;
-      const [remaining] = [...activePointers.current.entries()];
+      const [remaining] = Array.from(activePointers.current.entries());
       if (viewport && remaining) {
         const [pointerId, point] = remaining;
         pan.current = {
