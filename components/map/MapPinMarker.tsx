@@ -27,6 +27,7 @@ export function MapPinMarker({
   publicCode,
   containerRef,
   readOnly,
+  canDrag,
   selected,
   onSelect,
   onDragMove,
@@ -41,6 +42,8 @@ export function MapPinMarker({
   publicCode: string;
   containerRef: RefObject<HTMLElement>;
   readOnly: boolean;
+  /** When false, the pin can be selected but not dragged. */
+  canDrag: boolean;
   selected: boolean;
   onSelect: (pinId: string | null) => void;
   /** Live position while dragging (optimistic local state only). */
@@ -70,7 +73,7 @@ export function MapPinMarker({
   );
 
   function handlePointerDown(e: PointerEvent<HTMLButtonElement>) {
-    if (e.button !== 0 || readOnly) return;
+    if (e.button !== 0 || !canDrag) return;
     // A pin drag must not also start the viewport's pan gesture.
     e.stopPropagation();
     drag.current = {
@@ -134,7 +137,7 @@ export function MapPinMarker({
           // Numbered group chips anchor at their center; pin glyphs at the tip.
           isNumbered ? "-translate-x-1/2 -translate-y-1/2" : "-translate-x-1/2 -translate-y-full"
         } ${selected ? "scale-125" : ""} ${
-          readOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+          canDrag ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
         }`}
       >
         {isNumbered ? (

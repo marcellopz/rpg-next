@@ -376,6 +376,7 @@
   "map": {
     "hint": "Clique em um marcador para ver o que há lá.",
     "addPinHint": "Clique em qualquer lugar do mapa para colocar um marcador.",
+    "editModeHint": "Arraste os marcadores para movê-los. Desative o modo de edição quando terminar.",
     "imageAlt": "Mapa da campanha",
     "zoomIn": "Aproximar",
     "zoomOut": "Afastar",
@@ -386,6 +387,7 @@
     "replace": "Trocar mapa",
     "uploading": "Enviando…",
     "addPin": "Adicionar marcador",
+    "editMode": "Editar marcadores",
     "history": "Histórico",
     "historyTitle": "Histórico do mapa",
     "historySubtitle": "Quem alterou qual marcador, e quando",

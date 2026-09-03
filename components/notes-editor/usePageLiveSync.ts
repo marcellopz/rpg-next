@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { getPageLiveState } from "@/app/actions/pages";
 import { createClient } from "@/lib/supabase/client";
+import { sameUpdatedAt } from "./live-sync-utils";
 
 export type RemotePageUpdate = {
   contentJson: JSONContent | null;
@@ -44,7 +45,7 @@ export function usePageLiveSync({
         if (cancelled || !result.ok) return;
 
         const ignoreAt = getIgnoreUpdatedAtRef.current();
-        if (ignoreAt && result.data.updatedAt === ignoreAt) return;
+        if (ignoreAt && sameUpdatedAt(result.data.updatedAt, ignoreAt)) return;
 
         onRemoteUpdateRef.current(result.data);
       } finally {
@@ -65,7 +66,11 @@ export function usePageLiveSync({
         (payload) => {
           const row = payload.new as { updated_at?: string } | null;
           const ignoreAt = getIgnoreUpdatedAtRef.current();
-          if (row?.updated_at && ignoreAt && row.updated_at === ignoreAt) {
+          if (
+            row?.updated_at &&
+            ignoreAt &&
+            sameUpdatedAt(row.updated_at, ignoreAt)
+          ) {
             return;
           }
           void pull();

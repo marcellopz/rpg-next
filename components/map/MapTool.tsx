@@ -1,6 +1,6 @@
 "use client";
 
-import { History, ImageUp, MapPinPlus, Map as MapIcon } from "lucide-react";
+import { History, ImageUp, MapPinPlus, Map as MapIcon, Move } from "lucide-react";
 import { useRef, useState, type ChangeEvent } from "react";
 import {
   addMapPin,
@@ -41,6 +41,7 @@ export function MapTool({
   } = useCampaignMap(campaignId);
 
   const [addPinMode, setAddPinMode] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [newPinAt, setNewPinAt] = useState<{ x: number; y: number } | null>(
     null
@@ -134,7 +135,26 @@ export function MapTool({
     }
   }
 
+  function toggleAddPinMode() {
+    setAddPinMode((prev) => {
+      if (!prev) setEditMode(false);
+      return !prev;
+    });
+  }
+
+  function toggleEditMode() {
+    setEditMode((prev) => {
+      if (!prev) setAddPinMode(false);
+      return !prev;
+    });
+  }
+
   const uploadLabel = map ? t("map.replace") : t("map.upload");
+  const hint = addPinMode
+    ? t("map.addPinHint")
+    : editMode
+      ? t("map.editModeHint")
+      : t("map.hint");
 
   return (
     <div id="map-tool" className="flex min-h-[42rem] flex-col">
@@ -153,20 +173,31 @@ export function MapTool({
         className="flex flex-col gap-3 border-b border-gray-200 bg-gray-50 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6"
       >
         <Typography variant="muted" className="text-sm">
-          {addPinMode ? t("map.addPinHint") : t("map.hint")}
+          {hint}
         </Typography>
 
         <div className="flex flex-wrap items-center gap-2">
           {!readOnly && map && (
-            <Button
-              type="button"
-              variant={addPinMode ? "primary" : "secondary"}
-              size="sm"
-              onClick={() => setAddPinMode((prev) => !prev)}
-            >
-              <MapPinPlus className="mr-1.5 h-4 w-4" aria-hidden />
-              {t("map.addPin")}
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant={editMode ? "primary" : "secondary"}
+                size="sm"
+                onClick={toggleEditMode}
+              >
+                <Move className="mr-1.5 h-4 w-4" aria-hidden />
+                {t("map.editMode")}
+              </Button>
+              <Button
+                type="button"
+                variant={addPinMode ? "primary" : "secondary"}
+                size="sm"
+                onClick={toggleAddPinMode}
+              >
+                <MapPinPlus className="mr-1.5 h-4 w-4" aria-hidden />
+                {t("map.addPin")}
+              </Button>
+            </>
           )}
           {map && (
             <Button
@@ -257,6 +288,7 @@ export function MapTool({
             publicCode={publicCode}
             readOnly={!!readOnly}
             addPinMode={addPinMode}
+            editMode={editMode}
             initialPinId={initialPinId}
             onAddPinAt={(x, y) => setNewPinAt({ x, y })}
             onDragPin={(pinId, x, y) => updatePinLocally(pinId, { x, y })}

@@ -13,6 +13,7 @@ import {
   type RemotePageUpdate,
   usePageLiveSync,
 } from "./usePageLiveSync";
+import { jsonContentEqual, sameUpdatedAt } from "./live-sync-utils";
 import {
   formatPresenceLabel,
   usePagePresence,
@@ -73,21 +74,28 @@ export function PageEditorPanel({
   dirtyEpochRef.current = dirtyEpoch;
 
   const applyRemoteContent = useCallback((update: RemotePageUpdate) => {
+    const sameContent = jsonContentEqual(
+      contentRef.current,
+      update.contentJson
+    );
     contentRef.current = update.contentJson;
     appliedUpdatedAtRef.current = update.updatedAt;
-    setEditorContent(update.contentJson ?? undefined);
     setDirty(false);
     dirtyRef.current = false;
     setAutosaveIn(null);
     setAutosavePaused(false);
     setRemoteUpdate(null);
+    // Own-save echo (or identical peer content): updating refs is enough.
+    // Remounting would destroy the Tiptap instance and steal focus mid-typing.
+    if (sameContent) return;
+    setEditorContent(update.contentJson ?? undefined);
     setEditorKey((key) => key + 1);
   }, []);
 
   const handleRemoteUpdate = useCallback(
     (update: RemotePageUpdate) => {
-      if (update.updatedAt === appliedUpdatedAtRef.current) return;
-      if (update.updatedAt === lastLocalSaveAtRef.current) {
+      if (sameUpdatedAt(update.updatedAt, appliedUpdatedAtRef.current)) return;
+      if (sameUpdatedAt(update.updatedAt, lastLocalSaveAtRef.current)) {
         appliedUpdatedAtRef.current = update.updatedAt;
         return;
       }

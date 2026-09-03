@@ -362,20 +362,26 @@ export async function savePage(
   }
 
   // Layer 1 + the actual write: keep the prior good copy alongside the new one.
-  const updatedAt = new Date().toISOString();
-  const { error } = await admin
+  // Return the DB's updated_at (not the client-generated ISO) so realtime echo
+  // detection can match the payload / getPageLiveState string exactly.
+  const { data: saved, error } = await admin
     .from("pages")
     .update({
       content_json: newContentJson,
       content_text: newText,
       previous_content_json: page.content_json,
-      updated_at: updatedAt,
+      updated_at: new Date().toISOString(),
     })
-    .eq("id", pageId);
-  if (error)
+    .eq("id", pageId)
+    .select("updated_at")
+    .single();
+  if (error || !saved)
     return { ok: false, error: "Could not save the page. Please try again." };
 
-  return { ok: true, data: { status: "saved", updatedAt } };
+  return {
+    ok: true,
+    data: { status: "saved", updatedAt: saved.updated_at as string },
+  };
 }
 
 // Soft delete: the row (and its snapshots) stay recoverable.

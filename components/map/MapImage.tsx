@@ -29,12 +29,27 @@ const MAX_ZOOM = 20;
 const BUTTON_ZOOM_STEP = 1.4;
 const PAN_THRESHOLD_PX = 4;
 
+function pointerDistance(
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function pointerMidpoint(
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+) {
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
 export function MapImage({
   map,
   campaignId,
   publicCode,
   readOnly,
   addPinMode,
+  editMode,
   initialPinId,
   onAddPinAt,
   onDragPin,
@@ -48,6 +63,8 @@ export function MapImage({
   publicCode: string;
   readOnly: boolean;
   addPinMode: boolean;
+  /** When true, pins can be dragged to a new position. */
+  editMode: boolean;
   /** A pin id from a `?pin=` deep link — auto-selected and scrolled into view once. */
   initialPinId?: string | null;
   onAddPinAt: (x: number, y: number) => void;
@@ -71,10 +88,14 @@ export function MapImage({
   // scrolls, so pins keep their fractional math and constant size. Panning
   // is a pointer-drag that adjusts the viewport's scroll position.
   const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
   const [hiddenTypes, setHiddenTypes] = useState<Set<MapPinType>>(new Set());
   // Fullscreen puts the whole canvas (viewport + overlays) on the browser's
   // fullscreen stage, so zoom, pan, legend, and pins keep working unchanged.
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const canDragPins = !readOnly && editMode && !addPinMode;
 
   useEffect(() => {
     function onFullscreenChange() {
@@ -166,6 +187,19 @@ export function MapImage({
     setZoom((prev) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, prev * factor)));
   }
 
+  function setZoomAt(
+    nextZoom: number,
+    clientX: number,
+    clientY: number
+  ) {
+    const viewport = viewportRef.current;
+    if (viewport) {
+      const rect = viewport.getBoundingClientRect();
+      zoomAnchor.current = { x: clientX - rect.left, y: clientY - rect.top };
+    }
+    setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, nextZoom)));
+  }
+
   // Wheel = zoom toward the cursor. A native non-passive listener is
   // required: React registers wheel handlers as passive, so preventDefault
   // (needed to stop the page from scrolling) wouldn't work via onWheel.
@@ -184,6 +218,10 @@ export function MapImage({
     return () => viewport.removeEventListener("wheel", onWheel);
   }, []);
 
+  // Active pointers for single-finger pan vs two-finger pinch zoom.
+  const activePointers = useRef(
+    new Map<number, { x: number; y: number }>()
+  );
   // Pan session state lives in a ref: pointer moves shouldn't re-render.
   const pan = useRef<{
     pointerId: number;
@@ -193,14 +231,44 @@ export function MapImage({
     scrollTop: number;
     moved: boolean;
   } | null>(null);
+  // Pinch session: absolute scale from the gesture's starting distance.
+  const pinch = useRef<{
+    initialDistance: number;
+    initialZoom: number;
+  } | null>(null);
   // A pan fires a trailing click on release; this flag swallows it so it
   // doesn't also place a pin or dismiss the open popover.
   const didPan = useRef(false);
 
   function handlePointerDown(e: ReactPointerEvent<HTMLDivElement>) {
-    if (e.button !== 0) return;
+    if (e.button !== 0 && e.pointerType === "mouse") return;
     const viewport = viewportRef.current;
     if (!viewport) return;
+
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (activePointers.current.size === 2) {
+      // Two fingers: cancel pan and start a pinch.
+      pan.current = null;
+      const [a, b] = [...activePointers.current.values()];
+      const distance = pointerDistance(a, b);
+      if (distance > 0) {
+        pinch.current = {
+          initialDistance: distance,
+          initialZoom: zoomRef.current,
+        };
+        didPan.current = true; // swallow the trailing click
+        try {
+          viewport.setPointerCapture(e.pointerId);
+        } catch {
+          // Capture can fail if the pointer was already released.
+        }
+      }
+      return;
+    }
+
+    if (activePointers.current.size !== 1) return;
+
     didPan.current = false;
     pan.current = {
       pointerId: e.pointerId,
@@ -213,9 +281,27 @@ export function MapImage({
   }
 
   function handlePointerMove(e: ReactPointerEvent<HTMLDivElement>) {
+    if (!activePointers.current.has(e.pointerId)) return;
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Pinch zoom with two active pointers.
+    if (activePointers.current.size >= 2 && pinch.current) {
+      const [a, b] = [...activePointers.current.values()];
+      const distance = pointerDistance(a, b);
+      if (distance <= 0) return;
+      const mid = pointerMidpoint(a, b);
+      const nextZoom =
+        pinch.current.initialZoom *
+        (distance / pinch.current.initialDistance);
+      setZoomAt(nextZoom, mid.x, mid.y);
+      return;
+    }
+
     const session = pan.current;
     const viewport = viewportRef.current;
     if (!session || session.pointerId !== e.pointerId || !viewport) return;
+    // Don't pan while a second finger is down (pinch owns the gesture).
+    if (activePointers.current.size > 1) return;
     const dx = e.clientX - session.startX;
     const dy = e.clientY - session.startY;
     if (!session.moved) {
@@ -230,8 +316,30 @@ export function MapImage({
     viewport.scrollTop = session.scrollTop - dy;
   }
 
-  function handlePointerUp() {
-    pan.current = null;
+  function handlePointerUp(e: ReactPointerEvent<HTMLDivElement>) {
+    activePointers.current.delete(e.pointerId);
+    if (activePointers.current.size < 2) {
+      pinch.current = null;
+    }
+    // If one finger remains after a pinch, start a fresh pan from that point
+    // so the leftover finger doesn't jump the scroll.
+    if (activePointers.current.size === 1) {
+      const viewport = viewportRef.current;
+      const [remaining] = [...activePointers.current.entries()];
+      if (viewport && remaining) {
+        const [pointerId, point] = remaining;
+        pan.current = {
+          pointerId,
+          startX: point.x,
+          startY: point.y,
+          scrollLeft: viewport.scrollLeft,
+          scrollTop: viewport.scrollTop,
+          moved: false,
+        };
+      }
+    } else {
+      pan.current = null;
+    }
   }
 
   function handleImageClick(e: MouseEvent<HTMLDivElement>) {
@@ -343,7 +451,9 @@ export function MapImage({
           ref={containerRef}
           onClick={handleImageClick}
           className={`relative ${isFullscreen ? "m-auto" : ""} ${
-            addPinMode ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"
+            addPinMode
+              ? "cursor-crosshair"
+              : "cursor-grab active:cursor-grabbing"
           }`}
           style={{ width: `${zoom * 100}%` }}
         >
@@ -362,6 +472,7 @@ export function MapImage({
               publicCode={publicCode}
               containerRef={containerRef}
               readOnly={readOnly || addPinMode}
+              canDrag={canDragPins}
               selected={selectedPinId === pin.id}
               onSelect={setSelectedPinId}
               onDragMove={onDragPin}

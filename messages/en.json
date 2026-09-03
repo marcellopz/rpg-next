@@ -372,6 +372,7 @@
   "map": {
     "hint": "Click a pin to see what's there.",
     "addPinHint": "Click anywhere on the map to place a pin.",
+    "editModeHint": "Drag pins to move them. Turn off edit mode when you're done.",
     "imageAlt": "Campaign map",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
@@ -382,6 +383,7 @@
     "replace": "Replace map",
     "uploading": "Uploading…",
     "addPin": "Add pin",
+    "editMode": "Edit pins",
     "history": "History",
     "historyTitle": "Map history",
     "historySubtitle": "Who changed which pin, and when",
