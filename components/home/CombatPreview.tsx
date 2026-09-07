@@ -69,7 +69,7 @@ export function CombatPreview() {
 
   return (
     <div className="w-full max-w-xl overflow-hidden rounded-xl border border-gray-200 bg-gray-50/60 p-2 shadow-sm sm:p-3">
-      <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_3.5rem] gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[0.65rem] font-semibold uppercase tracking-wide text-gray-400 lg:grid-cols-[3rem_minmax(0,1fr)_2.5rem_6.5rem_4rem]">
+      <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_3.5rem] gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[0.65rem] font-semibold uppercase tracking-wide text-gray-700 lg:grid-cols-[3rem_minmax(0,1fr)_2.5rem_6.5rem_4rem]">
         <span className="text-center">{t("combat.table.initiative")}</span>
         <span>{t("combat.table.combatant")}</span>
         <span className="hidden text-center lg:block">{t("combat.table.ac")}</span>

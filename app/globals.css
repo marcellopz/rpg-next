@@ -54,3 +54,35 @@ body {
 .nav-progress-bar {
   animation: nav-progress-slide 1.5s ease-in-out infinite;
 }
+
+/* Home hero grid: draw lines in after the first measured paint. */
+@keyframes hero-grid-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.hero-grid-depth,
+.hero-grid-rung {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.hero-grid-depth {
+  animation: hero-grid-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-grid-rung {
+  animation: hero-grid-draw 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-grid-depth,
+  .hero-grid-rung {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

@@ -4,11 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CombatPreview } from "@/components/home/CombatPreview";
+import { HeroGridPlane } from "@/components/home/HeroGridPlane";
 import { InventoryPreview } from "@/components/home/InventoryPreview";
 import { buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { sourceSerif } from "@/lib/fonts";
-import { accentHatchStyle } from "@/lib/ui/accent-hatch";
 import { useI18n } from "@/lib/i18n/context";
 
 function IconBook() {
@@ -167,13 +167,13 @@ export default function HomePage() {
 
   return (
     <div className="bg-[#f0f0f0]">
-      {/* Hero â€” solid accent + hatch texture, brand first, product preview */}
+      {/* Hero — solid accent + perspective grid plane, brand first, product preview */}
       <header
         id="home-hero"
         className="relative overflow-hidden bg-accent-800 text-white"
-        style={accentHatchStyle}
       >
-        <div className="app-container relative grid items-center gap-12 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
+        <HeroGridPlane />
+        <div className="app-container relative z-10 grid items-center gap-12 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
           <div className="max-w-xl">
             <div className="flex items-center gap-3">
               <Image
