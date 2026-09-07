@@ -1,7 +1,23 @@
+import { cookies, headers } from "next/headers";
 import enMessages from "@/messages/en.json";
 import ptMessages from "@/messages/pt.json";
+import {
+  isLocale,
+  localeFromAcceptLanguage,
+  LOCALE_COOKIE,
+  type Locale,
+} from "@/lib/i18n/locale";
 
-export type Locale = "en" | "pt";
+export type { Locale } from "@/lib/i18n/locale";
+
+/**
+ * Locale for this request: saved cookie, else the browser's Accept-Language.
+ */
+export function getRequestLocale(): Locale {
+  const saved = cookies().get(LOCALE_COOKIE)?.value;
+  if (isLocale(saved)) return saved;
+  return localeFromAcceptLanguage(headers().get("accept-language"));
+}
 
 type Messages = Record<string, any>;
 

@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
+import { getRequestLocale } from "@/lib/i18n/server";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
@@ -21,11 +22,12 @@ export default async function RootLayout({
 }) {
   const user = await getCurrentUser();
   const pendingInviteCount = user ? await getPendingInviteCountForCurrentUser() : 0;
+  const locale = getRequestLocale();
 
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className="flex min-h-screen flex-col bg-[#f0f0f0] text-gray-900">
-        <I18nProvider>
+        <I18nProvider initialLocale={locale}>
           <NavigationProvider>
             <Navbar user={user} pendingInviteCount={pendingInviteCount} />
             <main id="site-main" className="flex-1">{children}</main>

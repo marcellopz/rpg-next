@@ -3,7 +3,8 @@
     "logo": "RPG Manager",
     "campaigns": "Campanhas",
     "signIn": "Entrar",
-    "account": "Conta"
+    "account": "Conta",
+    "language": "Idioma"
   },
   "auth": {
     "forgotPassword": "Esqueceu a senha?",

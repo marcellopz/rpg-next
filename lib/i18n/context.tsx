@@ -3,8 +3,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import enMessages from "@/messages/en.json";
 import ptMessages from "@/messages/pt.json";
+import {
+  isLocale,
+  localeCookieString,
+  type Locale,
+} from "@/lib/i18n/locale";
 
-export type Locale = "en" | "pt";
+export type { Locale } from "@/lib/i18n/locale";
 
 type Messages = Record<string, any>;
 
@@ -21,34 +26,40 @@ const messages: Record<Locale, Messages> = {
   pt: ptMessages,
 };
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
+export function I18nProvider({
+  children,
+  initialLocale,
+}: {
+  children: React.ReactNode;
+  initialLocale: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
-  // Load saved preference on mount
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  // Persist cookie + migrate an existing localStorage preference.
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("locale") as Locale | null;
-      if (saved && messages[saved]) {
+      const saved = localStorage.getItem("locale");
+      if (isLocale(saved) && saved !== initialLocale) {
         setLocaleState(saved);
-      } else {
-        // Detect browser language
-        const browserLang = navigator.language.split("-")[0];
-        if (browserLang === "pt") {
-          setLocaleState("pt");
-        } else {
-          setLocaleState("en");
-        }
+        document.cookie = localeCookieString(saved);
+        return;
       }
-    } catch (e) {
-      // localStorage might not be available in some contexts
-      console.error("Failed to load locale preference:", e);
+      localStorage.setItem("locale", initialLocale);
+      document.cookie = localeCookieString(initialLocale);
+    } catch {
+      // localStorage / cookies may be unavailable
     }
-  }, []);
+  }, [initialLocale]);
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
     try {
       localStorage.setItem("locale", newLocale);
+      document.cookie = localeCookieString(newLocale);
     } catch (e) {
       console.error("Failed to save locale preference:", e);
     }
