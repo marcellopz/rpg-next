@@ -115,7 +115,7 @@ export function Menu({
         createPortal(
           <div
             ref={menuRef}
-            className="fixed z-20 min-w-[10rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+            className="fixed z-[60] min-w-[10rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
             style={{
               top: position.top,
               bottom: position.bottom,

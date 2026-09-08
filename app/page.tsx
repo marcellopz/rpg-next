@@ -170,10 +170,10 @@ export default function HomePage() {
       {/* Hero — solid accent + perspective grid plane, brand first, product preview */}
       <header
         id="home-hero"
-        className="relative overflow-hidden bg-accent-800 text-white"
+        className="relative isolate overflow-hidden bg-accent-800 text-white"
       >
         <HeroGridPlane />
-        <div className="app-container relative z-10 grid items-center gap-12 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
+        <div className="app-container relative grid items-center gap-12 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
           <div className="max-w-xl">
             <div className="flex items-center gap-3">
               <Image

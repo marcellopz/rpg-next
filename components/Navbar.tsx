@@ -50,7 +50,7 @@ export function Navbar({
   }, [pathname]);
 
   return (
-    <header id="site-header" className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 shadow-sm backdrop-blur">
+    <header id="site-header" className="sticky top-0 z-50 border-b border-gray-200 bg-white/90 shadow-sm backdrop-blur">
       <nav id="site-nav" className="app-container flex items-center justify-between gap-x-6 py-3 sm:py-4">
         <div className="flex min-w-0 items-center gap-4 sm:gap-8">
           <Link href="/" className="flex shrink-0 items-center gap-2">
