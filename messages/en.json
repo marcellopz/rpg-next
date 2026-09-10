@@ -81,7 +81,7 @@
     "invite": "Invite",
     "demo": "Demo campaign",
     "demoDesc": "Try the app with a sample campaign",
-    "demoReadOnly": "Demo — edits stay in this tab and aren’t saved",
+    "demoReadOnly": "This is a demo. Edits stay in this tab and aren’t saved.",
     "create": "Create campaign",
     "noDescription": "No description yet"
   },

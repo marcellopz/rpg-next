@@ -116,7 +116,7 @@ export function MapPinMarker({
   return (
     <div
       data-pin-id={pin.id}
-      className="absolute z-10"
+      className={`absolute ${selected ? "z-30" : "z-10"}`}
       style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
     >
       <button
@@ -157,7 +157,7 @@ export function MapPinMarker({
 
       {selected && (
         <div
-          className="absolute left-1/2 top-1.5 z-20 w-56 -translate-x-1/2 rounded-xl border border-gray-200 bg-white p-3 shadow-lg"
+          className="absolute left-1/2 top-1.5 z-40 w-56 -translate-x-1/2 rounded-xl border border-gray-200 bg-white p-3 shadow-lg"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >

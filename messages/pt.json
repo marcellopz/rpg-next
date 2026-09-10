@@ -81,7 +81,7 @@
     "invite": "Convidar",
     "demo": "Campanha de demonstração",
     "demoDesc": "Experimente o aplicativo com uma campanha de exemplo",
-    "demoReadOnly": "Demo — as alterações ficam nesta aba e não são salvas",
+    "demoReadOnly": "Esta é uma demonstração. As alterações ficam nesta aba e não são salvas.",
     "create": "Criar campanha",
     "noDescription": "Sem descrição ainda"
   },

@@ -32,6 +32,7 @@ import {
   DemoSandboxProvider,
   useOptionalDemoSandbox,
 } from "@/components/campaigns/DemoSandboxProvider";
+import { AlertTriangle } from "lucide-react";
 import { Chip, Typography, buttonVariants } from "@/components/ui";
 import { accentHatchStyle } from "@/lib/ui/accent-hatch";
 import { isDemoCampaignId } from "@/data/demo-campaign";
@@ -192,6 +193,24 @@ function CampaignWorkspaceBody({
     <HandoutBroadcastProvider campaignId={campaignId}>
       <div id="campaign-workspace" className="app-container py-6">
         <HandoutBroadcastModal />
+        {toolsLocked && (
+          <div
+            id="campaign-demo-notice"
+            role="status"
+            className="mb-4 flex gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-950"
+          >
+            <AlertTriangle
+              className="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
+              aria-hidden
+            />
+            <Typography
+              variant="body"
+              className="font-medium text-amber-950"
+            >
+              {t("campaigns.demoReadOnly")}
+            </Typography>
+          </div>
+        )}
         <header
           id="campaign-header"
           className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm"
@@ -236,11 +255,6 @@ function CampaignWorkspaceBody({
                   {!isAdmin && !isDm && role === "player" && (
                     <Chip variant="onDark" className="uppercase tracking-wide">
                       {t("campaign.player")}
-                    </Chip>
-                  )}
-                  {toolsLocked && (
-                    <Chip variant="onDark" className="uppercase tracking-wide">
-                      {t("campaigns.demoReadOnly")}
                     </Chip>
                   )}
                   <Chip variant="onDarkSolid">{t("campaign.workspace")}</Chip>
