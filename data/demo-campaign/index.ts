@@ -17,6 +17,7 @@ import { DEMO_HANDOUTS } from "./handouts";
 import { DEMO_MAP } from "./map";
 
 export { DEMO_CAMPAIGN_CODE, isDemoCampaignId } from "./constants";
+export { DEMO_PAGES } from "./notes";
 export {
   DEMO_MAP,
   DEMO_MAP_HISTORY,

@@ -74,7 +74,7 @@ export function Navbar({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <LanguageSwitcher />
+          <LanguageSwitcher className="hidden sm:inline-flex" />
 
           <div id="site-auth" className="flex shrink-0 items-center gap-3">
             {user ? (
@@ -149,6 +149,9 @@ export function Navbar({
                 {link.label}
               </NavLink>
             ))}
+            <div className="px-3 py-2.5">
+              <LanguageSwitcher id="site-language-mobile" />
+            </div>
           </div>
         </div>
       )}

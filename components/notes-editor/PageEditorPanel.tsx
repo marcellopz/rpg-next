@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { savePage } from "@/app/actions/pages";
 import { isDemoCampaignId } from "@/data/demo-campaign";
+import { useOptionalDemoSandbox } from "@/components/campaigns/DemoSandboxProvider";
 import { useI18n } from "@/lib/i18n/context";
 import type { NotePage } from "@/lib/queries/notes";
 import { PageEditor } from "./PageEditor";
@@ -39,6 +40,8 @@ export function PageEditorPanel({
   publicCode: string;
 }) {
   const { t } = useI18n();
+  const sandbox = useOptionalDemoSandbox();
+  const isDemo = isDemoCampaignId(page.campaignId);
   const contentRef = useRef<JSONContent | null>(null);
   const savingRef = useRef(false);
   const lastLocalSaveAtRef = useRef<string | null>(null);
@@ -122,7 +125,7 @@ export function PageEditorPanel({
 
   usePageLiveSync({
     pageId: page.id,
-    enabled: !isDemoCampaignId(page.campaignId),
+    enabled: !isDemo,
     getIgnoreUpdatedAt: () => lastLocalSaveAtRef.current,
     onRemoteUpdate: handleRemoteUpdate,
   });
@@ -134,14 +137,23 @@ export function PageEditorPanel({
     // serialize into a server action. Round-trip through JSON so the payload
     // is guaranteed to be plain objects.
     const content: JSONContent = JSON.parse(JSON.stringify(contentRef.current));
-    // If the user keeps typing during the round trip below, dirtyEpoch moves
-    // on; comparing against this snapshot tells us whether `content` is still
-    // the whole story once the request comes back.
     const dirtyEpochAtStart = dirtyEpochRef.current;
     savingRef.current = true;
     setSaving(true);
     setAutosaveIn(null);
     try {
+      if (isDemo && sandbox) {
+        sandbox.upsertPage({
+          ...page,
+          contentJson: content,
+          updatedAt: new Date().toISOString(),
+        });
+        if (dirtyEpochRef.current === dirtyEpochAtStart) {
+          setDirty(false);
+          dirtyRef.current = false;
+        }
+        return;
+      }
       let result = await savePage(page.id, content);
       if (result.ok && result.data.status === "needs_confirmation") {
         const confirmed = window.confirm(
@@ -252,8 +264,8 @@ export function PageEditorPanel({
               }
             : null
         }
-        onOpenHistory={() => setHistoryOpen(true)}
-        onOpenLinkPin={canEdit ? () => setLinkPinOpen(true) : undefined}
+        onOpenHistory={isDemo ? undefined : () => setHistoryOpen(true)}
+        onOpenLinkPin={canEdit && !isDemo ? () => setLinkPinOpen(true) : undefined}
         linkedPinsBar={
           <PageLinkedPins
             pageId={page.id}
@@ -265,7 +277,7 @@ export function PageEditorPanel({
           />
         }
       />
-      {historyOpen && (
+      {historyOpen && !isDemo && (
         <PageHistoryPanel
           pageId={page.id}
           canRestore={canEdit}

@@ -81,7 +81,7 @@
     "invite": "Invite",
     "demo": "Demo campaign",
     "demoDesc": "Try the app with a sample campaign",
-    "demoReadOnly": "Read-only demo — sign in to create your own campaign",
+    "demoReadOnly": "Demo — edits stay in this tab and aren’t saved",
     "create": "Create campaign",
     "noDescription": "No description yet"
   },
@@ -282,6 +282,7 @@
     "round": "Round {round}",
     "turn": "{name}'s turn",
     "waitingToStart": "Waiting to start",
+    "role": "View as",
     "noCombatants": "No combatants yet.",
     "addCombatant": "Add combatant",
     "condition": "Add condition",

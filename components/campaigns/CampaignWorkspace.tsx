@@ -28,8 +28,13 @@ import type {
 import { CombatTrackerLauncher } from "@/components/combat/CombatTrackerLauncher";
 import type { CombatState } from "@/lib/combat/types";
 import { CampaignSearchButton } from "@/components/campaigns/CampaignSearchButton";
+import {
+  DemoSandboxProvider,
+  useOptionalDemoSandbox,
+} from "@/components/campaigns/DemoSandboxProvider";
 import { Chip, Typography, buttonVariants } from "@/components/ui";
 import { accentHatchStyle } from "@/lib/ui/accent-hatch";
+import { isDemoCampaignId } from "@/data/demo-campaign";
 
 export function CampaignWorkspace({
   campaignId,
@@ -44,6 +49,85 @@ export function CampaignWorkspace({
   tree,
   activeTab,
   selectedPage,
+  canEditSelected,
+  selectedPageId,
+  characters,
+  inventoryLog,
+  selectedCharacterId,
+  resources,
+  inventoryCharacterOptions,
+  combat,
+  readOnly,
+  initialMapPinId,
+}: {
+  campaignId: string;
+  name: string;
+  description: string;
+  role: "dm" | "player" | null;
+  isAdmin: boolean;
+  isDm: boolean;
+  publicCode: string;
+  imageUrl: string | null;
+  activeTool: CampaignToolId;
+  tree: NoteTree;
+  activeTab: NoteScope;
+  selectedPage: NotePage | null;
+  selectedPageId: string | null;
+  canEditSelected: boolean;
+  characters: Character[];
+  inventoryLog: InventoryLogEntry[];
+  selectedCharacterId: string | null;
+  resources: ResourcesDashboard;
+  inventoryCharacterOptions: InventoryCharacterOption[];
+  combat: CombatState | null;
+  readOnly: boolean;
+  /** A pin id from a `?pin=` deep link (e.g. a note's "linked pins" jump). */
+  initialMapPinId: string | null;
+}) {
+  const isDemo = isDemoCampaignId(campaignId);
+  const body = <CampaignWorkspaceBody {...{
+    campaignId,
+    name,
+    description,
+    role,
+    isAdmin,
+    isDm,
+    publicCode,
+    imageUrl,
+    activeTool,
+    tree,
+    activeTab,
+    selectedPage,
+    selectedPageId,
+    canEditSelected,
+    characters,
+    inventoryLog,
+    selectedCharacterId,
+    resources,
+    inventoryCharacterOptions,
+    combat,
+    readOnly,
+    initialMapPinId,
+  }} />;
+
+  if (!isDemo) return body;
+  return <DemoSandboxProvider>{body}</DemoSandboxProvider>;
+}
+
+function CampaignWorkspaceBody({
+  campaignId,
+  name,
+  description,
+  role,
+  isAdmin,
+  isDm,
+  publicCode,
+  imageUrl,
+  activeTool,
+  tree,
+  activeTab,
+  selectedPage,
+  selectedPageId,
   canEditSelected,
   characters,
   inventoryLog,
@@ -66,6 +150,7 @@ export function CampaignWorkspace({
   tree: NoteTree;
   activeTab: NoteScope;
   selectedPage: NotePage | null;
+  selectedPageId: string | null;
   canEditSelected: boolean;
   characters: Character[];
   inventoryLog: InventoryLogEntry[];
@@ -74,13 +159,21 @@ export function CampaignWorkspace({
   inventoryCharacterOptions: InventoryCharacterOption[];
   combat: CombatState | null;
   readOnly: boolean;
-  /** A pin id from a `?pin=` deep link (e.g. a note's "linked pins" jump). */
   initialMapPinId: string | null;
 }) {
   const { t } = useI18n();
+  const sandbox = useOptionalDemoSandbox();
+  const isDemo = !!sandbox;
+  const liveTree = sandbox?.noteTrees[activeTab] ?? tree;
+  const pageId = selectedPageId ?? selectedPage?.id ?? null;
+  const livePage =
+    (pageId ? sandbox?.pagesById[pageId] : undefined) ?? selectedPage;
+  const liveCharacters = sandbox?.characters ?? characters;
+  const liveCombat = sandbox?.combat ?? combat;
+  const toolsLocked = isDemo;
   const treeHasPages =
-    tree.rootPages.length > 0 ||
-    tree.categories.some((c) => c.pages.length > 0);
+    liveTree.rootPages.length > 0 ||
+    liveTree.categories.some((c) => c.pages.length > 0);
 
   const toolMeta = CAMPAIGN_TOOLS.find((t) => t.id === activeTool)!;
 
@@ -145,7 +238,7 @@ export function CampaignWorkspace({
                       {t("campaign.player")}
                     </Chip>
                   )}
-                  {readOnly && (
+                  {toolsLocked && (
                     <Chip variant="onDark" className="uppercase tracking-wide">
                       {t("campaigns.demoReadOnly")}
                     </Chip>
@@ -157,9 +250,9 @@ export function CampaignWorkspace({
                   >
                     <CombatTrackerLauncher
                       campaignId={campaignId}
-                      isDm={isDm}
-                      combat={combat}
-                      readOnly={readOnly}
+                      isDm={sandbox ? sandbox.combatIsDm : isDm}
+                      combat={liveCombat}
+                      readOnly={readOnly && !isDemo}
                     />
                     <CampaignSearchButton
                       campaignId={campaignId}
@@ -214,7 +307,7 @@ export function CampaignWorkspace({
             publicCode={publicCode}
             activeTool={activeTool}
             notesTab={activeTab}
-            selectedPageId={selectedPage?.id ?? null}
+            selectedPageId={pageId}
           />
 
           {activeTool === "notes" ? (
@@ -226,10 +319,10 @@ export function CampaignWorkspace({
                 <NotesSidebar
                   campaignId={campaignId}
                   publicCode={publicCode}
-                  tree={tree}
+                  tree={liveTree}
                   activeTab={activeTab}
-                  selectedPageId={selectedPage?.id ?? null}
-                  readOnly={readOnly}
+                  selectedPageId={pageId}
+                  readOnly={readOnly && !isDemo}
                 />
               </aside>
 
@@ -241,14 +334,14 @@ export function CampaignWorkspace({
                   id="campaign-editor-content"
                   className="flex min-h-0 flex-1 flex-col"
                 >
-                  {selectedPage ? (
+                  {livePage ? (
                     // Keyed by page id so the panel remounts with fresh state on
                     // page switch — reusing the instance leaks the previous
                     // page's document into the new page's editor.
                     <PageEditorPanel
-                      key={selectedPage.id}
-                      page={selectedPage}
-                      canEdit={canEditSelected}
+                      key={livePage.id}
+                      page={livePage}
+                      canEdit={isDemo || canEditSelected}
                       publicCode={publicCode}
                     />
                   ) : (
@@ -274,10 +367,14 @@ export function CampaignWorkspace({
             <InventoryTool
               campaignId={campaignId}
               publicCode={publicCode}
-              characters={characters}
-              selectedCharacterId={selectedCharacterId}
+              characters={liveCharacters}
+              selectedCharacterId={
+                liveCharacters.find((c) => c.id === selectedCharacterId)?.id ??
+                liveCharacters[0]?.id ??
+                null
+              }
               log={inventoryLog}
-              readOnly={readOnly}
+              readOnly={readOnly && !isDemo}
             />
           ) : activeTool === "map" ? (
           <MapTool

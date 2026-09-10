@@ -3,6 +3,9 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCharacter } from "@/app/actions/inventory";
+import { appendCharacter } from "@/lib/inventory/optimistic";
+import { useInventory } from "../InventoryContext";
+import { isDemoCampaignId } from "@/data/demo-campaign";
 import { Button, TextField, Typography } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -15,6 +18,7 @@ export function AddCharacterDialog({
   characterHref: (characterId: string) => string;
 }) {
   const { t } = useI18n();
+  const { run } = useInventory();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -50,6 +54,28 @@ export function AddCharacterDialog({
     e.preventDefault();
     setError(null);
     startTransition(async () => {
+      if (isDemoCampaignId(campaignId)) {
+        const id = crypto.randomUUID();
+        await run(
+          (prev) =>
+            appendCharacter(prev, {
+              id,
+              name,
+              strength: Number(strength) || 0,
+              platinum: 0,
+              gold: Number(gold) || 0,
+              silver: 0,
+              copper: 0,
+              imageUrl: null,
+              items: [],
+            }),
+          async () => ({ ok: true, data: { id } })
+        );
+        setOpen(false);
+        reset();
+        router.push(characterHref(id));
+        return;
+      }
       const result = await createCharacter({
         campaignId,
         name,

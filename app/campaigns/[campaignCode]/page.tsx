@@ -126,10 +126,11 @@ export default async function CampaignPage({
         getInventoryLog(campaign.id),
       ]);
     }
-    selectedCharacterId =
-      characters.find((c) => c.id === searchParams.character)?.id ??
-      characters[0]?.id ??
-      null;
+    selectedCharacterId = isDemo
+      ? (searchParams.character ?? characters[0]?.id ?? null)
+      : (characters.find((c) => c.id === searchParams.character)?.id ??
+        characters[0]?.id ??
+        null);
   }
 
   if (activeTool === "resources") {
@@ -170,11 +171,12 @@ export default async function CampaignPage({
       inventoryCharacterOptions={inventoryCharacterOptions}
       combat={combat}
       readOnly={isDemo}
+      selectedPageId={searchParams.page ?? selectedPage?.id ?? null}
       initialMapPinId={searchParams.pin ?? null}
       canEditSelected={
-        !isDemo &&
-        !!selectedPage &&
-        (selectedPage.visibility === "public" || selectedPage.ownerId === userId)
+        isDemo ||
+        (!!selectedPage &&
+          (selectedPage.visibility === "public" || selectedPage.ownerId === userId))
       }
     />
   );

@@ -127,7 +127,7 @@ export const DEMO_COMBAT: CombatState = {
       combatantType: "enemy",
       orderIndex: 5,
       usedReaction: false,
-      visible: true,
+      visible: false,
       nameHidden: false,
       alias: null,
       conditions: [],
@@ -143,8 +143,8 @@ export const DEMO_COMBAT: CombatState = {
       orderIndex: 6,
       usedReaction: false,
       visible: true,
-      nameHidden: false,
-      alias: null,
+      nameHidden: true,
+      alias: "The Stag",
       conditions: [
         {
           id: "demo-cond-enraged",

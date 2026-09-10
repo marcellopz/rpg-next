@@ -9,15 +9,24 @@ const OPTIONS: { locale: Locale; label: string }[] = [
   { locale: "pt", label: "PT" },
 ];
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({
+  id = "site-language",
+  className,
+}: {
+  id?: string;
+  className?: string;
+}) {
   const { locale, setLocale, t } = useI18n();
 
   return (
     <div
-      id="site-language"
+      id={id}
       role="group"
       aria-label={t("navbar.language")}
-      className="inline-flex rounded-md border border-gray-300 bg-gray-100 p-0.5"
+      className={cn(
+        "inline-flex rounded-md border border-gray-300 bg-gray-100 p-0.5",
+        className
+      )}
     >
       {OPTIONS.map((option) => {
         const active = locale === option.locale;

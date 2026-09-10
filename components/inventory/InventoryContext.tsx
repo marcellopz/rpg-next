@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { isDemoCampaignId } from "@/data/demo-campaign";
+import { useOptionalDemoSandbox } from "@/components/campaigns/DemoSandboxProvider";
 import { useOptimisticData } from "@/hooks/useOptimisticData";
 import { fetchInventoryCharactersClient } from "@/lib/inventory/client-state";
 import type { Character } from "@/lib/queries/inventory";
@@ -41,18 +42,24 @@ export function InventoryProvider({
   readOnly?: boolean;
   children: ReactNode;
 }) {
-  const isDemo = isDemoCampaignId(campaignId);
-  const disabled = !!readOnly || isDemo;
+  const sandbox = useOptionalDemoSandbox();
+  const localOnly = !!sandbox || isDemoCampaignId(campaignId);
+  const locked = !!readOnly && !localOnly;
 
   const { data, run, reconcile } = useOptimisticData<Character[]>(
     serverCharacters,
     {
-      refetch: disabled
+      refetch: locked || localOnly
         ? undefined
         : () => fetchInventoryCharactersClient(campaignId),
-      disabled,
+      localOnly,
+      disabled: locked,
     }
   );
+
+  useEffect(() => {
+    sandbox?.setCharacters(data);
+  }, [sandbox, data]);
 
   const reconcileRef = useRef(reconcile);
   reconcileRef.current = reconcile;
@@ -72,7 +79,7 @@ export function InventoryProvider({
   // locally, and reconcile() is a no-op while a mutation is in flight, so the
   // self-echo costs at most one cheap re-read instead of a full page render.
   useEffect(() => {
-    if (disabled) return;
+    if (locked || localOnly) return;
     const supabase = createClient();
     let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -103,18 +110,18 @@ export function InventoryProvider({
       if (timer) clearTimeout(timer);
       void supabase.removeChannel(channel);
     };
-  }, [campaignId, disabled]);
+  }, [campaignId, locked, localOnly]);
 
   const value = useMemo(
     () => ({
       characters: data,
       campaignId,
-      readOnly: disabled,
+      readOnly: !!readOnly,
       run,
       reconcile,
       changeToken,
     }),
-    [data, campaignId, disabled, run, reconcile, changeToken]
+    [data, campaignId, readOnly, run, reconcile, changeToken]
   );
 
   return (

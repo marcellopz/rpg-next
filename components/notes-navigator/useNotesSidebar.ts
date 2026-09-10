@@ -16,10 +16,11 @@ import {
   reorderPages,
 } from "@/app/actions/pages";
 import type { NoteScope } from "@/app/actions/categories";
-import type { NoteCategory, NotePageSummary, NoteTree } from "@/lib/queries/notes";
+import type { NoteCategory, NotePage, NotePageSummary, NoteTree } from "@/lib/queries/notes";
 import type { MenuEntry } from "@/components/ui";
 import { useOptimisticData } from "@/hooks/useOptimisticData";
 import { isDemoCampaignId } from "@/data/demo-campaign";
+import { useOptionalDemoSandbox } from "@/components/campaigns/DemoSandboxProvider";
 import { fetchNoteTreeClient } from "@/lib/notes/tree-client-state";
 import * as optimistic from "@/lib/notes/optimistic";
 
@@ -58,18 +59,20 @@ export function useNotesSidebar({
   selectedPageId: string | null;
 }) {
   const router = useRouter();
+  const sandbox = useOptionalDemoSandbox();
+  const localOnly = isDemoCampaignId(campaignId);
 
-  // Tree edits (reorder, rename, move, delete) apply locally and reconcile in
-  // the background, so the sidebar never waits on a round trip. Keyed by scope:
-  // switching tabs delivers a different server tree, which is adopted because
-  // no mutation is in flight.
-  const disabled = isDemoCampaignId(campaignId);
   const { data: tree, run, reconcile } = useOptimisticData<NoteTree>(serverTree, {
-    refetch: disabled
+    refetch: localOnly
       ? undefined
       : () => fetchNoteTreeClient(campaignId, activeTab),
-    disabled,
+    localOnly,
+    syncKey: activeTab,
   });
+
+  useEffect(() => {
+    sandbox?.setNoteTree(activeTab, tree);
+  }, [sandbox, activeTab, tree]);
 
   const basePath = `/campaigns/${publicCode}`;
   const tabQuery = activeTab === "personal" ? "?tab=my" : "";
@@ -98,6 +101,23 @@ export function useNotesSidebar({
       else next.add(id);
       return next;
     });
+  }
+
+  function blankDemoPage(
+    id: string,
+    title: string,
+    categoryId: string | null
+  ): NotePage {
+    return {
+      id,
+      campaignId,
+      categoryId,
+      title,
+      contentJson: { type: "doc", content: [{ type: "paragraph" }] },
+      visibility: activeTab === "personal" ? "private" : "public",
+      ownerId: "demo-user",
+      updatedAt: new Date().toISOString(),
+    };
   }
 
   function pageHref(pageId: string) {
@@ -233,6 +253,22 @@ export function useNotesSidebar({
   async function handleAddPageToCategory(category: NoteCategory) {
     const title = window.prompt(`New page in "${category.name}"`)?.trim();
     if (!title) return;
+    if (localOnly && sandbox) {
+      const id = crypto.randomUUID();
+      sandbox.upsertPage(blankDemoPage(id, title, category.id));
+      await run(
+        (prev) =>
+          optimistic.addPage(prev, {
+            id,
+            title,
+            categoryId: category.id,
+          }),
+        async () => ({ ok: true, data: { id } })
+      );
+      expandCategory(category.id);
+      router.push(pageHref(id));
+      return;
+    }
     const result = await createPage({
       campaignId,
       categoryId: category.id,
@@ -255,6 +291,8 @@ export function useNotesSidebar({
       (prev) => optimistic.renamePage(prev, page.id, title),
       () => renamePage(page.id, title)
     );
+    const existing = sandbox?.pagesById[page.id];
+    if (existing) sandbox?.upsertPage({ ...existing, title });
   }
 
   function handleMovePage(page: NotePageSummary, categoryId: string | null) {
@@ -274,6 +312,7 @@ export function useNotesSidebar({
       (prev) => optimistic.removePage(prev, page.id),
       () => deletePage(page.id)
     );
+    sandbox?.removePage(page.id);
   }
 
   function pageMenuEntries(page: NotePageSummary): MenuEntry[] {
@@ -315,6 +354,14 @@ export function useNotesSidebar({
   }
 
   async function createRootCategory(name: string): Promise<string | null> {
+    if (localOnly) {
+      const id = crypto.randomUUID();
+      await run(
+        (prev) => optimistic.addCategory(prev, id, name),
+        async () => ({ ok: true, data: { id } })
+      );
+      return null;
+    }
     const result = await createCategory({
       campaignId,
       name,
@@ -328,6 +375,16 @@ export function useNotesSidebar({
   }
 
   async function createRootPage(title: string): Promise<string | null> {
+    if (localOnly && sandbox) {
+      const id = crypto.randomUUID();
+      sandbox.upsertPage(blankDemoPage(id, title, null));
+      await run(
+        (prev) => optimistic.addPage(prev, { id, title, categoryId: null }),
+        async () => ({ ok: true, data: { id } })
+      );
+      router.push(pageHref(id));
+      return null;
+    }
     const result = await createPage({
       campaignId,
       title,

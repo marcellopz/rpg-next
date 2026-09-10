@@ -13,6 +13,7 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 import { useI18n } from "@/lib/i18n/context";
 import type { Character } from "@/lib/queries/inventory";
 import { patchCharacter } from "@/lib/inventory/optimistic";
+import { isDemoCampaignId } from "@/data/demo-campaign";
 import { carryWeight } from "../encumbrance";
 import { InlineEdit } from "../InlineEdit";
 import { useInventory } from "../InventoryContext";
@@ -46,6 +47,7 @@ export function CharacterPanel({
 }) {
   const { t } = useI18n();
   const { campaignId, readOnly, run } = useInventory();
+  const demo = isDemoCampaignId(campaignId);
   const weight = carryWeight(character);
   const [photoOpen, setPhotoOpen] = useState(false);
   const { upload } = useFileUpload("public");
@@ -90,7 +92,7 @@ export function CharacterPanel({
         <style>{`@media (min-width: 1024px) { header { grid-template-columns: auto 1fr auto auto; } }`}</style>
         {/* Avatar - spans 3 rows on mobile, 2 rows on desktop */}
         <div className="col-start-1 row-start-1 row-span-3 lg:row-span-2">
-          {readOnly ? (
+          {readOnly || demo ? (
             <CharacterAvatar
               name={character.name}
               imageUrl={character.imageUrl}

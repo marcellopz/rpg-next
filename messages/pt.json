@@ -81,7 +81,7 @@
     "invite": "Convidar",
     "demo": "Campanha de demonstração",
     "demoDesc": "Experimente o aplicativo com uma campanha de exemplo",
-    "demoReadOnly": "Demonstração somente leitura — faça login para criar sua própria campanha",
+    "demoReadOnly": "Demo — as alterações ficam nesta aba e não são salvas",
     "create": "Criar campanha",
     "noDescription": "Sem descrição ainda"
   },
@@ -286,6 +286,7 @@
     "round": "Rodada {round}",
     "turn": "Turno de {name}",
     "waitingToStart": "Aguardando início",
+    "role": "Ver como",
     "noCombatants": "Nenhum combatente ainda.",
     "addCombatant": "Adicionar combatente",
     "condition": "Adicionar condição",

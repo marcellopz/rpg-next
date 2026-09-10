@@ -9,6 +9,12 @@
   column-gap: 0.75rem;
 }
 
+.combat-tracker .tracker-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
 .combat-tracker .tracker-table {
   padding: 0.5rem;
   background: rgb(249 250 251 / 0.55);
@@ -16,12 +22,15 @@
 
 .combat-tracker .tracker-table-header.with-hp,
 .combat-tracker .tracker-table-body-row.with-hp {
-  grid-template-columns: 4rem minmax(14rem, 1fr) 3.5rem minmax(12rem, 15rem) 5.5rem;
+  grid-template-columns: 4rem minmax(18rem, 1fr) 3.5rem minmax(
+      12rem,
+      15rem
+    ) 5.5rem;
 }
 
 .combat-tracker .tracker-table-header.without-hp,
 .combat-tracker .tracker-table-body-row.without-hp {
-  grid-template-columns: 4rem minmax(14rem, 1fr) 5.5rem;
+  grid-template-columns: 4rem minmax(18rem, 1fr) 5.5rem;
 }
 
 .combat-tracker .tracker-table-header {
@@ -145,7 +154,8 @@
 
 .combat-tracker .tracker-table-name-text {
   display: inline-flex;
-  min-width: 0;
+  min-width: 12rem;
+  flex: 1 1 12rem;
   align-items: center;
   gap: 0.375rem;
   margin: 0;

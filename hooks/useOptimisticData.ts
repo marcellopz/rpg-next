@@ -27,15 +27,25 @@ type UseOptimisticDataOptions<T> = {
   refetch?: () => Promise<T>;
   /** Defaults to window.alert, matching what every call site did before. */
   onError?: (message: string) => void;
-  /** Skip all mutations and reconciliation (demo / read-only campaigns). */
+  /** Skip all mutations and reconciliation (true read-only tools). */
   disabled?: boolean;
+  /**
+   * Apply mutators locally and skip the server action / refetch. Used by the
+   * demo campaign so edits paint without touching the database.
+   */
+  localOnly?: boolean;
+  /**
+   * When `localOnly` is set, adopt `serverValue` if this key changes (e.g.
+   * switching notes tabs) without letting later parent renders clobber edits.
+   */
+  syncKey?: string | number;
 };
 
 export function useOptimisticData<T>(
   serverValue: T,
   options: UseOptimisticDataOptions<T> = {}
 ) {
-  const { refetch, onError, disabled } = options;
+  const { refetch, onError, disabled, localOnly, syncKey } = options;
 
   const [data, setData] = useState<T>(serverValue);
   const dataRef = useRef(data);
@@ -55,12 +65,22 @@ export function useOptimisticData<T>(
     else window.alert(message);
   }
 
+  const syncKeyRef = useRef(syncKey);
+
   // Adopt a fresh server render only when we have no unconfirmed local edits.
   // `serverValue` keeps its identity across pure client re-renders, so this
   // fires on genuinely new server data rather than on every parent render.
+  // `localOnly` keeps session edits; `syncKey` is the exception (tab switch).
   useEffect(() => {
+    if (localOnly) {
+      if (syncKey !== syncKeyRef.current) {
+        syncKeyRef.current = syncKey;
+        setData(serverValue);
+      }
+      return;
+    }
     if (pendingRef.current === 0) setData(serverValue);
-  }, [serverValue]);
+  }, [serverValue, localOnly, syncKey]);
 
   // Set when a resync is owed but couldn't run because another mutation was
   // still in flight — without this, a failure during concurrent mutations would
@@ -69,7 +89,7 @@ export function useOptimisticData<T>(
 
   /** Re-read from the server and adopt, unless a mutation is in flight. */
   const reconcile = useCallback(async () => {
-    if (disabled || !refetchRef.current) return;
+    if (disabled || localOnly || !refetchRef.current) return;
     if (pendingRef.current > 0) {
       resyncOwedRef.current = true;
       return;
@@ -77,7 +97,7 @@ export function useOptimisticData<T>(
     resyncOwedRef.current = false;
     const fresh = await refetchRef.current();
     if (pendingRef.current === 0) setData(fresh);
-  }, [disabled]);
+  }, [disabled, localOnly]);
 
   const reconcileRef = useRef(reconcile);
   reconcileRef.current = reconcile;
@@ -108,6 +128,11 @@ export function useOptimisticData<T>(
       opts: { reconcile?: boolean; silent?: boolean } = {}
     ): Promise<ActionResult<R>> => {
       if (disabled) {
+        return { ok: true, data: undefined as R };
+      }
+
+      if (localOnly) {
+        setData(mutator);
         return { ok: true, data: undefined as R };
       }
 
@@ -148,7 +173,7 @@ export function useOptimisticData<T>(
       if (opts.reconcile) void reconcile();
       return result;
     },
-    [disabled, reconcile, setPending]
+    [disabled, localOnly, reconcile, setPending]
   );
 
   return {

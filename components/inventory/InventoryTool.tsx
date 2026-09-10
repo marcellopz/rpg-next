@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button, Typography } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/context";
 import { fetchInventoryLogClient } from "@/lib/inventory/client-state";
+import { isDemoCampaignId } from "@/data/demo-campaign";
 import type { Character, InventoryLogEntry } from "@/lib/queries/inventory";
 import { CharacterPanel } from "./characters/CharacterPanel";
 import { CharacterSidebar } from "./characters/CharacterSidebar";
@@ -60,7 +61,7 @@ function InventoryToolBody({
   // inventory state the client can't derive from its own mutations (server
   // stamps the actor name and timestamp).
   useEffect(() => {
-    if (!logOpen || readOnly) return;
+    if (!logOpen || readOnly || isDemoCampaignId(campaignId)) return;
     let cancelled = false;
     void fetchInventoryLogClient(campaignId).then((entries) => {
       if (!cancelled) setLog(entries);

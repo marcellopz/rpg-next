@@ -19,6 +19,7 @@ type CombatTrackerContextValue = {
   combat: CombatState | null;
   campaignId: string;
   isDm: boolean;
+  setIsDm?: (isDm: boolean) => void;
   setCombat: React.Dispatch<React.SetStateAction<CombatState | null>>;
   refreshCombat: () => Promise<void>;
   runAction: <T>(
@@ -26,6 +27,7 @@ type CombatTrackerContextValue = {
     action: () => Promise<ActionResult<T>>
   ) => Promise<ActionResult<T>>;
   readOnly: boolean;
+  localOnly: boolean;
 };
 
 const CombatTrackerContext = createContext<CombatTrackerContextValue | null>(
@@ -37,29 +39,42 @@ const TABLES = ["combat_sessions", "combat_combatants", "combat_conditions"];
 export function CombatTrackerProvider({
   campaignId,
   isDm,
+  setIsDm,
   initialCombat,
   enabled,
   readOnly,
+  localOnly,
+  onCombatChange,
   children,
 }: {
   campaignId: string;
   isDm: boolean;
+  setIsDm?: (isDm: boolean) => void;
   initialCombat: CombatState | null;
   enabled: boolean;
   readOnly?: boolean;
+  localOnly?: boolean;
+  onCombatChange?: (combat: CombatState | null) => void;
   children: ReactNode;
 }) {
+  const skipPersist = !!readOnly || !!localOnly;
   const [combat, setCombat] = useState<CombatState | null>(initialCombat);
   const combatRef = useRef(combat);
   combatRef.current = combat;
   const isDmRef = useRef(isDm);
   isDmRef.current = isDm;
+  const onCombatChangeRef = useRef(onCombatChange);
+  onCombatChangeRef.current = onCombatChange;
+
+  useEffect(() => {
+    if (localOnly) onCombatChangeRef.current?.(combat);
+  }, [combat, localOnly]);
 
   const refreshCombat = useCallback(async () => {
-    if (readOnly) return;
+    if (skipPersist) return;
     const next = await fetchCombatClient(campaignId);
     setCombat(next);
-  }, [campaignId, readOnly]);
+  }, [campaignId, skipPersist]);
 
   const refreshCombatRef = useRef(refreshCombat);
   refreshCombatRef.current = refreshCombat;
@@ -69,12 +84,12 @@ export function CombatTrackerProvider({
   // Skipped entirely for a read-only (demo) campaign: there is no real row to
   // fetch, and doing so would overwrite the static combat state with null.
   useEffect(() => {
-    if (!enabled || readOnly) return;
+    if (!enabled || skipPersist) return;
     void refreshCombatRef.current();
-  }, [enabled, campaignId, readOnly]);
+  }, [enabled, campaignId, skipPersist]);
 
   useEffect(() => {
-    if (!enabled || readOnly) return;
+    if (!enabled || skipPersist) return;
 
     const supabase = createClient();
     const timerRef = { current: null as ReturnType<typeof setTimeout> | null };
@@ -108,7 +123,7 @@ export function CombatTrackerProvider({
       if (timerRef.current) clearTimeout(timerRef.current);
       void supabase.removeChannel(channel);
     };
-  }, [campaignId, enabled, readOnly]);
+  }, [campaignId, enabled, skipPersist]);
 
   const runAction = useCallback(
     async <T,>(
@@ -116,6 +131,10 @@ export function CombatTrackerProvider({
       action: () => Promise<ActionResult<T>>
     ): Promise<ActionResult<T>> => {
       if (readOnly) return { ok: true, data: undefined as T };
+      if (localOnly) {
+        setCombat(optimistic);
+        return { ok: true, data: undefined as T };
+      }
       const snapshot = combatRef.current;
       setCombat(optimistic);
       const result = await action();
@@ -126,7 +145,7 @@ export function CombatTrackerProvider({
       void refreshCombatRef.current();
       return result;
     },
-    [readOnly]
+    [readOnly, localOnly]
   );
 
   const value = useMemo(
@@ -134,12 +153,23 @@ export function CombatTrackerProvider({
       combat,
       campaignId,
       isDm,
+      setIsDm,
       setCombat,
       refreshCombat,
       runAction,
       readOnly: !!readOnly,
+      localOnly: !!localOnly,
     }),
-    [combat, campaignId, isDm, refreshCombat, runAction, readOnly]
+    [
+      combat,
+      campaignId,
+      isDm,
+      setIsDm,
+      refreshCombat,
+      runAction,
+      readOnly,
+      localOnly,
+    ]
   );
 
   return (

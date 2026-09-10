@@ -135,3 +135,29 @@ export function reorderPages(
         : tree.rootPages.filter((p) => !movedIds.has(p.id)),
   };
 }
+
+export function addCategory(
+  tree: NoteTree,
+  id: string,
+  name: string
+): NoteTree {
+  return {
+    ...tree,
+    categories: [...tree.categories, { id, name, pages: [] }],
+  };
+}
+
+export function addPage(
+  tree: NoteTree,
+  page: NotePageSummary
+): NoteTree {
+  if (page.categoryId) {
+    return {
+      ...tree,
+      categories: tree.categories.map((c) =>
+        c.id === page.categoryId ? { ...c, pages: [...c.pages, page] } : c
+      ),
+    };
+  }
+  return { ...tree, rootPages: [...tree.rootPages, page] };
+}

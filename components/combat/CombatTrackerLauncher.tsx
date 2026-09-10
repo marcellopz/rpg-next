@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Swords } from "lucide-react";
 import type { CombatState } from "@/lib/combat/types";
 import { CombatTrackerModal } from "@/components/combat/modal/CombatTrackerModal";
+import { CombatTrackerProvider } from "@/components/combat/CombatTrackerContext";
+import { useOptionalDemoSandbox } from "@/components/campaigns/DemoSandboxProvider";
 import { Button } from "@/components/ui";
 
 export function CombatTrackerLauncher({
@@ -18,9 +20,25 @@ export function CombatTrackerLauncher({
   readOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const sandbox = useOptionalDemoSandbox();
 
   return (
-    <>
+    <CombatTrackerProvider
+      campaignId={campaignId}
+      isDm={sandbox ? sandbox.combatIsDm : isDm}
+      setIsDm={sandbox ? sandbox.setCombatIsDm : undefined}
+      initialCombat={sandbox ? sandbox.combat : combat}
+      enabled={open}
+      readOnly={readOnly}
+      localOnly={!!sandbox}
+      onCombatChange={
+        sandbox
+          ? (next) => {
+              if (next) sandbox.setCombat(next);
+            }
+          : undefined
+      }
+    >
       <Button
         type="button"
         variant="white"
@@ -31,14 +49,7 @@ export function CombatTrackerLauncher({
         <Swords className="mr-1.5 h-4 w-4" aria-hidden />
         Combat tracker
       </Button>
-      <CombatTrackerModal
-        open={open}
-        campaignId={campaignId}
-        isDm={isDm}
-        combat={combat}
-        readOnly={readOnly}
-        onClose={() => setOpen(false)}
-      />
-    </>
+      <CombatTrackerModal open={open} onClose={() => setOpen(false)} />
+    </CombatTrackerProvider>
   );
 }

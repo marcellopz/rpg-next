@@ -37,6 +37,13 @@ export function removeCharacter(
   return characters.filter((c) => c.id !== characterId);
 }
 
+export function appendCharacter(
+  characters: Character[],
+  character: Character
+): Character[] {
+  return [...characters, character];
+}
+
 export function reorderCharacters(
   characters: Character[],
   orderedIds: string[]

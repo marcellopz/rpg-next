@@ -73,11 +73,11 @@ export function CombatTrackerTable() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+    <div className="tracker-table-scroll rounded-xl border border-gray-200 bg-white">
       <div
         role="table"
         aria-label="Combat initiative"
-        className="tracker-table min-w-[42rem]"
+        className="tracker-table min-w-[48rem]"
       >
         <CombatTableHeader showHpColumns={showHpColumns} />
         <div role="rowgroup" className="tracker-table-body">
