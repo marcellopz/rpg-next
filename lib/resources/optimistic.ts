@@ -3,6 +3,10 @@ import type {
   ResourceItem,
   ResourcesDashboard,
 } from "@/lib/resources/types";
+import {
+  appendCardToLayouts,
+  removeCardFromLayouts,
+} from "@/lib/resources/layouts";
 
 // Pure transforms applied to the client-owned dashboard before the matching
 // server action resolves. Each returns a new dashboard; none mutate in place.
@@ -95,6 +99,17 @@ export function patchCard(
   return mapCard(dashboard, cardId, (card) => ({ ...card, ...patch }));
 }
 
+export function appendCard(
+  dashboard: ResourcesDashboard,
+  card: ResourceCard
+): ResourcesDashboard {
+  return {
+    ...dashboard,
+    cards: [...dashboard.cards, card],
+    layouts: appendCardToLayouts(dashboard.layouts, card.id),
+  };
+}
+
 export function removeCard(
   dashboard: ResourcesDashboard,
   cardId: string
@@ -102,6 +117,7 @@ export function removeCard(
   return {
     ...dashboard,
     cards: dashboard.cards.filter((card) => card.id !== cardId),
+    layouts: removeCardFromLayouts(dashboard.layouts, cardId),
   };
 }
 

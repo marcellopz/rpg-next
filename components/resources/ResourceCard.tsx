@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
+import { useState, type CSSProperties, type DragEvent } from "react";
 import { GripVertical, Trash2 } from "lucide-react";
 import {
   deleteResourceCard,
@@ -10,6 +10,7 @@ import {
 import type { ResourceCard } from "@/lib/resources/types";
 import { IconButton } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/context";
 import {
   patchCard,
   removeCard,
@@ -23,11 +24,14 @@ export function ResourceCardPanel({
   card,
   isEditing,
   readOnly,
+  colorHue,
 }: {
   card: ResourceCard;
   isEditing: boolean;
   readOnly?: boolean;
+  colorHue: number;
 }) {
+  const { t } = useI18n();
   const { run } = useResources();
   const [name, setName] = useState(card.name);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -83,7 +87,10 @@ export function ResourceCardPanel({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div
+      className="resource-character-card flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+      style={{ "--resource-hue": colorHue } as CSSProperties}
+    >
       <div className="flex h-12 shrink-0 items-center gap-2 border-b border-gray-200 px-3">
         {isEditing && (
           <button
@@ -94,7 +101,7 @@ export function ResourceCardPanel({
             <GripVertical className="h-4 w-4" />
           </button>
         )}
-        {isEditing ? (
+        {isEditing && !card.characterId ? (
           <input
             type="text"
             value={name}
@@ -111,7 +118,7 @@ export function ResourceCardPanel({
         )}
         {card.characterId && (
           <span className="shrink-0 text-[0.65rem] uppercase tracking-wide text-gray-400">
-            Linked
+            {t("resources.character")}
           </span>
         )}
         {isEditing && (
@@ -125,7 +132,7 @@ export function ResourceCardPanel({
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3">
         {card.items.length === 0 && !isEditing && (
           <p className="text-sm text-gray-500">No resources yet.</p>
         )}

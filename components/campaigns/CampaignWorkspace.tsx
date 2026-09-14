@@ -170,6 +170,13 @@ function CampaignWorkspaceBody({
   const livePage =
     (pageId ? sandbox?.pagesById[pageId] : undefined) ?? selectedPage;
   const liveCharacters = sandbox?.characters ?? characters;
+  const liveResources = sandbox?.resources ?? resources;
+  const liveInventoryCharacterOptions = sandbox
+    ? sandbox.characters.map((character) => ({
+        id: character.id,
+        name: character.name,
+      }))
+    : inventoryCharacterOptions;
   const liveCombat = sandbox?.combat ?? combat;
   const toolsLocked = isDemo;
   const treeHasPages =
@@ -400,8 +407,8 @@ function CampaignWorkspaceBody({
         ) : activeTool === "resources" ? (
             <ResourcesTool
               campaignId={campaignId}
-              dashboard={resources}
-              inventoryCharacters={inventoryCharacterOptions}
+              dashboard={liveResources}
+              inventoryCharacters={liveInventoryCharacterOptions}
               readOnly={readOnly}
             />
           ) : activeTool === "handouts" ? (

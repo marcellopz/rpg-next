@@ -8,6 +8,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { useOptionalDemoSandbox } from "@/components/campaigns/DemoSandboxProvider";
 import { isDemoCampaignId } from "@/data/demo-campaign";
 import { useOptimisticData } from "@/hooks/useOptimisticData";
 import { fetchResourcesClient } from "@/lib/resources/client-state";
@@ -18,6 +19,7 @@ type ResourcesContextValue = {
   dashboard: ResourcesDashboard;
   campaignId: string;
   readOnly: boolean;
+  localOnly: boolean;
   run: ReturnType<typeof useOptimisticData<ResourcesDashboard>>["run"];
   reconcile: () => Promise<void>;
 };
@@ -41,18 +43,25 @@ export function ResourcesProvider({
   readOnly?: boolean;
   children: ReactNode;
 }) {
+  const sandbox = useOptionalDemoSandbox();
   const isDemo = isDemoCampaignId(campaignId);
-  const disabled = !!readOnly || isDemo;
+  const localOnly = !!sandbox || isDemo;
+  const locked = !!readOnly && !localOnly;
 
   const { data, run, reconcile } = useOptimisticData<ResourcesDashboard>(
     serverDashboard,
     {
-      refetch: disabled
+      refetch: locked || localOnly
         ? undefined
         : () => fetchResourcesClient(campaignId),
-      disabled,
+      localOnly,
+      disabled: locked,
     }
   );
+
+  useEffect(() => {
+    sandbox?.setResources(data);
+  }, [sandbox, data]);
 
   const reconcileRef = useRef(reconcile);
   reconcileRef.current = reconcile;
@@ -61,7 +70,7 @@ export function ResourcesProvider({
   // locally, and reconcile() is a no-op while a mutation is in flight, so the
   // self-echo costs at most one cheap re-read instead of a full page render.
   useEffect(() => {
-    if (disabled) return;
+    if (locked || localOnly) return;
     const supabase = createClient();
     let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -89,17 +98,18 @@ export function ResourcesProvider({
       if (timer) clearTimeout(timer);
       void supabase.removeChannel(channel);
     };
-  }, [campaignId, disabled]);
+  }, [campaignId, locked, localOnly]);
 
   const value = useMemo(
     () => ({
       dashboard: data,
       campaignId,
-      readOnly: disabled,
+      readOnly: locked,
+      localOnly,
       run,
       reconcile,
     }),
-    [data, campaignId, disabled, run, reconcile]
+    [data, campaignId, locked, localOnly, run, reconcile]
   );
 
   return (

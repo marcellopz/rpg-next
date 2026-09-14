@@ -1,10 +1,14 @@
 "use client";
 
+import { CombatantStatusIcons } from "@/components/combat/table/CombatantStatusIcons";
+import type { CombatCombatant } from "@/lib/combat/types";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 
 type PreviewCombatant = {
   name: string;
+  combatantType: CombatCombatant["combatantType"];
+  visible: boolean;
   initiative: number;
   hp: number;
   maxHp: number;
@@ -17,6 +21,8 @@ type PreviewCombatant = {
 const COMBATANTS: PreviewCombatant[] = [
   {
     name: "Mara",
+    combatantType: "player",
+    visible: true,
     initiative: 18,
     hp: 22,
     maxHp: 32,
@@ -27,6 +33,8 @@ const COMBATANTS: PreviewCombatant[] = [
   },
   {
     name: "Dex",
+    combatantType: "player",
+    visible: true,
     initiative: 16,
     hp: 9,
     maxHp: 21,
@@ -36,6 +44,8 @@ const COMBATANTS: PreviewCombatant[] = [
   },
   {
     name: "Tobi",
+    combatantType: "ally",
+    visible: true,
     initiative: 12,
     hp: 26,
     maxHp: 27,
@@ -45,11 +55,24 @@ const COMBATANTS: PreviewCombatant[] = [
   },
   {
     name: "Corrupted Stag",
+    combatantType: "enemy",
+    visible: true,
     initiative: 11,
     hp: 8,
     maxHp: 52,
     ac: 14,
     status: "critical",
+    reactionUsed: false,
+  },
+  {
+    name: "Blight Wolf",
+    combatantType: "enemy",
+    visible: false,
+    initiative: 8,
+    hp: 18,
+    maxHp: 24,
+    ac: 13,
+    status: "hurt",
     reactionUsed: false,
   },
 ];
@@ -78,47 +101,52 @@ export function CombatPreview() {
       </div>
 
       <div className="mt-1.5 flex flex-col gap-1.5">
-        {COMBATANTS.map((combatant) => (
-          <div
-            key={combatant.name}
-            className={cn(
-              "relative grid grid-cols-[2.5rem_minmax(0,1fr)_3.5rem] items-center gap-2 rounded-lg border px-3 py-2.5 text-sm lg:grid-cols-[3rem_minmax(0,1fr)_2.5rem_6.5rem_4rem]",
-              STATUS_BG[combatant.status],
-              combatant.active
-                ? "border-slate-400 shadow-[0_0_0_1px_rgba(71,85,105,0.08),0_2px_6px_rgba(15,23,42,0.08)]"
-                : "border-gray-200"
-            )}
-          >
-            {combatant.active && (
-              <span className="absolute -top-2 left-3 rounded-full bg-slate-600 px-1.5 py-px text-[0.55rem] font-bold uppercase tracking-wide text-white">
-                Active
+        {COMBATANTS.map((combatant) => {
+          return (
+            <div
+              key={combatant.name}
+              className={cn(
+                "relative grid grid-cols-[2.5rem_minmax(0,1fr)_3.5rem] items-center gap-2 rounded-lg border px-3 py-2 text-sm lg:grid-cols-[3rem_minmax(0,1fr)_2.5rem_6.5rem_4rem]",
+                STATUS_BG[combatant.status],
+                combatant.active
+                  ? "border-slate-400 shadow-[0_0_0_1px_rgba(71,85,105,0.08),0_2px_6px_rgba(15,23,42,0.08)]"
+                  : "border-gray-200"
+              )}
+            >
+              {combatant.active && (
+                <span className="absolute -top-2 left-3 rounded-full bg-slate-600 px-1.5 py-px text-[0.55rem] font-bold uppercase tracking-wide text-white">
+                  Active
+                </span>
+              )}
+              <span className="text-center font-bold tabular-nums text-gray-600">
+                {combatant.initiative}
               </span>
-            )}
-            <span className="text-center font-bold tabular-nums text-gray-600">
-              {combatant.initiative}
-            </span>
-            <p className="min-w-0 truncate font-semibold text-gray-800">
-              {combatant.name}
-            </p>
-            <span className="hidden text-center font-semibold tabular-nums text-gray-700 lg:block">
-              {combatant.ac}
-            </span>
-            <span className="hidden text-center font-semibold tabular-nums text-gray-800 lg:block">
-              {combatant.hp} / {combatant.maxHp}
-            </span>
-            <span className="flex justify-center">
-              <span
-                className={cn(
-                  "h-4 w-4 rounded border",
-                  combatant.reactionUsed
-                    ? "border-accent-600 bg-accent-600"
-                    : "border-gray-300 bg-white"
-                )}
-                aria-hidden
-              />
-            </span>
-          </div>
-        ))}
+              <div className="flex min-w-0 items-center gap-2">
+                <CombatantStatusIcons combatant={combatant} isDm />
+                <p className="min-w-0 truncate font-semibold text-gray-800">
+                  {combatant.name}
+                </p>
+              </div>
+              <span className="hidden text-center font-semibold tabular-nums text-gray-700 lg:block">
+                {combatant.ac}
+              </span>
+              <span className="hidden text-center font-semibold tabular-nums text-gray-800 lg:block">
+                {combatant.hp} / {combatant.maxHp}
+              </span>
+              <span className="flex justify-center">
+                <span
+                  className={cn(
+                    "h-4 w-4 rounded border",
+                    combatant.reactionUsed
+                      ? "border-accent-600 bg-accent-600"
+                      : "border-gray-300 bg-white"
+                  )}
+                  aria-hidden
+                />
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

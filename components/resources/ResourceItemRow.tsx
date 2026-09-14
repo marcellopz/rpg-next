@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
+import { useEffect, useState, type DragEvent } from "react";
 import { GripVertical, Minus, Plus, Trash2 } from "lucide-react";
 import {
   deleteResourceItem,
@@ -10,8 +10,11 @@ import {
 import type { ResourceItem } from "@/lib/resources/types";
 import { IconButton } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/context";
 import { patchItem, removeItem } from "@/lib/resources/optimistic";
 import { useResources } from "./ResourcesContext";
+
+const MAX_TILE_COUNT = 18;
 
 export function ResourceItemRow({
   item,
@@ -36,13 +39,22 @@ export function ResourceItemRow({
   onDragLeave?: () => void;
   onDrop?: (e: DragEvent) => void;
 }) {
+  const { t } = useI18n();
   const { run } = useResources();
   const [name, setName] = useState(item.name);
   const [current, setCurrent] = useState(String(item.currentValue));
   const [total, setTotal] = useState(String(item.totalValue));
 
+  useEffect(() => setName(item.name), [item.name]);
+  useEffect(() => setCurrent(String(item.currentValue)), [item.currentValue]);
+  useEffect(() => setTotal(String(item.totalValue)), [item.totalValue]);
+
   function adjustCurrent(delta: number) {
     const next = Math.max(0, Math.min(item.totalValue, item.currentValue + delta));
+    setCurrentValue(next);
+  }
+
+  function setCurrentValue(next: number) {
     if (next === item.currentValue) return;
     void run(
       (d) => patchItem(d, item.id, { currentValue: next }),
@@ -151,32 +163,74 @@ export function ResourceItemRow({
     );
   }
 
+  const usesTiles = item.totalValue <= MAX_TILE_COUNT;
+
   return (
-    <div className="flex items-center gap-2 rounded-md px-1 py-1 text-sm">
-      <div className="flex shrink-0 items-center gap-1">
-        <IconButton
-          aria-label={`Decrease ${item.name}`}
-          onClick={() => adjustCurrent(-1)}
-          disabled={readOnly || item.currentValue <= 0}
-        >
-          <Minus className="h-3.5 w-3.5" />
-        </IconButton>
-        <span className="w-6 text-center font-medium tabular-nums">
-          {item.currentValue}
+    <div className="px-1 py-1.5 text-xs">
+      <div className="flex min-w-0 items-baseline justify-between gap-3">
+        <span className="min-w-0 truncate font-medium text-gray-800">
+          {item.name}
         </span>
-        <IconButton
-          aria-label={`Increase ${item.name}`}
-          onClick={() => adjustCurrent(1)}
-          disabled={readOnly || item.currentValue >= item.totalValue}
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </IconButton>
+        <span className="shrink-0 text-[0.65rem] tabular-nums text-gray-500">
+          {t("resources.remainingCount", {
+            current: item.currentValue,
+            total: item.totalValue,
+          })}
+        </span>
       </div>
-      <span className="text-gray-400">/</span>
-      <span className="w-6 text-center tabular-nums text-gray-500">
-        {item.totalValue}
-      </span>
-      <span className="min-w-0 truncate text-gray-800">{item.name}</span>
+
+      {usesTiles ? (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {Array.from({ length: item.totalValue }, (_, index) => {
+            const value = index + 1;
+            const active = value <= item.currentValue;
+            const nextValue =
+              value === item.currentValue ? item.currentValue - 1 : value;
+            return (
+              <button
+                key={value}
+                type="button"
+                disabled={readOnly}
+                onClick={() => setCurrentValue(nextValue)}
+                aria-label={t("resources.setRemaining", {
+                  name: item.name,
+                  count: nextValue,
+                })}
+                aria-pressed={active}
+                className={cn(
+                  "h-5 min-w-5 flex-1 rounded border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-default",
+                  active
+                    ? "resource-use-tile-active"
+                    : "border-gray-200 bg-gray-100 hover:bg-gray-200",
+                  readOnly && "opacity-75"
+                )}
+              >
+                <span className="sr-only">{value}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mt-1 flex items-center gap-1">
+          <IconButton
+            aria-label={`Decrease ${item.name}`}
+            onClick={() => adjustCurrent(-1)}
+            disabled={readOnly || item.currentValue <= 0}
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </IconButton>
+          <span className="resource-current-value w-12 text-center font-medium tabular-nums">
+            {item.currentValue}
+          </span>
+          <IconButton
+            aria-label={`Increase ${item.name}`}
+            onClick={() => adjustCurrent(1)}
+            disabled={readOnly || item.currentValue >= item.totalValue}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </IconButton>
+        </div>
+      )}
     </div>
   );
 }

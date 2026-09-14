@@ -5,9 +5,13 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { Responsive, type Layout, type Layouts } from "react-grid-layout";
 import { saveResourceLayouts } from "@/app/actions/resources";
-import type { ResourceCard as ResourceCardData } from "@/lib/resources/types";
+import type {
+  DashboardLayouts,
+  ResourceCard as ResourceCardData,
+} from "@/lib/resources/types";
 import { syncLayoutsWithCards } from "@/lib/resources/layouts";
 import { ResourceCardPanel } from "./ResourceCard";
+import { useResources } from "./ResourcesContext";
 import { useGridWidth } from "./useGridWidth";
 import "./resources-grid.css";
 
@@ -24,6 +28,7 @@ export function ResourcesDashboardGrid({
   isEditing: boolean;
   readOnly?: boolean;
 }) {
+  const { run, localOnly } = useResources();
   const parentRef = useRef<HTMLDivElement>(null);
   const width = useGridWidth(parentRef);
   const [isReady, setIsReady] = useState(false);
@@ -34,8 +39,10 @@ export function ResourcesDashboardGrid({
     )
   );
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const persistedLayoutsRef = useRef(JSON.stringify(initialLayouts));
 
   useEffect(() => {
+    persistedLayoutsRef.current = JSON.stringify(initialLayouts);
     setLayouts(
       syncLayoutsWithCards(
         initialLayouts,
@@ -57,10 +64,30 @@ export function ResourcesDashboardGrid({
     (next: Layouts) => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
-        void saveResourceLayouts({ campaignId, layouts: next });
+        const serialized = JSON.stringify(next);
+        if (serialized === persistedLayoutsRef.current) return;
+        persistedLayoutsRef.current = serialized;
+        if (localOnly) {
+          void run(
+            (dashboard) => ({
+              ...dashboard,
+              layouts: next as DashboardLayouts,
+            }),
+            () =>
+              saveResourceLayouts({
+                campaignId,
+                layouts: next as DashboardLayouts,
+              })
+          );
+          return;
+        }
+        void saveResourceLayouts({
+          campaignId,
+          layouts: next as DashboardLayouts,
+        });
       }, 500);
     },
-    [campaignId]
+    [campaignId, localOnly, run]
   );
 
   const onLayoutChange = useCallback(
@@ -103,9 +130,14 @@ export function ResourcesDashboardGrid({
           useCSSTransforms
           width={width}
         >
-          {cards.map((card) => (
+          {cards.map((card, index) => (
             <div key={card.id} className={isEditing ? "editing" : ""}>
-              <ResourceCardPanel card={card} isEditing={isEditing} readOnly={readOnly} />
+              <ResourceCardPanel
+                card={card}
+                isEditing={isEditing}
+                readOnly={readOnly}
+                colorHue={(262 + index * 67) % 360}
+              />
             </div>
           ))}
         </Responsive>

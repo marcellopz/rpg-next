@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CombatPreview } from "@/components/home/CombatPreview";
+import { HeroFeatureCarousel } from "@/components/home/HeroFeatureCarousel";
 import { HeroGridPlane } from "@/components/home/HeroGridPlane";
 import { InventoryPreview } from "@/components/home/InventoryPreview";
 import { buttonVariants } from "@/components/ui";
@@ -221,7 +222,7 @@ export default function HomePage() {
           </div>
 
           <div className="min-w-0">
-            <CombatPreview />
+            <HeroFeatureCarousel />
           </div>
         </div>
       </header>

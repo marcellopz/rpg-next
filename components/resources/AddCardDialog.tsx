@@ -5,6 +5,7 @@ import { createResourceCard } from "@/app/actions/resources";
 import { useI18n } from "@/lib/i18n/context";
 import type { InventoryCharacterOption } from "@/lib/resources/types";
 import { Button, TextField, Typography } from "@/components/ui";
+import { appendCard, tempId } from "@/lib/resources/optimistic";
 import { useResources } from "./ResourcesContext";
 
 export function AddCardDialog({
@@ -17,7 +18,7 @@ export function AddCardDialog({
   linkedCharacterIds: Set<string>;
 }) {
   const { t } = useI18n();
-  const { reconcile } = useResources();
+  const { run } = useResources();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"standalone" | "character">("standalone");
   const [name, setName] = useState("");
@@ -57,19 +58,33 @@ export function AddCardDialog({
     setError(null);
     startTransition(async () => {
       try {
-        const result = await createResourceCard(
-          mode === "character"
-            ? { campaignId, characterId }
-            : { campaignId, name }
+        const selectedCharacter = availableCharacters.find(
+          (character) => character.id === characterId
+        );
+        const pendingName =
+          mode === "character" ? selectedCharacter?.name ?? "" : name.trim();
+        const optimisticId = tempId();
+        const result = await run(
+          (dashboard) =>
+            appendCard(dashboard, {
+              id: optimisticId,
+              name: pendingName,
+              characterId: mode === "character" ? characterId : null,
+              items: [],
+            }),
+          () =>
+            createResourceCard(
+              mode === "character"
+                ? { campaignId, characterId }
+                : { campaignId, name: pendingName }
+            ),
+          { reconcile: true, silent: true }
         );
         if (!result?.ok) {
           setError(result?.error ?? t("errors.create"));
           return;
         }
         close();
-        // The server assigns the new card's grid layout, so re-read rather than
-        // guessing — one targeted query, not a full page render.
-        await reconcile();
       } catch {
         setError(t("errors.create"));
       }
@@ -102,7 +117,7 @@ export function AddCardDialog({
               {t("resources.newCard")}
             </Typography>
             <Typography variant="muted" className="mt-1">
-              Track spell slots, abilities, and other resources per character.
+              {t("resources.newCardDesc")}
             </Typography>
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
@@ -116,7 +131,7 @@ export function AddCardDialog({
                       : "text-gray-500"
                   }`}
                 >
-                  Custom name
+                  {t("resources.independentCharacter")}
                 </button>
                 <button
                   type="button"
@@ -127,7 +142,7 @@ export function AddCardDialog({
                       : "text-gray-500"
                   }`}
                 >
-                  From inventory
+                  {t("resources.fromInventory")}
                 </button>
               </div>
 
@@ -147,7 +162,7 @@ export function AddCardDialog({
                     htmlFor="resource-card-character"
                     className="mb-1 block text-sm font-medium text-gray-700"
                   >
-                    Inventory character
+                    {t("resources.inventoryCharacter")}
                   </label>
                   <select
                     id="resource-card-character"
@@ -155,8 +170,9 @@ export function AddCardDialog({
                     onChange={(e) => setCharacterId(e.target.value)}
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     required
+                    autoFocus
                   >
-                    <option value="">Select a character…</option>
+                    <option value="">{t("resources.selectCharacter")}</option>
                     {availableCharacters.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
@@ -166,13 +182,11 @@ export function AddCardDialog({
                 </div>
               ) : (
                 <Typography variant="muted">
-                  All inventory characters already have resource cards.
+                  {t("resources.allCharactersLinked")}
                 </Typography>
               )}
 
-              {error && (
-                <p className="text-sm text-red-600">{error}</p>
-              )}
+              {error && <p className="text-sm text-red-600">{error}</p>}
 
               <div className="flex justify-end gap-2 pt-1">
                 <Button

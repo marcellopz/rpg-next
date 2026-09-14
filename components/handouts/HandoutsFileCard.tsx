@@ -174,7 +174,11 @@ export function HandoutsFileCard({
             disabled={opening}
             onClick={() => void handleOpen()}
           >
-            {opening ? t("campaignSettings.saving") : isImage || isPdf ? "Open" : "Download"}
+            {opening
+              ? t("campaignSettings.saving")
+              : isImage || isPdf
+                ? t("handouts.open")
+                : t("handouts.download")}
           </Button>
           {!readOnly && isShared && (
             <Button

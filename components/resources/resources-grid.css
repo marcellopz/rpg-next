@@ -1,4 +1,21 @@
 /* Scoped RGL editing helpers for the resources dashboard */
+.resource-character-card .resource-use-tile-active {
+  border-color: hsl(var(--resource-hue) 65% 58%);
+  background-color: hsl(var(--resource-hue) 78% 84%);
+}
+
+.resource-character-card .resource-use-tile-active:hover {
+  background-color: hsl(var(--resource-hue) 78% 77%);
+}
+
+.resource-character-card .resource-use-tile-active:focus-visible {
+  --tw-ring-color: hsl(var(--resource-hue) 65% 50%);
+}
+
+.resource-character-card .resource-current-value {
+  color: hsl(var(--resource-hue) 55% 38%);
+}
+
 .resources-grid .react-grid-item.editing {
   border: 2px solid #7c3aed;
   border-radius: 8px;

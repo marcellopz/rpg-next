@@ -15,6 +15,7 @@ import { DEMO_PAGES, getDemoCampaign } from "@/data/demo-campaign";
 import type { CombatState } from "@/lib/combat/types";
 import type { Character } from "@/lib/queries/inventory";
 import type { NotePage, NoteTree, NoteTrees } from "@/lib/queries/notes";
+import type { ResourcesDashboard } from "@/lib/resources/types";
 
 export type DemoSandboxValue = {
   noteTrees: NoteTrees;
@@ -24,6 +25,8 @@ export type DemoSandboxValue = {
   removePage: (pageId: string) => void;
   characters: Character[];
   setCharacters: Dispatch<SetStateAction<Character[]>>;
+  resources: ResourcesDashboard;
+  setResources: Dispatch<SetStateAction<ResourcesDashboard>>;
   combat: CombatState;
   setCombat: Dispatch<SetStateAction<CombatState>>;
   combatIsDm: boolean;
@@ -38,6 +41,7 @@ function cloneSeed() {
     noteTrees: structuredClone(demo.noteTrees),
     pagesById: structuredClone(DEMO_PAGES),
     characters: structuredClone(demo.characters),
+    resources: structuredClone(demo.resources),
     combat: structuredClone(demo.combat),
   };
 }
@@ -49,6 +53,7 @@ export function DemoSandboxProvider({ children }: { children: ReactNode }) {
     seed.pagesById
   );
   const [characters, setCharacters] = useState<Character[]>(seed.characters);
+  const [resources, setResources] = useState<ResourcesDashboard>(seed.resources);
   const [combat, setCombat] = useState<CombatState>(seed.combat);
   const [combatIsDm, setCombatIsDm] = useState(true);
 
@@ -80,6 +85,8 @@ export function DemoSandboxProvider({ children }: { children: ReactNode }) {
       removePage,
       characters,
       setCharacters,
+      resources,
+      setResources,
       combat,
       setCombat,
       combatIsDm,
@@ -92,6 +99,7 @@ export function DemoSandboxProvider({ children }: { children: ReactNode }) {
       upsertPage,
       removePage,
       characters,
+      resources,
       combat,
       combatIsDm,
     ]
