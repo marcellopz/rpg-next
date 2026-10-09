@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import {
   createCategory,
   deleteCategory,
@@ -22,7 +22,10 @@ import { useOptimisticData } from "@/hooks/useOptimisticData";
 import { isDemoCampaignId } from "@/data/demo-campaign";
 import { useOptionalDemoSandbox } from "@/components/campaigns/DemoSandboxProvider";
 import { fetchNoteTreeClient } from "@/lib/notes/tree-client-state";
+import { createClient } from "@/lib/supabase/client";
 import * as optimistic from "@/lib/notes/optimistic";
+
+const TREE_TABLES = ["categories", "pages"] as const;
 
 export const CATEGORY_NAME_MAX = 80;
 export const PAGE_TITLE_MAX = 200;
@@ -73,6 +76,42 @@ export function useNotesSidebar({
   useEffect(() => {
     sandbox?.setNoteTree(activeTab, tree);
   }, [sandbox, activeTab, tree]);
+
+  const reconcileRef = useRef(reconcile);
+  reconcileRef.current = reconcile;
+
+  // Page text already live-syncs. This refreshes the sidebar when someone
+  // creates, renames, moves, or deletes a page or category.
+  useEffect(() => {
+    if (localOnly) return;
+    const supabase = createClient();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    function scheduleReconcile() {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void reconcileRef.current(), 200);
+    }
+
+    let channel = supabase.channel(`notes-tree:${campaignId}:${activeTab}`);
+    for (const table of TREE_TABLES) {
+      channel = channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table,
+          filter: `campaign_id=eq.${campaignId}`,
+        },
+        scheduleReconcile
+      );
+    }
+    channel.subscribe();
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      void supabase.removeChannel(channel);
+    };
+  }, [campaignId, activeTab, localOnly]);
 
   const basePath = `/campaigns/${publicCode}`;
   const tabQuery = activeTab === "personal" ? "?tab=my" : "";
@@ -125,6 +164,12 @@ export function useNotesSidebar({
     if (activeTab === "personal") params.set("tab", "my");
     params.set("page", pageId);
     return `${basePath}?${params.toString()}`;
+  }
+
+  // Opening a note only changes the query string. The default navigation
+  // scrolls the window to the top; keep the reader where they were.
+  function openPage(pageId: string) {
+    router.push(pageHref(pageId), { scroll: false });
   }
 
   function containerPages(categoryId: string | null): NotePageSummary[] {
@@ -266,7 +311,7 @@ export function useNotesSidebar({
         async () => ({ ok: true, data: { id } })
       );
       expandCategory(category.id);
-      router.push(pageHref(id));
+      openPage(id);
       return;
     }
     const result = await createPage({
@@ -281,7 +326,7 @@ export function useNotesSidebar({
     }
     expandCategory(category.id);
     // No refresh needed: pushing the new page's URL fetches a fresh render.
-    router.push(pageHref(result.data.id));
+    openPage(result.data.id);
   }
 
   function handleRenamePage(page: NotePageSummary) {
@@ -308,11 +353,55 @@ export function useNotesSidebar({
     if (page.id === selectedPageId) {
       router.push(`${basePath}${tabQuery}`);
     }
+    if (localOnly && sandbox) {
+      const existing =
+        sandbox.pagesById[page.id] ??
+        blankDemoPage(page.id, page.title, page.categoryId);
+      const category = tree.categories.find((c) => c.id === page.categoryId);
+      sandbox.archivePage({
+        id: page.id,
+        scope: activeTab,
+        title: page.title,
+        categoryId: page.categoryId,
+        categoryName: category?.name ?? null,
+        page: existing,
+        deletedAt: new Date().toISOString(),
+      });
+    }
     void run(
       (prev) => optimistic.removePage(prev, page.id),
       () => deletePage(page.id)
     );
     sandbox?.removePage(page.id);
+  }
+
+  function revealRestoredPage(page: {
+    id: string;
+    title: string;
+    categoryId: string | null;
+  }) {
+    const categoryId =
+      page.categoryId && tree.categories.some((c) => c.id === page.categoryId)
+        ? page.categoryId
+        : null;
+    if (localOnly && sandbox) {
+      const archived = sandbox.archivedPages.find((entry) => entry.id === page.id);
+      if (archived) {
+        sandbox.upsertPage({ ...archived.page, categoryId, title: page.title });
+        sandbox.forgetArchivedPage(page.id);
+      }
+    }
+    void run(
+      (prev) =>
+        optimistic.addPage(prev, {
+          id: page.id,
+          title: page.title,
+          categoryId,
+        }),
+      async () => ({ ok: true, data: undefined })
+    );
+    if (categoryId) expandCategory(categoryId);
+    router.push(pageHref(page.id));
   }
 
   function pageMenuEntries(page: NotePageSummary): MenuEntry[] {
@@ -382,7 +471,7 @@ export function useNotesSidebar({
         (prev) => optimistic.addPage(prev, { id, title, categoryId: null }),
         async () => ({ ok: true, data: { id } })
       );
-      router.push(pageHref(id));
+      openPage(id);
       return null;
     }
     const result = await createPage({
@@ -392,7 +481,7 @@ export function useNotesSidebar({
     });
     if (!result.ok) return result.error;
     // No refresh needed: pushing the new page's URL fetches a fresh render.
-    router.push(pageHref(result.data.id));
+    openPage(result.data.id);
     return null;
   }
 
@@ -415,6 +504,7 @@ export function useNotesSidebar({
     categoryMenuEntries,
     createRootCategory,
     createRootPage,
+    revealRestoredPage,
   };
 }
 

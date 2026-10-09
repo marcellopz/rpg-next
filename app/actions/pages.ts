@@ -403,6 +403,109 @@ export async function deletePage(id: string): Promise<ActionResult> {
   return { ok: true, data: undefined };
 }
 
+export type DeletedPageSummary = {
+  id: string;
+  title: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  deletedAt: string;
+};
+
+/** Soft-deleted pages for the current sidebar scope. Hidden from normal reads by RLS. */
+export async function listDeletedPages(input: {
+  campaignId: string;
+  scope: NoteScope;
+}): Promise<ActionResult<DeletedPageSummary[]>> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: "You must be signed in." };
+  if (!(await isCampaignMember(userId, input.campaignId)))
+    return { ok: false, error: "You don't have access to this campaign." };
+
+  const admin = createAdminClient();
+  const visibility = input.scope === "personal" ? "private" : "public";
+  let query = admin
+    .from("pages")
+    .select("id, title, category_id, deleted_at")
+    .eq("campaign_id", input.campaignId)
+    .eq("visibility", visibility)
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false });
+  if (visibility === "private") query = query.eq("owner_id", userId);
+
+  const { data, error } = await query;
+  if (error) return { ok: false, error: "Could not load deleted notes." };
+
+  const rows = data ?? [];
+  const categoryIds = Array.from(
+    new Set(
+      rows
+        .map((row) => row.category_id as string | null)
+        .filter((id): id is string => !!id)
+    )
+  );
+  const names = new Map<string, string>();
+  if (categoryIds.length > 0) {
+    const { data: categories } = await admin
+      .from("categories")
+      .select("id, name")
+      .in("id", categoryIds);
+    for (const category of categories ?? []) {
+      names.set(category.id, category.name);
+    }
+  }
+
+  return {
+    ok: true,
+    data: rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      categoryId: row.category_id,
+      categoryName: row.category_id ? (names.get(row.category_id) ?? null) : null,
+      deletedAt: row.deleted_at as string,
+    })),
+  };
+}
+
+/** Clear a soft delete and put the page back in its category, or at the root. */
+export async function restoreDeletedPage(
+  pageId: string
+): Promise<ActionResult<{ id: string; categoryId: string | null }>> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: "You must be signed in." };
+
+  const admin = createAdminClient();
+  const { data: page } = await admin
+    .from("pages")
+    .select("id, campaign_id, owner_id, visibility, category_id, deleted_at")
+    .eq("id", pageId)
+    .maybeSingle<PageRow & { category_id: string | null }>();
+  if (!page || !page.deleted_at)
+    return { ok: false, error: "That note is not in the deleted list." };
+  if (!(await isCampaignMember(userId, page.campaign_id)))
+    return { ok: false, error: "You don't have access to this campaign." };
+  if (page.visibility === "private" && page.owner_id !== userId)
+    return { ok: false, error: "Only the page's creator can restore it." };
+
+  let categoryId = page.category_id;
+  if (categoryId) {
+    const { data: category } = await admin
+      .from("categories")
+      .select("id")
+      .eq("id", categoryId)
+      .maybeSingle();
+    if (!category) categoryId = null;
+  }
+
+  const { error } = await admin
+    .from("pages")
+    .update({ deleted_at: null, category_id: categoryId })
+    .eq("id", pageId);
+  if (error)
+    return { ok: false, error: "Could not restore the page. Please try again." };
+
+  return { ok: true, data: { id: pageId, categoryId } };
+}
+
 // One-step undo: restore the last-known-good copy saved by the previous save.
 export async function restorePreviousContent(
   pageId: string

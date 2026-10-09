@@ -444,7 +444,7 @@ export function MapImage({
           // Fullscreen: fill the stage and center the map via flex + m-auto
           // (auto margins collapse once content overflows, so scrolling
           // still reaches the edges — plain flex centering would clip them).
-          isFullscreen ? "flex h-full" : "max-h-[75vh]"
+          isFullscreen ? "flex h-full" : "max-h-[90vh]"
         }`}
       >
         <div

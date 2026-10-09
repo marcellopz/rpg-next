@@ -4,6 +4,7 @@ import type { NoteScope } from "@/app/actions/categories";
 import type { NoteTree } from "@/lib/queries/notes";
 import { Typography } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/context";
+import { DeletedNotesButton } from "./DeletedNotesButton";
 import { NewItemForm } from "./NewItemForm";
 import { NoteCategoryGroup } from "./NoteCategoryGroup";
 import { NotePageRow } from "./NotePageRow";
@@ -99,6 +100,11 @@ export function NotesSidebar({
             placeholder="Page title"
             maxLength={PAGE_TITLE_MAX}
             onSubmit={sidebar.createRootPage}
+          />
+          <DeletedNotesButton
+            campaignId={campaignId}
+            scope={activeTab}
+            onRestored={sidebar.revealRestoredPage}
           />
         </div>
       )}

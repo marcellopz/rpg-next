@@ -23,9 +23,17 @@ export function NewItemForm({
   const [isPending, startTransition] = useTransition();
 
   function close() {
+    const top = window.scrollY;
+    const left = window.scrollX;
     setOpen(false);
     setName("");
     setError(null);
+    // Removing the focused field otherwise scrolls the window to the top.
+    requestAnimationFrame(() => {
+      if (window.scrollY !== top || window.scrollX !== left) {
+        window.scrollTo(left, top);
+      }
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {

@@ -17,12 +17,25 @@ import type { Character } from "@/lib/queries/inventory";
 import type { NotePage, NoteTree, NoteTrees } from "@/lib/queries/notes";
 import type { ResourcesDashboard } from "@/lib/resources/types";
 
+export type ArchivedDemoPage = {
+  id: string;
+  scope: NoteScope;
+  title: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  page: NotePage;
+  deletedAt: string;
+};
+
 export type DemoSandboxValue = {
   noteTrees: NoteTrees;
   setNoteTree: (scope: NoteScope, tree: NoteTree) => void;
   pagesById: Record<string, NotePage>;
   upsertPage: (page: NotePage) => void;
   removePage: (pageId: string) => void;
+  archivedPages: ArchivedDemoPage[];
+  archivePage: (entry: ArchivedDemoPage) => void;
+  forgetArchivedPage: (pageId: string) => void;
   characters: Character[];
   setCharacters: Dispatch<SetStateAction<Character[]>>;
   resources: ResourcesDashboard;
@@ -56,6 +69,7 @@ export function DemoSandboxProvider({ children }: { children: ReactNode }) {
   const [resources, setResources] = useState<ResourcesDashboard>(seed.resources);
   const [combat, setCombat] = useState<CombatState>(seed.combat);
   const [combatIsDm, setCombatIsDm] = useState(true);
+  const [archivedPages, setArchivedPages] = useState<ArchivedDemoPage[]>([]);
 
   const setNoteTree = useCallback((scope: NoteScope, tree: NoteTree) => {
     setNoteTrees((prev) =>
@@ -76,6 +90,17 @@ export function DemoSandboxProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const archivePage = useCallback((entry: ArchivedDemoPage) => {
+    setArchivedPages((prev) => [
+      entry,
+      ...prev.filter((page) => page.id !== entry.id),
+    ]);
+  }, []);
+
+  const forgetArchivedPage = useCallback((pageId: string) => {
+    setArchivedPages((prev) => prev.filter((page) => page.id !== pageId));
+  }, []);
+
   const value = useMemo(
     () => ({
       noteTrees,
@@ -83,6 +108,9 @@ export function DemoSandboxProvider({ children }: { children: ReactNode }) {
       pagesById,
       upsertPage,
       removePage,
+      archivedPages,
+      archivePage,
+      forgetArchivedPage,
       characters,
       setCharacters,
       resources,
@@ -98,6 +126,9 @@ export function DemoSandboxProvider({ children }: { children: ReactNode }) {
       pagesById,
       upsertPage,
       removePage,
+      archivedPages,
+      archivePage,
+      forgetArchivedPage,
       characters,
       resources,
       combat,
