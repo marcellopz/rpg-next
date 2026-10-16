@@ -18,22 +18,26 @@ const MAX_TILE_COUNT = 18;
 
 export function ResourceItemRow({
   item,
+  cardId,
   isEditing,
   readOnly,
   dragging,
   dropIndicator,
   onDragStart,
+  onTouchDragStart,
   onDragEnd,
   onDragOver,
   onDragLeave,
   onDrop,
 }: {
   item: ResourceItem;
+  cardId: string;
   isEditing: boolean;
   readOnly?: boolean;
   dragging?: boolean;
   dropIndicator?: boolean;
   onDragStart?: () => void;
+  onTouchDragStart?: () => void;
   onDragEnd?: () => void;
   onDragOver?: (e: DragEvent) => void;
   onDragLeave?: () => void;
@@ -101,6 +105,8 @@ export function ResourceItemRow({
   if (isEditing) {
     return (
       <div
+        data-resource-drag-id={item.id}
+        data-card-id={cardId}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
@@ -117,8 +123,9 @@ export function ResourceItemRow({
             onDragStart?.();
           }}
           onDragEnd={onDragEnd}
+          onTouchStart={onTouchDragStart}
           aria-label={`Reorder ${item.name}`}
-          className="flex shrink-0 cursor-grab items-center text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+          className="flex shrink-0 cursor-grab touch-none items-center text-gray-300 hover:text-gray-500 active:cursor-grabbing"
         >
           <GripVertical className="h-4 w-4" />
         </div>

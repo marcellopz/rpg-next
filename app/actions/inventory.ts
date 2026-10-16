@@ -60,9 +60,15 @@ async function writeLog(entry: {
   changeType: string;
   description: string;
   itemSnapshot?: Record<string, unknown> | null;
+  /** Character the change happened to (source of a transfer). */
+  characterId?: string | null;
+  /** Receiving character of a transfer. */
+  targetCharacterId?: string | null;
 }) {
   const admin = createAdminClient();
   await admin.from("inventory_log_entries").insert({
+    character_id: entry.characterId ?? null,
+    target_character_id: entry.targetCharacterId ?? null,
     campaign_id: entry.campaignId,
     actor_id: entry.actor.id,
     actor_name: entry.actor.name,
@@ -214,6 +220,7 @@ export async function createCharacter(input: {
     campaignId: input.campaignId,
     actor,
     changeType: "create_character",
+    characterId: data.id,
     description: `Added ${name} to the party`,
   });
   return { ok: true, data: { id: data.id } };
@@ -247,6 +254,7 @@ export async function renameCharacter(
     campaignId: character.campaign_id,
     actor,
     changeType: "rename_character",
+    characterId: character.id,
     description: `Renamed ${character.name} to ${trimmed}`,
   });
   return { ok: true, data: undefined };
@@ -320,6 +328,7 @@ export async function updateCharacterStat(
     campaignId: character.campaign_id,
     actor,
     changeType: `update_${field}`,
+    characterId: character.id,
     description: `Changed ${character.name}'s ${STAT_LABELS[field]} from ${previous} to ${amount}`,
   });
   return { ok: true, data: undefined };
@@ -362,6 +371,7 @@ export async function updateCharacterImage(
     campaignId: character.campaign_id,
     actor,
     changeType: "update_photo",
+    characterId: character.id,
     description: imagePath
       ? `Updated ${character.name}'s photo`
       : `Removed ${character.name}'s photo`,
@@ -477,6 +487,7 @@ export async function addItem(input: {
     campaignId: character.campaign_id,
     actor,
     changeType: "add",
+    characterId: character.id,
     description: `Added ${input.quantity} × "${name}" to ${character.name}'s inventory`,
     itemSnapshot: {
       name,
@@ -508,6 +519,7 @@ export async function deleteItem(itemId: string): Promise<ActionResult> {
     campaignId: item.campaign_id,
     actor,
     changeType: "delete",
+    characterId: item.character_id,
     description: `Removed ${item.quantity} × "${item.name}" from ${characterName}'s inventory`,
     itemSnapshot: itemSnapshot(item),
   });
@@ -578,6 +590,7 @@ export async function updateItem(
     campaignId: item.campaign_id,
     actor,
     changeType,
+    characterId: item.character_id,
     description,
   });
   return { ok: true, data: undefined };
@@ -706,6 +719,8 @@ export async function transferItem(
     campaignId: item.campaign_id,
     actor,
     changeType: "transfer",
+    characterId: item.character_id,
+    targetCharacterId: target.id,
     description: `Moved ${qty} × "${item.name}" from ${characterName} to ${target.name}`,
     itemSnapshot: itemSnapshot({ ...item, quantity: qty }),
   });

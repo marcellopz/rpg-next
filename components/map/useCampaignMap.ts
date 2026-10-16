@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { DEMO_MAP, isDemoCampaignId } from "@/data/demo-campaign";
+import { createClient } from "@/lib/supabase/client";
 import { fetchMapForCampaignClient } from "@/lib/map/client-state";
 import type { CampaignMap, MapPin } from "@/lib/map/types";
 
@@ -40,6 +41,52 @@ export function useCampaignMap(campaignId: string) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // Live updates: re-read the map when anyone uploads/replaces the image or
+  // adds, moves, edits, or deletes a pin. Pins are keyed by map_id, so the
+  // pin subscription starts once a map exists.
+  const mapId = map?.id ?? null;
+  useEffect(() => {
+    if (isDemoCampaignId(campaignId)) return;
+    const supabase = createClient();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    function scheduleRefresh() {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void refresh({ background: true }), 200);
+    }
+
+    let channel = supabase
+      .channel(`map:${campaignId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "campaign_maps",
+          filter: `campaign_id=eq.${campaignId}`,
+        },
+        scheduleRefresh
+      );
+    if (mapId) {
+      channel = channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "map_pins",
+          filter: `map_id=eq.${mapId}`,
+        },
+        scheduleRefresh
+      );
+    }
+    channel.subscribe();
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      void supabase.removeChannel(channel);
+    };
+  }, [campaignId, mapId, refresh]);
 
   /** Paint a new pin before/as the server confirms. */
   const addPinLocally = useCallback((pin: MapPin) => {

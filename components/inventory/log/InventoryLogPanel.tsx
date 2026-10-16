@@ -31,9 +31,12 @@ function snapshotSummary(snapshot: Record<string, unknown>): string {
 // Modal listing the campaign's inventory change history, newest first.
 export function InventoryLogPanel({
   entries,
+  title,
   onClose,
 }: {
   entries: InventoryLogEntry[];
+  /** Overrides the default campaign-wide title (e.g. a character's log). */
+  title?: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -61,7 +64,7 @@ export function InventoryLogPanel({
       >
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <Typography variant="h3" as="h2" id="inventory-log-title">
-            {t("inventory.logTitle")}
+            {title ?? t("inventory.logTitle")}
           </Typography>
           <Button type="button" variant="secondary" size="sm" onClick={onClose}>
             {t("buttons.close")}

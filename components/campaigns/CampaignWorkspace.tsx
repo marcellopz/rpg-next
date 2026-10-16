@@ -223,7 +223,7 @@ function CampaignWorkspaceBody({
           className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm"
         >
           <div
-            className="relative bg-accent-800 px-6 py-8 text-white md:px-8"
+            className="relative bg-accent-800 px-6 py-8 text-white md:min-h-[13rem] md:px-8 md:py-12"
             style={imageUrl ? undefined : accentHatchStyle}
           >
             {imageUrl && (
@@ -236,9 +236,9 @@ function CampaignWorkspaceBody({
                   priority
                   className="object-cover"
                 />
-                {/* Darkening overlay keeps the white header text legible. */}
+                {/* Light darkening overlay keeps the white header text legible. */}
                 <div
-                  className="absolute inset-0 bg-black/55"
+                  className="absolute inset-0 bg-black/30"
                   aria-hidden="true"
                 />
               </>

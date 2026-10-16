@@ -18,8 +18,8 @@ import { carryWeight } from "../encumbrance";
 import { InlineEdit } from "../InlineEdit";
 import { useInventory } from "../InventoryContext";
 import { ItemsTable } from "../items/ItemsTable";
-import { cn } from "@/lib/cn";
 import { CharacterAvatar } from "./CharacterAvatar";
+import { CoinEditPopover } from "./CoinEditPopover";
 import { EncumbranceBar } from "./EncumbranceBar";
 
 const COIN_FIELDS: {
@@ -122,10 +122,24 @@ export function CharacterPanel({
         </div>
 
         {/* Name - row 1, col 2 */}
-        <div className="col-start-2 row-start-1 min-w-0 lg:col-start-2">
+        <div className="col-start-2 row-start-1 flex min-w-0 items-center gap-3 lg:col-start-2">
           <h2 className="min-w-0 truncate text-base font-semibold text-gray-900">
             {character.name}
           </h2>
+          <div className="flex shrink-0 items-center gap-0.5 text-xs">
+            <span className="font-semibold uppercase tracking-wide text-gray-400">
+              STR
+            </span>
+            <InlineEdit
+              value={String(character.strength)}
+              ariaLabel={`${character.name}'s strength`}
+              type="number"
+              displayClassName={COMPACT_EDIT}
+              inputClassName="text-xs"
+              readOnly={readOnly}
+              onCommit={(v) => commitStat("strength", v)}
+            />
+          </div>
         </div>
 
         {/* History button - row 1, col 3 on mobile, row 1 col 4 on desktop */}
@@ -141,41 +155,17 @@ export function CharacterPanel({
           </Tooltip>
         </div>
 
-        {/* Stats row: STR and coins - row 2, col 2-3 on mobile, row 1 col 3 on desktop */}
+        {/* Coins - row 2, col 2-3 on mobile, row 1 col 3 on desktop */}
         <div className="col-start-2 col-span-2 row-start-2 flex flex-wrap items-center justify-between text-xs sm:gap-3 lg:col-start-3 lg:col-span-1 lg:row-start-1 lg:justify-start lg:gap-1">
-          <div className="flex items-center gap-0.5">
-            <span className="font-semibold uppercase tracking-wide text-gray-400">
-              STR
-            </span>
-            <InlineEdit
-              value={String(character.strength)}
-              ariaLabel={`${character.name}'s strength`}
-              type="number"
-              displayClassName={COMPACT_EDIT}
-              inputClassName="text-xs"
-              readOnly={readOnly}
-              onCommit={(v) => commitStat("strength", v)}
-            />
-          </div>
           {COIN_FIELDS.map(({ field, label, dot }) => (
-            <div key={field} className="flex items-center gap-0.5">
-              <span className="flex items-center gap-0.5 font-semibold uppercase tracking-wide text-gray-400">
-                <span
-                  className={cn("h-2 w-2 shrink-0 rounded-full", dot)}
-                  aria-hidden="true"
-                />
-                {label}
-              </span>
-              <InlineEdit
-                value={String(character[field])}
-                ariaLabel={`${character.name}'s ${field}`}
-                type="number"
-                displayClassName={COMPACT_EDIT}
-                inputClassName="text-xs"
-                readOnly={readOnly}
-                onCommit={(v) => commitStat(field, v)}
-              />
-            </div>
+            <CoinEditPopover
+              key={field}
+              value={character[field]}
+              label={label}
+              dotClassName={dot}
+              readOnly={readOnly}
+              onCommit={(value) => commitStat(field, String(value))}
+            />
           ))}
         </div>
 

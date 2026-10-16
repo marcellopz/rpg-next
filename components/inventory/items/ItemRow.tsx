@@ -110,6 +110,7 @@ export function ItemRow({
           ariaLabel={item.name}
           displayClassName={textClass}
           readOnly={readOnly}
+          expanded
           onCommit={(v) => onEdit("name", v)}
         />
       </div>

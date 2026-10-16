@@ -90,13 +90,23 @@ export async function fetchInventoryCharactersClient(
  */
 export async function fetchInventoryLogClient(
   campaignId: string,
-  limit = 100
+  limit = 100,
+  characterId?: string
 ): Promise<InventoryLogEntry[]> {
   const supabase = createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("inventory_log_entries")
-    .select("id, actor_name, change_type, description, item_snapshot, created_at")
-    .eq("campaign_id", campaignId)
+    .select(
+      "id, actor_name, change_type, description, item_snapshot, character_id, target_character_id, created_at"
+    )
+    .eq("campaign_id", campaignId);
+  // A character's own log: changes to them, plus transfers they received.
+  if (characterId) {
+    query = query.or(
+      `character_id.eq.${characterId},target_character_id.eq.${characterId}`
+    );
+  }
+  const { data } = await query
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -106,6 +116,8 @@ export async function fetchInventoryLogClient(
     changeType: row.change_type,
     description: row.description,
     itemSnapshot: (row.item_snapshot as Record<string, unknown> | null) ?? null,
+    characterId: row.character_id ?? null,
+    targetCharacterId: row.target_character_id ?? null,
     createdAt: row.created_at,
   }));
 }

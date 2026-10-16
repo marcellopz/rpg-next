@@ -107,6 +107,10 @@ export type InventoryLogEntry = {
   changeType: string;
   description: string;
   itemSnapshot: Record<string, unknown> | null;
+  /** Character the change concerns; null for old or deleted-character entries. */
+  characterId: string | null;
+  /** Receiving character of a transfer. */
+  targetCharacterId: string | null;
   createdAt: string;
 };
 
@@ -118,7 +122,9 @@ export async function getInventoryLog(
   const supabase = createServerClient();
   const { data } = await supabase
     .from("inventory_log_entries")
-    .select("id, actor_name, change_type, description, item_snapshot, created_at")
+    .select(
+      "id, actor_name, change_type, description, item_snapshot, character_id, target_character_id, created_at"
+    )
     .eq("campaign_id", campaignId)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -129,6 +135,8 @@ export async function getInventoryLog(
     changeType: row.change_type,
     description: row.description,
     itemSnapshot: (row.item_snapshot as Record<string, unknown> | null) ?? null,
+    characterId: row.character_id ?? null,
+    targetCharacterId: row.target_character_id ?? null,
     createdAt: row.created_at,
   }));
 }

@@ -7,7 +7,8 @@ import {
   renameCharacter,
   reorderCharacters,
 } from "@/app/actions/inventory";
-import { Typography, type MenuEntry } from "@/components/ui";
+import { History } from "lucide-react";
+import { Button, Typography, type MenuEntry } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/cn";
 import type { Character } from "@/lib/queries/inventory";
@@ -22,9 +23,11 @@ import { CharacterRow } from "./CharacterRow";
 export function CharacterSidebar({
   selectedCharacterId,
   characterHref,
+  onViewAllLogs,
 }: {
   selectedCharacterId: string | null;
   characterHref: (characterId: string) => string;
+  onViewAllLogs: () => void;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -163,14 +166,18 @@ export function CharacterSidebar({
         )}
       </div>
 
-      {!readOnly && (
-        <div id="inventory-sidebar-actions" className="mt-5">
+      <div id="inventory-sidebar-actions" className="mt-5 grid gap-2">
+        <Button type="button" variant="secondary" size="sm" fullWidth onClick={onViewAllLogs}>
+          <History className="h-4 w-4" aria-hidden="true" />
+          {t("inventory.viewAllLogs")}
+        </Button>
+        {!readOnly && (
           <AddCharacterDialog
             campaignId={campaignId}
             characterHref={characterHref}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

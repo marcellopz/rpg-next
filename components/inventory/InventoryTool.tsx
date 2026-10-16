@@ -54,8 +54,10 @@ function InventoryToolBody({
 }) {
   const { t } = useI18n();
   const { campaignId, characters, readOnly, changeToken } = useInventory();
-  const [logOpen, setLogOpen] = useState(false);
+  // null = closed; "all" = campaign-wide log; otherwise one character's id.
+  const [logScope, setLogScope] = useState<string | null>(null);
   const [log, setLog] = useState(initialLog);
+  const logOpen = logScope !== null;
 
   // Read the log only while the panel is open — it is the one piece of
   // inventory state the client can't derive from its own mutations (server
@@ -63,13 +65,14 @@ function InventoryToolBody({
   useEffect(() => {
     if (!logOpen || readOnly || isDemoCampaignId(campaignId)) return;
     let cancelled = false;
-    void fetchInventoryLogClient(campaignId).then((entries) => {
+    const characterId = logScope && logScope !== "all" ? logScope : undefined;
+    void fetchInventoryLogClient(campaignId, 100, characterId).then((entries) => {
       if (!cancelled) setLog(entries);
     });
     return () => {
       cancelled = true;
     };
-  }, [logOpen, campaignId, readOnly, changeToken]);
+  }, [logOpen, logScope, campaignId, readOnly, changeToken]);
 
   function characterHref(characterId: string) {
     const params = new URLSearchParams({ tool: "inventory" });
@@ -84,6 +87,20 @@ function InventoryToolBody({
     characters[0] ??
     null;
 
+  const scopedCharacter =
+    logScope && logScope !== "all"
+      ? (characters.find((c) => c.id === logScope) ?? null)
+      : null;
+  // Filter locally too: the panel opens with the campaign-wide rows already in
+  // state (and the demo never refetches), before the scoped fetch lands.
+  const visibleLog = scopedCharacter
+    ? log.filter(
+        (entry) =>
+          entry.characterId === scopedCharacter.id ||
+          entry.targetCharacterId === scopedCharacter.id
+      )
+    : log;
+
   return (
     <div className="grid lg:grid-cols-[17rem_minmax(0,1fr)]">
       <aside
@@ -93,6 +110,7 @@ function InventoryToolBody({
         <CharacterSidebar
           selectedCharacterId={selected?.id ?? null}
           characterHref={characterHref}
+          onViewAllLogs={() => setLogScope("all")}
         />
       </aside>
 
@@ -100,7 +118,7 @@ function InventoryToolBody({
         {selected ? (
           <CharacterPanel
             character={selected}
-            onViewLog={() => setLogOpen(true)}
+            onViewLog={() => setLogScope(selected.id)}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center p-8 text-center">
@@ -120,7 +138,7 @@ function InventoryToolBody({
                 variant="ghost"
                 size="sm"
                 className="mt-4"
-                onClick={() => setLogOpen(true)}
+                onClick={() => setLogScope("all")}
               >
                 {t("inventory.viewLog")}
               </Button>
@@ -129,8 +147,16 @@ function InventoryToolBody({
         )}
       </main>
 
-      {logOpen && (
-        <InventoryLogPanel entries={log} onClose={() => setLogOpen(false)} />
+      {logScope !== null && (
+        <InventoryLogPanel
+          entries={visibleLog}
+          title={
+            scopedCharacter
+              ? t("inventory.characterLogTitle", { name: scopedCharacter.name })
+              : undefined
+          }
+          onClose={() => setLogScope(null)}
+        />
       )}
     </div>
   );

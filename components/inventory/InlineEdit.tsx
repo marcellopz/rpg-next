@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 // Click-to-edit field: renders the value as a button; clicking swaps in an
@@ -12,6 +13,7 @@ export function InlineEdit({
   displayClassName,
   inputClassName,
   readOnly,
+  expanded,
   onCommit,
 }: {
   value: string;
@@ -20,6 +22,8 @@ export function InlineEdit({
   displayClassName?: string;
   inputClassName?: string;
   readOnly?: boolean;
+  /** Fill the parent width with a taller input and a confirm (check) button. */
+  expanded?: boolean;
   onCommit: (next: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
@@ -77,7 +81,9 @@ export function InlineEdit({
   }
 
   return (
-    <div className="flex items-center">
+    <div
+      className={cn("flex", expanded ? "w-full items-stretch gap-1" : "items-center")}
+    >
     <input
       ref={inputRef}
       type={type}
@@ -98,10 +104,26 @@ export function InlineEdit({
       }}
       onBlur={() => void commit()}
       className={cn(
-        "w-fit max-w-[4rem] rounded border border-accent-400 bg-white px-1 py-0 text-inherit focus:outline-none disabled:opacity-50",
+        "rounded border border-accent-400 bg-white text-inherit focus:outline-none disabled:opacity-50",
+          expanded
+            ? "min-w-0 flex-1 px-2 py-0.5"
+            : "w-fit max-w-[4rem] px-1 py-0",
           inputClassName
         )}
       />
+      {expanded && (
+        <button
+          type="button"
+          aria-label="Confirm"
+          disabled={busy}
+          // Keep focus in the input so blur doesn't commit before the click.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => void commit()}
+          className="flex shrink-0 items-center justify-center rounded bg-accent-600 px-1 text-white hover:bg-accent-700 disabled:opacity-50"
+        >
+          <Check className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

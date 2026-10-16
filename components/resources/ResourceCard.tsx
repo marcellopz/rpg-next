@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties, type DragEvent } from "react";
+import { useEffect, useState, type CSSProperties, type DragEvent } from "react";
 import { GripVertical, Trash2 } from "lucide-react";
 import {
   deleteResourceCard,
@@ -49,11 +49,9 @@ export function ResourceCardPanel({
     setDropId(targetId);
   }
 
-  function handleDrop(e: DragEvent, targetId: string | "end") {
-    e.preventDefault();
-    const sourceId = dragId;
-    clearDrag();
-    if (!sourceId || sourceId === targetId) return;
+  // Shared by the desktop (native HTML5 DnD) and touch paths.
+  function commitReorder(sourceId: string, targetId: string | "end") {
+    if (sourceId === targetId) return;
 
     const ids = card.items.map((i) => i.id).filter((id) => id !== sourceId);
     if (targetId === "end") {
@@ -69,6 +67,55 @@ export function ResourceCardPanel({
       () => reorderResourceItems({ cardId: card.id, orderedIds: ids })
     );
   }
+
+  function handleDrop(e: DragEvent, targetId: string | "end") {
+    e.preventDefault();
+    const sourceId = dragId;
+    clearDrag();
+    if (sourceId) commitReorder(sourceId, targetId);
+  }
+
+  // Touch has no native drag-and-drop: once the grip's onTouchStart sets
+  // dragId, track the finger globally and hit-test the row under it. Attached
+  // natively (non-passive) so preventDefault can stop the page from scrolling.
+  useEffect(() => {
+    if (!dragId) return;
+
+    function targetIdAt(x: number, y: number): string | "end" | null {
+      const row = document
+        .elementFromPoint(x, y)
+        ?.closest(`[data-resource-drag-id][data-card-id="${card.id}"]`) as
+        | HTMLElement
+        | null;
+      return (row?.dataset.resourceDragId as string | undefined) ?? null;
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+      const touch = e.touches[0];
+      if (!touch) return;
+      e.preventDefault();
+      const targetId = targetIdAt(touch.clientX, touch.clientY);
+      if (targetId && targetId !== dragId) setDropId(targetId);
+    }
+
+    function handleTouchEnd(e: TouchEvent) {
+      const touch = e.changedTouches[0];
+      const targetId = touch ? targetIdAt(touch.clientX, touch.clientY) : null;
+      const sourceId = dragId;
+      clearDrag();
+      if (sourceId && targetId) commitReorder(sourceId, targetId);
+    }
+
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd);
+    document.addEventListener("touchcancel", clearDrag);
+    return () => {
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchcancel", clearDrag);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragId]);
 
   function handleRename() {
     const trimmed = name.trim();
@@ -140,11 +187,13 @@ export function ResourceCardPanel({
           <ResourceItemRow
             key={item.id}
             item={item}
+            cardId={card.id}
             isEditing={isEditing}
             readOnly={readOnly}
             dragging={dragId === item.id}
             dropIndicator={dropId === item.id}
             onDragStart={() => setDragId(item.id)}
+            onTouchDragStart={() => setDragId(item.id)}
             onDragEnd={clearDrag}
             onDragOver={(e) => handleDragOver(e, item.id)}
             onDragLeave={() =>
@@ -156,6 +205,8 @@ export function ResourceCardPanel({
 
         {isEditing && dragId && (
           <div
+            data-resource-drag-id="end"
+            data-card-id={card.id}
             onDragOver={(e) => handleDragOver(e, "end")}
             onDragLeave={() =>
               setDropId((prev) => (prev === "end" ? null : prev))
